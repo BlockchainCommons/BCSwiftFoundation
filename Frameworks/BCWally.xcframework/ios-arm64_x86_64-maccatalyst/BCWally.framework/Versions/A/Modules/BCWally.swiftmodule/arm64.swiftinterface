@@ -1,0 +1,145 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.5.1 (swiftlang-1300.0.31.4 clang-1300.0.29.6)
+// swift-module-flags: -target arm64-apple-ios14.2-macabi -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -Onone -module-name BCWally
+@_exported import BCWally
+import Foundation
+import Swift
+import _Concurrency
+extension BCWally.Wally {
+  public static func hash160(_ data: Foundation.Data) -> Foundation.Data
+  public static func hash160<T>(_ input: T) -> Foundation.Data
+}
+extension Foundation.Data {
+  public var hash160: Foundation.Data {
+    get
+  }
+}
+@frozen public enum Network : Swift.UInt32, Swift.CaseIterable, Swift.Equatable {
+  case mainnet
+  case testnet
+  public init?(rawValue: Swift.UInt32)
+  public typealias AllCases = [BCWally.Network]
+  public typealias RawValue = Swift.UInt32
+  public static var allCases: [BCWally.Network] {
+    get
+  }
+  public var rawValue: Swift.UInt32 {
+    get
+  }
+}
+extension BCWally.Network {
+  public var wifPrefix: Swift.UInt32 {
+    get
+  }
+  public static func network(forWIFPrefix prefix: Swift.UInt8) -> BCWally.Network?
+}
+extension BCWally.Network {
+  public var wallyNetwork: Swift.UInt32 {
+    get
+  }
+}
+extension BCWally.Network {
+  public func wallyBIP32Version(isPrivate: Swift.Bool) -> Swift.UInt32
+}
+extension BCWally.Network {
+  public var segwitFamily: Swift.String {
+    get
+  }
+}
+extension BCWally.Wally {
+  public static func encodeWIF(key: Foundation.Data, network: BCWally.Network, isPublicKeyCompressed: Swift.Bool) -> Swift.String
+}
+extension BCWally.Wally {
+  public static func ecPublicKeyFromPrivateKey(data: Foundation.Data) -> Foundation.Data
+  public static func ecPublicKeyDecompress(data: Foundation.Data) -> Foundation.Data
+  public static func ecPublicKeyCompress(data: Foundation.Data) -> Foundation.Data
+}
+extension BCWally.Wally {
+  public static func ecPrivateKeyVerify(_ privKey: Foundation.Data) -> Swift.Bool
+  public static func ecSigFromBytes(privKey: Foundation.Data, messageHash: Foundation.Data) -> Foundation.Data
+  public static func ecSigVerify(key: BCWally.WallyExtKey, messageHash: Foundation.Data, compactSig: Foundation.Data) -> Swift.Bool
+  public static func ecSigNormalize(compactSig: Foundation.Data) -> Foundation.Data
+  public static func ecSigToDer(sigNorm: Foundation.Data) -> Foundation.Data
+}
+extension BCWally.Wally {
+  public static func address(from script: Foundation.Data, network: BCWally.Network) -> Swift.String
+  public static func segwitAddress(from script: Foundation.Data, network: BCWally.Network) -> Swift.String
+}
+extension BCWally.Wally {
+  public static func bip39Encode(data: Foundation.Data) -> Swift.String
+  public static func bip39Decode(mnemonic: Swift.String) -> Foundation.Data?
+  public static func bip39AllWords() -> [Swift.String]
+}
+extension BCWally.Wally {
+  public static func getScriptType(from script: Foundation.Data) -> Swift.Int
+  public static func multisigScriptPubKey(pubKeys: [Foundation.Data], threshold: Swift.UInt, isBIP67: Swift.Bool = true) -> Foundation.Data
+  public static func witnessProgram(from script: Foundation.Data) -> Foundation.Data
+  public static func addressToScript(address: Swift.String, network: BCWally.Network) -> Foundation.Data?
+  public static func segwitAddressToScript(address: Swift.String, network: BCWally.Network) -> Foundation.Data?
+}
+extension BCWally.Wally {
+  public static func base58(from key: BCWally.WallyExtKey, isPrivate: Swift.Bool) -> Swift.String?
+  public static func base58(data: Foundation.Data, isCheck: Swift.Bool) -> Swift.String
+  public static func decodeBase58(_ s: Swift.String, isCheck: Swift.Bool) -> Foundation.Data?
+}
+extension BCWally.Wally {
+  public static func key(from parentKey: BCWally.WallyExtKey, childNum: Swift.UInt32, isPrivate: Swift.Bool) -> BCWally.WallyExtKey?
+  public static func fingerprintData(for key: BCWally.WallyExtKey) -> Foundation.Data
+  public static func fingerprint(for key: BCWally.WallyExtKey) -> Swift.UInt32
+  public static func updateHash160(in key: inout BCWally.WallyExtKey)
+  public static func updatePublicKey(in key: inout BCWally.WallyExtKey)
+}
+extension BCWally.Wally {
+  public static func hdKey(bip39Seed: Foundation.Data, network: BCWally.Network) -> BCWally.WallyExtKey?
+  public static func hdKey(fromBase58 base58: Swift.String) -> BCWally.WallyExtKey?
+}
+extension BCWally.ext_key : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+  public var isPrivate: Swift.Bool {
+    get
+  }
+  public var isMaster: Swift.Bool {
+    get
+  }
+  public static func version_is_valid(ver: Swift.UInt32, flags: Swift.UInt32) -> Swift.Bool
+  public func checkValid()
+  public var network: BCWally.Network? {
+    get
+  }
+}
+extension BCWally.Wally {
+  public static func psbt(from data: Foundation.Data) -> BCWally.WallyPSBT?
+  public static func free(psbt: BCWally.WallyPSBT)
+  public static func clone(psbt: BCWally.WallyPSBT) -> BCWally.WallyPSBT
+  public static func isFinalized(psbt: BCWally.WallyPSBT) -> Swift.Bool
+  public static func finalized(psbt: BCWally.WallyPSBT) -> BCWally.WallyPSBT?
+  public static func finalizedPSBT(psbt: BCWally.WallyPSBT) -> BCWally.WallyTx?
+  public static func getLength(psbt: BCWally.WallyPSBT) -> Swift.Int
+  public static func serialized(psbt: BCWally.WallyPSBT) -> Foundation.Data
+  public static func signed(psbt: BCWally.WallyPSBT, ecPrivateKey: Foundation.Data) -> BCWally.WallyPSBT?
+}
+public typealias WallyTx = Swift.UnsafeMutablePointer<BCWally.wally_tx>
+public typealias WallyTxInput = Swift.UnsafeMutablePointer<BCWally.wally_tx_input>
+public typealias WallyTxOutput = Swift.UnsafeMutablePointer<BCWally.wally_tx_output>
+public typealias WallyExtKey = BCWally.ext_key
+public typealias WallyPSBT = Swift.UnsafeMutablePointer<BCWally.wally_psbt>
+public typealias WallyPSBTInput = BCWally.wally_psbt_input
+public typealias WallyPSBTOutput = BCWally.wally_psbt_output
+public enum Wally {
+  public static func initialize()
+}
+extension BCWally.Wally {
+  public static func txFree(_ tx: BCWally.WallyTx)
+}
+extension BCWally.Wally {
+  public static func txFromBytes(_ data: Foundation.Data) -> BCWally.WallyTx?
+  public static func txSetInputScript(tx: BCWally.WallyTx, index: Swift.Int, script: Foundation.Data)
+  public static func txAddInput(tx: BCWally.WallyTx, input: BCWally.WallyTxInput)
+  public static func txAddOutput(tx: BCWally.WallyTx, output: BCWally.WallyTxOutput)
+  public static func txToHex(tx: BCWally.WallyTx) -> Swift.String
+  public static func txGetTotalOutputSatoshi(tx: BCWally.WallyTx) -> Swift.UInt64
+  public static func txGetVsize(tx: BCWally.WallyTx) -> Swift.Int
+  public static func txGetBTCSignatureHash(tx: BCWally.WallyTx, index: Swift.Int, script: Foundation.Data, amount: Swift.UInt64, isWitness: Swift.Bool) -> Foundation.Data
+}

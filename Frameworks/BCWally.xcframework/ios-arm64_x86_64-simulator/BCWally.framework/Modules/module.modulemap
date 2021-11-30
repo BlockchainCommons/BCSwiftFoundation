@@ -1,0 +1,12 @@
+framework module BCWally {
+  umbrella header "BCWally.h"
+
+  export *
+  module * { export * }
+
+}
+
+module BCWally.Swift {
+    header "BCWally-Swift.h"
+    requires objc
+}
