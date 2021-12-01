@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import BCWally
+@_exported import BCWally
 
 extension Network: Identifiable {
     public var id: String {

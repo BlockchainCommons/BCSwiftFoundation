@@ -8,7 +8,6 @@
 
 import XCTest
 @testable import BCFoundation
-import BCWally
 import WolfBase
 
 class PSBTTests: XCTestCase {

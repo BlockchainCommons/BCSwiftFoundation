@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import BCWally
+@_exported import BCWally
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-007-hdkey.md#cddl-for-coin-info
 public struct UseInfo: Equatable {

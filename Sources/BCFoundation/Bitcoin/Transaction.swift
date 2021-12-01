@@ -8,7 +8,7 @@
 
 import Foundation
 import WolfBase
-import BCWally
+@_exported import BCWally
 
 public struct Transaction {
     public let inputs: [TxInput]?

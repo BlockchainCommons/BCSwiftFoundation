@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import BCWally
+@_exported import BCWally
 
 public protocol ECKey {
     static var keyLen: Int { get }

@@ -7,7 +7,7 @@
 
 import Foundation
 import WolfBase
-import BCWally
+@_exported import BCWally
 
 public struct PSBTInput {
     public let origins: [PSBTSigningOrigin]

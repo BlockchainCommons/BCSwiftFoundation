@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import BCWally
+@_exported import BCWally
 
 public struct TxInput {
     public let prevTx: TxHash

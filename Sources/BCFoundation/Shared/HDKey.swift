@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 import CryptoSwift
-import BCWally
+@_exported import BCWally
 
 open class HDKey {
     public let isMaster: Bool

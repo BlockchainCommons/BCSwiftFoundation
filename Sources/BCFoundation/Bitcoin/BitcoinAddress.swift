@@ -7,7 +7,7 @@
 //  license, see the accompanying file LICENSE.md
 
 import Foundation
-import BCWally
+@_exported import BCWally
 
 extension Bitcoin {
     open class Address: AddressProtocol {

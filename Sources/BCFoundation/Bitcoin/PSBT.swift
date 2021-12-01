@@ -7,7 +7,7 @@
 //  license, see the accompanying file LICENSE.md
 
 import Foundation
-import BCWally
+@_exported import BCWally
 public struct PSBT : Equatable {
     public let inputs: [PSBTInput]
     public let outputs: [PSBTOutput]
