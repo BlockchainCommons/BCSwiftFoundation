@@ -1,4 +1,4 @@
-# BCFoundation
+# BCSwiftFoundation
 
 A collection of useful primitives for cryptocurrency wallets.
 
@@ -8,7 +8,7 @@ Supports particular enhancements used by Blockchain Commons from our fork of lib
 
 # Dependencies
 
-Depends on [BCWally](https://github.com/BlockchainCommons/BCWally), which is a thin wrapper around LibWally that has a new build system for building a universal XCFramework for use with MacOSX, Mac Catalyst, iOS devices, and the iOS simulator across Intel and Apple Silicon (ARM).
+Depends on [BCSwiftWally](https://github.com/BlockchainCommons/BCSwiftWally), which is a thin wrapper around LibWally that has a new build system for building a universal XCFramework for use with MacOSX, Mac Catalyst, iOS devices, and the iOS simulator across Intel and Apple Silicon (ARM).
 
 # Building
 
