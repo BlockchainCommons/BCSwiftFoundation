@@ -28,7 +28,7 @@ public func deterministicRandom(entropy: Data, count: Int) -> Data {
 }
 
 fileprivate func hmacSHA256(key: Data, message: Data) -> Data {
-    return try! Data(HMAC(key: key.bytes, variant: .sha256).authenticate(message.bytes))
+    return try! Data(HMAC(key: key.bytes, variant: .sha2(.sha256)).authenticate(message.bytes))
 }
 
 fileprivate func hkdfSHA256(salt s: Data = .init(), input k: Data, info: Data = .init(), count: Int) -> Data {
