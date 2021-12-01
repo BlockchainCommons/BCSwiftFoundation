@@ -7,6 +7,7 @@
 
 import Foundation
 @_exported import BCWally
+@_exported import URKit
 
 extension Network: Identifiable {
     public var id: String {
@@ -22,5 +23,24 @@ extension Network: CustomStringConvertible {
         case .testnet:
             return "test"
         }
+    }
+}
+
+extension Network {
+    public enum Error: Swift.Error {
+        case invalidNetwork
+    }
+    
+    public var cbor: CBOR {
+        CBOR.unsignedInt(UInt64(rawValue))
+    }
+    
+    public init(cbor: CBOR) throws {
+        guard
+            case let CBOR.unsignedInt(r) = cbor,
+            let a = Network(rawValue: UInt32(r)) else {
+                throw Error.invalidNetwork
+        }
+        self = a
     }
 }

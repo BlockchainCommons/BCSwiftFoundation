@@ -8,6 +8,8 @@
 
 import Foundation
 @_exported import BCWally
+@_exported import URKit
+
 public struct PSBT : Equatable {
     public let inputs: [PSBTInput]
     public let outputs: [PSBTOutput]
@@ -256,5 +258,80 @@ extension PSBT {
                 }
             }
         }.count
+    }
+}
+
+extension PSBT {
+    public enum Error: Swift.Error {
+        case unexpectedURType
+        case invalidFormat
+    }
+    
+    public init(ur: UR) throws {
+        guard ur.type == "crypto-psbt" else {
+            throw Error.unexpectedURType
+        }
+        guard let cbor = try CBOR.decode(ur.cbor.bytes) else {
+            throw Error.invalidFormat
+        }
+        try self.init(cbor: cbor)
+    }
+    
+    public init(urString: String) throws {
+        try self.init(ur: URDecoder.decode(urString))
+    }
+    
+    public init(parse string: String) throws {
+        if let a = PSBT(base64: string) {
+            self = a
+            return
+        }
+        
+        if let a = PSBT(hex: string) {
+            self = a
+            return
+        }
+
+        do {
+            try self.init(urString: string)
+        } catch { }
+
+        throw Error.invalidFormat
+    }
+    
+    public var ur: UR {
+        try! UR(type: "crypto-psbt", cbor: cbor)
+    }
+    
+    public var urString: String {
+        ur.string
+    }
+    
+    public var cbor: CBOR {
+        CBOR.byteString(data.bytes)
+    }
+
+    public var taggedCBOR: CBOR {
+        return CBOR.tagged(.psbt, cbor)
+    }
+    
+    public init(cbor: CBOR) throws {
+        guard
+            case let CBOR.byteString(bytes) = cbor
+        else {
+            throw Error.invalidFormat
+        }
+        let data = Data(bytes)
+        guard let psbt = PSBT(data) else {
+            throw Error.invalidFormat
+        }
+        self = psbt
+    }
+    
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(.psbt, cbor) = taggedCBOR else {
+            throw Error.invalidFormat
+        }
+        try self.init(cbor: cbor)
     }
 }

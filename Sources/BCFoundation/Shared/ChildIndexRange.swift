@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_exported import URKit
 
 public struct ChildIndexRange: Equatable {
     public let low: ChildIndex
@@ -37,5 +38,39 @@ extension ChildIndexRange {
             return nil
         }
         return ChildIndexRange(low: low, high: high)
+    }
+}
+
+extension ChildIndexRange {
+    public var cbor: CBOR {
+        CBOR.array([
+            CBOR.unsignedInt(UInt64(low.value)),
+            CBOR.unsignedInt(UInt64(high.value))
+        ])
+    }
+    
+    public init?(cbor: CBOR) {
+        guard case let CBOR.array(array) = cbor else {
+            return nil
+        }
+        guard array.count == 2 else {
+            return nil
+        }
+        guard
+            case let CBOR.unsignedInt(low) = array[0],
+            case let CBOR.unsignedInt(high) = array[1]
+        else {
+            return nil
+        }
+        guard
+            let low = ChildIndex(UInt32(low)),
+            let high = ChildIndex(UInt32(high))
+        else {
+            return nil
+        }
+        self.init(
+            low: low,
+            high: high
+        )
     }
 }

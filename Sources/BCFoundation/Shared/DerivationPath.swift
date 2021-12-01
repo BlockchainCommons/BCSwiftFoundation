@@ -7,6 +7,7 @@
 
 import Foundation
 import WolfBase
+@_exported import URKit
 
 public struct DerivationPath : Equatable {
     public var origin: Origin?
@@ -231,5 +232,94 @@ extension DerivationPath: CustomStringConvertible {
 extension DerivationPath {
     public static func + (lhs: DerivationPath, rhs: DerivationPath) -> DerivationPath {
         DerivationPath(steps: lhs.steps + rhs.steps, origin: lhs.origin)
+    }
+}
+
+extension DerivationPath {
+    public var cbor: CBOR {
+        var a: [OrderedMapEntry] = [
+            .init(key: 1, value: CBOR.array(steps.flatMap { $0.array } ))
+        ]
+        
+        if case let .fingerprint(sourceFingerprint) = origin {
+            a.append(.init(key: 2, value: CBOR.unsignedInt(UInt64(sourceFingerprint))))
+        }
+        
+        if let depth = depth {
+            a.append(.init(key: 3, value: CBOR.unsignedInt(UInt64(depth))))
+        }
+        
+        return CBOR.orderedMap(a)
+    }
+    
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(.derivationPath, cbor)
+    }
+    
+    public enum Error: Swift.Error {
+        case invalidDerivationPath
+        case invalidDerivationPathComponents
+        case invalidPathComponent
+        case invalidSourceFingerprint
+        case invalidDepth
+        case invalidTag
+    }
+    
+    public init(cbor: CBOR) throws {
+        guard case let CBOR.map(pairs) = cbor
+        else {
+            throw Error.invalidDerivationPath
+        }
+        
+        guard
+            case let CBOR.array(componentsItem) = pairs[1] ?? CBOR.null,
+            componentsItem.count.isMultiple(of: 2)
+        else {
+            throw Error.invalidDerivationPathComponents
+        }
+        
+        let steps: [DerivationStep] = try stride(from: 0, to: componentsItem.count, by: 2).map { i in
+            let childIndexSpec = try ChildIndexSpec.decode(cbor: componentsItem[i])
+            guard case let CBOR.boolean(isHardened) = componentsItem[i + 1] else {
+                throw Error.invalidPathComponent
+            }
+            return DerivationStep(childIndexSpec, isHardened: isHardened)
+        }
+        
+        let origin: Origin?
+        if let sourceFingerprintItem = pairs[2] {
+            guard
+                case let CBOR.unsignedInt(sourceFingerprintValue) = sourceFingerprintItem,
+                sourceFingerprintValue != 0,
+                sourceFingerprintValue <= UInt32.max
+            else {
+                throw Error.invalidSourceFingerprint
+            }
+            origin = .fingerprint(UInt32(sourceFingerprintValue))
+        } else {
+            origin = nil
+        }
+        
+        let depth: Int?
+        if let depthItem = pairs[3] {
+            guard
+                case let CBOR.unsignedInt(depthValue) = depthItem,
+                depthValue <= UInt8.max
+            else {
+                throw Error.invalidDepth
+            }
+            depth = Int(depthValue)
+        } else {
+            depth = nil
+        }
+        
+        self.init(steps: steps, origin: origin, depth: depth)
+    }
+    
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(.derivationPath, cbor) = taggedCBOR else {
+            throw Error.invalidTag
+        }
+        try self.init(cbor: cbor)
     }
 }

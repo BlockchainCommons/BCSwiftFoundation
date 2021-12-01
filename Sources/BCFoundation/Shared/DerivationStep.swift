@@ -7,6 +7,7 @@
 
 import Foundation
 @_exported import BCWally
+@_exported import URKit
 
 public struct DerivationStep : Equatable {
     public let childIndexSpec: ChildIndexSpec
@@ -105,5 +106,11 @@ public enum DerivationStepFormat {
 extension DerivationStep: CustomStringConvertible {
     public var description: String {
         toString()
+    }
+}
+
+extension DerivationStep {
+    var array: [CBOR] {
+        [childIndexSpec.cbor, CBOR.boolean(isHardened)]
     }
 }

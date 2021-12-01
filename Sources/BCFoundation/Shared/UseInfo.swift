@@ -7,6 +7,7 @@
 
 import Foundation
 @_exported import BCWally
+@_exported import URKit
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-007-hdkey.md#cddl-for-coin-info
 public struct UseInfo: Equatable {
@@ -58,5 +59,59 @@ extension UseInfo {
         case .testnet:
             return 0x6f
         }
+    }
+}
+
+extension UseInfo {
+    public var cbor: CBOR {
+        var a: [OrderedMapEntry] = []
+        
+        if asset != .btc {
+            a.append(.init(key: 1, value: asset.cbor))
+        }
+        
+        if network != .mainnet {
+            a.append(.init(key: 2, value: network.cbor))
+        }
+        
+        return CBOR.orderedMap(a)
+    }
+    
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(.useInfo, cbor)
+    }
+    
+    public enum Error: Swift.Error {
+        case invalidCoinInfo
+        case invalidTag
+    }
+
+    public init(cbor: CBOR) throws {
+        guard case let CBOR.map(pairs) = cbor else {
+            throw Error.invalidCoinInfo
+        }
+        
+        let asset: Asset
+        if let rawAsset = pairs[1] {
+            asset = try Asset(cbor: rawAsset)
+        } else {
+            asset = .btc
+        }
+        
+        let network: Network
+        if let rawNetwork = pairs[2] {
+            network = try Network(cbor: rawNetwork)
+        } else {
+            network = .mainnet
+        }
+        
+        self.init(asset: asset, network: network)
+    }
+    
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(.useInfo, cbor) = taggedCBOR else {
+            throw Error.invalidTag
+        }
+        try self.init(cbor: cbor)
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_exported import URKit
 
 public struct ChildIndex: ExpressibleByIntegerLiteral, Comparable {
     public let value: UInt32
@@ -50,5 +51,25 @@ extension ChildIndex {
             return nil
         }
         return ChildIndex(UInt32(i))!
+    }
+}
+
+extension ChildIndex {
+    public var cbor: CBOR {
+        CBOR.unsignedInt(UInt64(value))
+    }
+    
+    public init?(cbor: CBOR) throws {
+        guard case let CBOR.unsignedInt(value) = cbor else {
+            return nil
+        }
+        guard value < 0x80000000 else {
+            throw Error.invalidChildIndex
+        }
+        self.init(UInt32(value))
+    }
+    
+    public enum Error: Swift.Error {
+        case invalidChildIndex
     }
 }

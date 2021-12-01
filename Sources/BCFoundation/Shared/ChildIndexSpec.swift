@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_exported import URKit
 
 public enum ChildIndexSpec: Equatable {
     case index(ChildIndex)
@@ -46,5 +47,45 @@ extension ChildIndexSpec {
         } else {
             return nil
         }
+    }
+}
+
+extension ChildIndexSpec {
+    var cbor: CBOR {
+        switch self {
+        case .index(let index):
+            return index.cbor
+        case .indexRange(let indexRange):
+            return indexRange.cbor
+        case .indexWildcard:
+            return CBOR.array([])
+        }
+    }
+    
+    static func decode(cbor: CBOR) throws -> ChildIndexSpec {
+        if let a = try ChildIndex(cbor: cbor) {
+            return .index(a)
+        }
+        if let a = ChildIndexRange(cbor: cbor) {
+            return .indexRange(a)
+        }
+        if parseWildcard(cbor: cbor) {
+            return .indexWildcard
+        }
+        throw Error.invalidChildIndexSpec
+    }
+    
+    private static func parseWildcard(cbor: CBOR) -> Bool {
+        guard case let CBOR.array(array) = cbor else {
+            return false
+        }
+        guard array.isEmpty else {
+            return false
+        }
+        return true
+    }
+    
+    public enum Error: Swift.Error {
+        case invalidChildIndexSpec
     }
 }
