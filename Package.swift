@@ -13,7 +13,7 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "BCFoundation",
-            targets: ["BCFoundation", "BCWally"]),
+            targets: ["BCFoundation", "BCWally", "SSKR"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -32,6 +32,10 @@ let package = Package(
         .binaryTarget(
             name: "BCWally",
             path: "Frameworks/BCWally.xcframework"
+        ),
+        .binaryTarget(
+            name: "SSKR",
+            path: "Frameworks/SSKR.xcframework"
         ),
         .testTarget(
             name: "BCFoundationTests",
