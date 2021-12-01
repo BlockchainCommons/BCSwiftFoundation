@@ -46,21 +46,21 @@ extension SSKRShare: Hashable {
         hasher.combine(data)
     }
     
-    init?(bytewords: String) throws {
+    public init?(bytewords: String) throws {
         guard let share = try? Bytewords.decode(bytewords) else {
             return nil
         }
         self = try SSKRShare(data: share.decodeCBOR(isTagged: true).bytes)
     }
     
-    init?(urString: String) throws {
+    public init?(urString: String) throws {
         guard let ur = try? URDecoder.decode(urString) else {
             return nil
         }
         try self.init(ur: ur)
     }
     
-    init(ur: UR) throws {
+    public init(ur: UR) throws {
         guard ur.type == "crypto-sskr" else {
             throw SSKRError.invalidURType
         }
