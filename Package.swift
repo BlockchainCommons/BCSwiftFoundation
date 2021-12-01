@@ -19,14 +19,15 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/WolfMcNally/WolfBase", from: "2.4.1"),
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.4.1")
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.4.1"),
+        .package(url: "https://github.com/BlockchainCommons/URKit.git", from: "2.6.0")
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "BCFoundation",
-            dependencies: ["WolfBase", "Flexer", "CryptoSwift"]
+            dependencies: ["WolfBase", "Flexer", "CryptoSwift", "URKit"]
         ),
         .binaryTarget(
             name: "BCWally",

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@_exported import URKit
 
 public enum Asset: UInt32, CaseIterable, Equatable {
     // Values from [SLIP44] with high bit turned off
@@ -61,5 +62,24 @@ extension Asset {
 extension Asset: CustomStringConvertible {
     public var description: String {
         symbol
+    }
+}
+
+extension Asset {
+    public var cbor: CBOR {
+        CBOR.unsignedInt(UInt64(rawValue))
+    }
+    
+    public init(cbor: CBOR) throws {
+        guard
+            case let CBOR.unsignedInt(r) = cbor,
+            let a = Asset(rawValue: UInt32(r)) else {
+                throw Error.invalidAsset
+            }
+        self = a
+    }
+    
+    public enum Error: Swift.Error {
+        case invalidAsset
     }
 }

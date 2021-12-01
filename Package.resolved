@@ -20,6 +20,15 @@
         }
       },
       {
+        "package": "URKit",
+        "repositoryURL": "https://github.com/BlockchainCommons/URKit.git",
+        "state": {
+          "branch": null,
+          "revision": "8dc9ac4c9c7d02b390024af473909ceb49099006",
+          "version": "2.6.1"
+        }
+      },
+      {
         "package": "WolfBase",
         "repositoryURL": "https://github.com/WolfMcNally/WolfBase",
         "state": {
