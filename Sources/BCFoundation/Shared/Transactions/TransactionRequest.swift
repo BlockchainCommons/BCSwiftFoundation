@@ -13,6 +13,12 @@ public struct TransactionRequest {
     public let body: Body
     public let note: String?
 
+    public init(id: UUID, body: Body, note: String?) {
+        self.id = id
+        self.body = body
+        self.note = note
+    }
+
     public enum Body {
         case seed(SeedRequestBody)
         case key(KeyRequestBody)

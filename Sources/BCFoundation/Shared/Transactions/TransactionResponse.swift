@@ -17,7 +17,12 @@ public struct TransactionResponse {
         case key(HDKey)
         case psbtSignature(PSBT)
     }
-    
+
+    public init(id: UUID, body: Body) {
+        self.id = id
+        self.body = body
+    }
+
     public var cbor: CBOR {
         var a: [OrderedMapEntry] = []
         
