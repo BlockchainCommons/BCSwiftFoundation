@@ -77,9 +77,9 @@ extension SSKRShare: Hashable {
         return UREncoder.encode(ur)
     }
 
-    public var bytewords: String {
+    public func bytewords(style: Bytewords.Style) -> String {
         let cbor = CBOR.encodeTagged(tag: .sskrShare, value: Data(data))
-        return Bytewords.encode(Data(cbor), style: .standard)
+        return Bytewords.encode(Data(cbor), style: style)
     }
 }
 
