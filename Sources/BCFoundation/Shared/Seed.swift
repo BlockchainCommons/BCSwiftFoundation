@@ -79,6 +79,13 @@ extension SeedProtocol {
     public init(bip39: BIP39) {
         self.init(data: bip39.data)!
     }
+    
+    public init?(mnemonic: String) {
+        guard let bip39 = BIP39(mnemonic: mnemonic) else {
+            return nil
+        }
+        self.init(bip39: bip39)
+    }
 }
 
 extension SeedProtocol {
