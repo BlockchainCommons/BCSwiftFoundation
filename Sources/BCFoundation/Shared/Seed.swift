@@ -176,7 +176,7 @@ extension SeedProtocol {
             }
             name = s
         } else {
-            name = "Untitled"
+            name = ""
         }
 
         let note: String

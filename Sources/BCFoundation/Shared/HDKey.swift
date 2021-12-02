@@ -31,8 +31,10 @@ public protocol HDKeyProtocol: IdentityDigestable {
     var parent: DerivationPath { get }
     var children: DerivationPath { get }
     var parentFingerprint: UInt32? { get }
+    var name: String { get set }
+    var note: String { get set }
 
-    init(isMaster: Bool, keyType: KeyType, keyData: Data, chainCode: Data?, useInfo: UseInfo, parent: DerivationPath?, children: DerivationPath?, parentFingerprint: UInt32?)
+    init(isMaster: Bool, keyType: KeyType, keyData: Data, chainCode: Data?, useInfo: UseInfo, parent: DerivationPath?, children: DerivationPath?, parentFingerprint: UInt32?, name: String, note: String)
     init(_ key: HDKeyProtocol)
 }
 
@@ -45,8 +47,10 @@ public struct HDKey: HDKeyProtocol {
     public let parent: DerivationPath
     public let children: DerivationPath
     public let parentFingerprint: UInt32?
+    public var name: String
+    public var note: String
     
-    public init(isMaster: Bool, keyType: KeyType, keyData: Data, chainCode: Data?, useInfo: UseInfo, parent: DerivationPath?, children: DerivationPath?, parentFingerprint: UInt32?) {
+    public init(isMaster: Bool, keyType: KeyType, keyData: Data, chainCode: Data?, useInfo: UseInfo, parent: DerivationPath?, children: DerivationPath?, parentFingerprint: UInt32?, name: String = "", note: String = "") {
         self.isMaster = isMaster
         self.keyType = keyType
         self.keyData = keyData
@@ -55,6 +59,8 @@ public struct HDKey: HDKeyProtocol {
         self.parent = parent ?? .init()
         self.children = children ?? .init()
         self.parentFingerprint = parentFingerprint
+        self.name = name
+        self.note = note
     }
 
     // Copy constructor
@@ -67,6 +73,8 @@ public struct HDKey: HDKeyProtocol {
         self.parent = key.parent
         self.children = key.children
         self.parentFingerprint = key.parentFingerprint
+        self.name = key.name
+        self.note = key.note
     }
 }
 
@@ -97,7 +105,9 @@ extension HDKeyProtocol {
             useInfo: key.useInfo,
             parent: parent ?? key.parent,
             children: children ?? key.children,
-            parentFingerprint: key.parentFingerprint
+            parentFingerprint: key.parentFingerprint,
+            name: "",
+            note: ""
         )
     }
     
@@ -133,7 +143,9 @@ extension HDKeyProtocol {
             useInfo: UseInfo(asset: useInfo.asset, network: key.network!),
             parent: parent ?? newParent,
             children: children,
-            parentFingerprint: deserialize(UInt32.self, Data(of: key.parent160))!
+            parentFingerprint: deserialize(UInt32.self, Data(of: key.parent160))!,
+            name: "",
+            note: ""
         )
     }
 
@@ -183,7 +195,9 @@ extension HDKeyProtocol {
             useInfo: UseInfo(asset: useInfo.asset, network: key.network!),
             parent: newParent,
             children: children,
-            parentFingerprint: parentFingerprint
+            parentFingerprint: parentFingerprint,
+            name: "",
+            note: ""
         )
     }
     
@@ -203,7 +217,9 @@ extension HDKeyProtocol {
             useInfo: useInfo,
             parent: parent ?? DerivationPath(origin: .fingerprint(Wally.fingerprint(for: key))),
             children: children,
-            parentFingerprint: nil
+            parentFingerprint: nil,
+            name: "",
+            note: ""
         )
     }
     
@@ -248,7 +264,9 @@ extension HDKeyProtocol {
             useInfo: parent.useInfo,
             parent: origin,
             children: nil,
-            parentFingerprint: parent.keyFingerprint
+            parentFingerprint: parent.keyFingerprint,
+            name: "",
+            note: ""
         )
     }
     
@@ -297,7 +315,9 @@ extension HDKeyProtocol {
             useInfo: parent.useInfo,
             parent: derivedKey.parent,
             children: children ?? derivedKey.children,
-            parentFingerprint: derivedKey.parentFingerprint
+            parentFingerprint: derivedKey.parentFingerprint,
+            name: "",
+            note: ""
         )
     }
     
@@ -456,6 +476,14 @@ extension HDKeyProtocol {
         if let parentFingerprint = parentFingerprint {
             a.append(.init(key: 8, value: CBOR.unsignedInt(UInt64(parentFingerprint))))
         }
+        
+        if !name.isEmpty {
+            a.append(.init(key: 9, value: CBOR.utf8String(name.prefix(count: nameLimit))))
+        }
+
+        if !note.isEmpty {
+            a.append(.init(key: 10, value: CBOR.utf8String(note.prefix(count: noteLimit))))
+        }
 
         return CBOR.orderedMap(a)
     }
@@ -556,9 +584,31 @@ extension HDKeyProtocol {
             parentFingerprint = nil
         }
 
+        let name: String
+        if let nameItem = pairs[9] {
+            guard case let CBOR.utf8String(s) = nameItem else {
+                // Name field doesn't contain string.
+                throw HDKeyError.invalidFormat
+            }
+            name = s
+        } else {
+            name = ""
+        }
+
+        let note: String
+        if let noteItem = pairs[10] {
+            guard case let CBOR.utf8String(s) = noteItem else {
+                // Note field doesn't contain string.
+                throw HDKeyError.invalidFormat
+            }
+            note = s
+        } else {
+            note = ""
+        }
+
         let keyType: KeyType = isPrivate ? .private : .public
 
-        self.init(HDKey(isMaster: isMaster, keyType: keyType, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: origin, children: children, parentFingerprint: parentFingerprint))
+        self.init(HDKey(isMaster: isMaster, keyType: keyType, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: origin, children: children, parentFingerprint: parentFingerprint, name: name, note: note))
     }
 
     public init(taggedCBOR: CBOR) throws {
