@@ -211,7 +211,7 @@ extension HDKeyProtocol {
         try self.init(bip39Seed: BIP39.Seed(bip39: seed.bip39), useInfo: useInfo, parent: parent, children: children)
     }
 
-    public init(parent: HDKey, derivedKeyType: KeyType? = nil, childDerivation: DerivationStep, wildcardChildNum: UInt32? = nil) throws {
+    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivation: DerivationStep, wildcardChildNum: UInt32? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.keyType == .private || derivedKeyType == .public else {
@@ -252,7 +252,7 @@ extension HDKeyProtocol {
         )
     }
     
-    public init(parent: HDKey, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
+    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.isDerivable else {
@@ -299,7 +299,7 @@ extension HDKeyProtocol {
             children: children ?? derivedKey.children,
             parentFingerprint: derivedKey.parentFingerprint
         )
- }
+    }
     
     public var isPrivate: Bool {
         keyType.isPrivate
