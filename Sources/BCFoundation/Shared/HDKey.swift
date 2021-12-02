@@ -207,7 +207,7 @@ extension HDKeyProtocol {
         )
     }
     
-    public init(seed: Seed, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+    public init(seed: SeedProtocol, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         try self.init(bip39Seed: BIP39.Seed(bip39: seed.bip39), useInfo: useInfo, parent: parent, children: children)
     }
 
