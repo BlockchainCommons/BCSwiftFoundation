@@ -63,6 +63,12 @@ extension UseInfo {
 }
 
 extension UseInfo {
+    public var isDefault: Bool {
+        return asset == .btc && network == .mainnet
+    }
+}
+
+extension UseInfo {
     public var cbor: CBOR {
         var a: [OrderedMapEntry] = []
         

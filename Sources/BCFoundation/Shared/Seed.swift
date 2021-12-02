@@ -8,7 +8,14 @@
 import Foundation
 @_exported import URKit
 
-public protocol SeedProtocol {
+public enum SeedError: Swift.Error {
+    case unexpectedURType
+    case unexpectedTag
+    case invalidCBOR
+    case invalidFormat
+}
+
+public protocol SeedProtocol: IdentityDigestable {
     var data: Data { get }
     var name: String { get set }
     var note: String { get set }
@@ -189,9 +196,8 @@ extension SeedProtocol {
     }
 }
 
-public enum SeedError: Swift.Error {
-    case unexpectedURType
-    case unexpectedTag
-    case invalidCBOR
-    case invalidFormat
+extension SeedProtocol {
+    public var identityDigestSource: Data {
+        data
+    }
 }

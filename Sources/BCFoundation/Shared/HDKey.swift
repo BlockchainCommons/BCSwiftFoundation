@@ -7,10 +7,36 @@
 
 import Foundation
 import WolfBase
-import CryptoSwift
 @_exported import BCWally
+@_exported import URKit
 
-open class HDKey {
+public enum HDKeyError: Error {
+    case invalidSeed
+    case invalidBase58
+    case cannotDerivePrivateFromPublic
+    case cannotDeriveHardenedFromPublic
+    case cannotDeriveFromNonDerivable
+    case cannotDeriveInspecificStep
+    case invalidDepth
+    case unknownDerivationError
+    case invalidFormat
+}
+
+public protocol HDKeyProtocol: IdentityDigestable {
+    var isMaster: Bool { get }
+    var keyType: KeyType { get }
+    var keyData: Data { get }
+    var chainCode: Data? { get }
+    var useInfo: UseInfo { get }
+    var parent: DerivationPath { get }
+    var children: DerivationPath { get }
+    var parentFingerprint: UInt32? { get }
+
+    init(isMaster: Bool, keyType: KeyType, keyData: Data, chainCode: Data?, useInfo: UseInfo, parent: DerivationPath?, children: DerivationPath?, parentFingerprint: UInt32?)
+    init(_ key: HDKeyProtocol)
+}
+
+public struct HDKey: HDKeyProtocol {
     public let isMaster: Bool
     public let keyType: KeyType
     public let keyData: Data
@@ -20,17 +46,6 @@ open class HDKey {
     public let children: DerivationPath
     public let parentFingerprint: UInt32?
     
-    public enum Error: Swift.Error {
-        case invalidSeed
-        case invalidBase58
-        case cannotDerivePrivateFromPublic
-        case cannotDeriveHardenedFromPublic
-        case cannotDeriveFromNonDerivable
-        case cannotDeriveInspecificStep
-        case invalidDepth
-        case unknownDerivationError
-    }
-
     public init(isMaster: Bool, keyType: KeyType, keyData: Data, chainCode: Data?, useInfo: UseInfo, parent: DerivationPath?, children: DerivationPath?, parentFingerprint: UInt32?) {
         self.isMaster = isMaster
         self.keyType = keyType
@@ -43,7 +58,7 @@ open class HDKey {
     }
 
     // Copy constructor
-    public init(_ key: HDKey) {
+    public init(_ key: HDKeyProtocol) {
         self.isMaster = key.isMaster
         self.keyType = key.keyType
         self.keyData = key.keyData
@@ -53,13 +68,15 @@ open class HDKey {
         self.children = key.children
         self.parentFingerprint = key.parentFingerprint
     }
-    
-    public convenience init(key: HDKey, derivedKeyType: KeyType? = nil, isDerivable: Bool = true, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+}
+
+extension HDKeyProtocol {
+    public init(key: HDKeyProtocol, derivedKeyType: KeyType? = nil, isDerivable: Bool = true, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         let derivedKeyType = derivedKeyType ?? key.keyType
         
         guard key.keyType == .private || derivedKeyType == .public else {
             // public -> private
-            throw Error.cannotDerivePrivateFromPublic
+            throw HDKeyError.cannotDerivePrivateFromPublic
         }
 
         let keyData: Data
@@ -84,7 +101,7 @@ open class HDKey {
         )
     }
     
-    public convenience init(wallyExtKey key: WallyExtKey, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+    public init(wallyExtKey key: WallyExtKey, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         let keyData: Data
         if key.isPrivate {
             keyData = Data(of: key.priv_key)
@@ -120,9 +137,9 @@ open class HDKey {
         )
     }
 
-    public convenience init(base58: String, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil, overrideOriginFingerprint: UInt32? = nil) throws {
+    public init(base58: String, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil, overrideOriginFingerprint: UInt32? = nil) throws {
         guard let key = Wally.hdKey(fromBase58: base58) else {
-            throw Error.invalidBase58
+            throw HDKeyError.invalidBase58
         }
         let isMaster: Bool
         if let parent = parent {
@@ -170,13 +187,13 @@ open class HDKey {
         )
     }
     
-    public convenience init(bip39Seed: BIP39.Seed, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+    public init(bip39Seed: BIP39.Seed, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         let useInfo = useInfo ?? .init()
         guard let key = Wally.hdKey(bip39Seed: bip39Seed.data, network: useInfo.network) else {
             // From libwally-core docs:
             // The entropy passed in may produce an invalid key. If this happens, WALLY_ERROR will be returned
             // and the caller should retry with new entropy.
-            throw Error.invalidSeed
+            throw HDKeyError.invalidSeed
         }
         self.init(
             isMaster: true,
@@ -190,25 +207,25 @@ open class HDKey {
         )
     }
     
-    public convenience init(seed: Seed, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+    public init(seed: Seed, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         try self.init(bip39Seed: BIP39.Seed(bip39: seed.bip39), useInfo: useInfo, parent: parent, children: children)
     }
 
-    public convenience init(parent: HDKey, derivedKeyType: KeyType? = nil, childDerivation: DerivationStep, wildcardChildNum: UInt32? = nil) throws {
+    public init(parent: HDKey, derivedKeyType: KeyType? = nil, childDerivation: DerivationStep, wildcardChildNum: UInt32? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.keyType == .private || derivedKeyType == .public else {
-            throw Error.cannotDerivePrivateFromPublic
+            throw HDKeyError.cannotDerivePrivateFromPublic
         }
         guard parent.isDerivable else {
-            throw Error.cannotDeriveFromNonDerivable
+            throw HDKeyError.cannotDeriveFromNonDerivable
         }
                 
         guard let childNum = childDerivation.rawValue(wildcardChildNum: wildcardChildNum) else {
-            throw Error.cannotDeriveInspecificStep
+            throw HDKeyError.cannotDeriveInspecificStep
         }
         guard let derivedKey = Wally.key(from: parent.wallyExtKey, childNum: childNum, isPrivate: derivedKeyType.isPrivate) else {
-            throw Error.unknownDerivationError
+            throw HDKeyError.unknownDerivationError
         }
                 
         let origin: DerivationPath
@@ -235,19 +252,18 @@ open class HDKey {
         )
     }
     
-    //#error("Continue converting to convenience initializers")
-    public convenience init(parent: HDKey, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
+    public init(parent: HDKey, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.isDerivable else {
-            throw Error.cannotDeriveFromNonDerivable
+            throw HDKeyError.cannotDeriveFromNonDerivable
         }
 
         var effectiveDerivationPath = childDerivationPath
         if effectiveDerivationPath.origin != nil {
             let parentDepth = parent.parent.effectiveDepth
             guard let p = childDerivationPath.dropFirst(parentDepth) else {
-                throw Error.invalidDepth
+                throw HDKeyError.invalidDepth
             }
             effectiveDerivationPath = p
         }
@@ -255,14 +271,14 @@ open class HDKey {
         var workingKey = parent
         if parent.keyType == .public {
             if derivedKeyType == .private {
-                throw Error.cannotDerivePrivateFromPublic
+                throw HDKeyError.cannotDerivePrivateFromPublic
             } else if effectiveDerivationPath.isHardened {
                 guard
                     let privateKeyProvider = privateKeyProvider,
                     let privateKey = privateKeyProvider(workingKey),
                     privateKey.isPrivate
                 else {
-                    throw Error.cannotDeriveHardenedFromPublic
+                    throw HDKeyError.cannotDeriveHardenedFromPublic
                 }
                 workingKey = privateKey
             }
@@ -404,5 +420,171 @@ open class HDKey {
 
     public var fullDescription: String {
         description(withParent: true, withChildren: true)
+    }
+}
+
+extension HDKeyProtocol {
+    public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> CBOR {
+        var a: [OrderedMapEntry] = []
+
+        if isMaster {
+            a.append(.init(key: 1, value: true))
+        }
+
+        if keyType == .private {
+            a.append(.init(key: 2, value: true))
+        }
+
+        a.append(.init(key: 3, value: CBOR.byteString(keyData.bytes)))
+
+        if let chainCode = chainCode {
+            a.append(.init(key: 4, value: CBOR.byteString(chainCode.bytes)))
+        }
+
+        if !useInfo.isDefault {
+            a.append(.init(key: 5, value: useInfo.taggedCBOR))
+        }
+
+        if !parent.isEmpty {
+            a.append(.init(key: 6, value: parent.taggedCBOR))
+        }
+
+        if !children.isEmpty {
+            a.append(.init(key: 7, value: children.taggedCBOR))
+        }
+
+        if let parentFingerprint = parentFingerprint {
+            a.append(.init(key: 8, value: CBOR.unsignedInt(UInt64(parentFingerprint))))
+        }
+
+        return CBOR.orderedMap(a)
+    }
+
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(.hdKey, cbor())
+    }
+
+    public var ur: UR {
+        return try! UR(type: "crypto-hdkey", cbor: cbor())
+    }
+
+    public var sizeLimitedUR: UR {
+        return try! UR(type: "crypto-hdkey", cbor: cbor(nameLimit: 100, noteLimit: 500))
+    }
+}
+
+extension HDKeyProtocol {
+    public init(cbor: CBOR) throws {
+        guard case let CBOR.map(pairs) = cbor
+        else {
+            // Doesn't contain a map.
+            throw HDKeyError.invalidFormat
+        }
+
+        guard case let CBOR.boolean(isMaster) = pairs[1] ?? CBOR.boolean(false)
+        else {
+            // Invalid `isMaster` field.
+            throw HDKeyError.invalidFormat
+        }
+
+        guard case let CBOR.boolean(isPrivate) = pairs[2] ?? CBOR.boolean(isMaster)
+        else {
+            // Invalid `isPrivate` field.
+            throw HDKeyError.invalidFormat
+        }
+        if isMaster && !isPrivate {
+            // Master key cannot be public
+            throw HDKeyError.invalidFormat
+        }
+
+        guard
+            case let CBOR.byteString(keyDataValue) = pairs[3] ?? CBOR.null,
+            keyDataValue.count == 33
+        else {
+            // Invalid key data.
+            throw HDKeyError.invalidFormat
+        }
+        let keyData = Data(keyDataValue)
+
+        let chainCode: Data?
+        if let chainCodeItem = pairs[4] {
+            guard
+                case let CBOR.byteString(chainCodeValue) = chainCodeItem,
+                chainCodeValue.count == 32
+            else {
+                // Invalid key chain code.
+                throw HDKeyError.invalidFormat
+            }
+            chainCode = Data(chainCodeValue)
+        } else {
+            chainCode = nil
+        }
+
+        let useInfo: UseInfo
+        if let useInfoItem = pairs[5] {
+            useInfo = try UseInfo(taggedCBOR: useInfoItem)
+        } else {
+            useInfo = UseInfo()
+        }
+
+        let origin: DerivationPath?
+        if let originItem = pairs[6] {
+            origin = try DerivationPath(taggedCBOR: originItem)
+        } else {
+            origin = nil
+        }
+
+        let children: DerivationPath?
+        if let childrenItem = pairs[7] {
+            children = try DerivationPath(taggedCBOR: childrenItem)
+        } else {
+            children = nil
+        }
+
+        let parentFingerprint: UInt32?
+        if let parentFingerprintItem = pairs[8] {
+            guard
+                case let CBOR.unsignedInt(parentFingerprintValue) = parentFingerprintItem,
+                parentFingerprintValue > 0,
+                parentFingerprintValue <= UInt32.max
+            else {
+                // Invalid parent fingerprint.
+                throw HDKeyError.invalidFormat
+            }
+            parentFingerprint = UInt32(parentFingerprintValue)
+        } else {
+            parentFingerprint = nil
+        }
+
+        let keyType: KeyType = isPrivate ? .private : .public
+
+        self.init(HDKey(isMaster: isMaster, keyType: keyType, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: origin, children: children, parentFingerprint: parentFingerprint))
+    }
+
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(.hdKey, cbor) = taggedCBOR else {
+            // Tag (303) not found
+            throw HDKeyError.invalidFormat
+        }
+        try self.init(cbor: cbor)
+    }
+}
+
+extension HDKeyProtocol {
+    public var identityDigestSource: Data {
+        var result: [CBOR] = []
+
+        result.append(CBOR.byteString(keyData.bytes))
+
+        if let chainCode = chainCode {
+            result.append(CBOR.byteString(chainCode.bytes))
+        } else {
+            result.append(CBOR.null)
+        }
+
+        result.append(CBOR.unsignedInt(UInt64(useInfo.asset.rawValue)))
+        result.append(CBOR.unsignedInt(UInt64(useInfo.network.rawValue)))
+
+        return Data(result.encode())
     }
 }
