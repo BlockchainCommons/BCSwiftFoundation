@@ -8,6 +8,10 @@
 import Foundation
 @_exported import URKit
 
+public enum TransactionRequestError: Swift.Error {
+    case unknownRequestType
+}
+
 public struct TransactionRequest {
     public let id: UUID
     public let body: Body
@@ -57,7 +61,7 @@ public struct TransactionRequest {
         case "crypto-psbt":
             try self.init(cborData: ur.cbor, isRawPSBT: true)
         default:
-            throw Error.invalidURType
+            throw URError.unexpectedType
         }
     }
 
@@ -69,7 +73,7 @@ public struct TransactionRequest {
     
     public init(cborData: Data, isRawPSBT: Bool = false) throws {
         guard let cbor = try CBOR.decode(cborData.bytes) else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         if isRawPSBT {
             let psbt = try PSBT(cbor: cbor)
@@ -83,18 +87,18 @@ public struct TransactionRequest {
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor else {
             // CBOR doesn't contain a map.
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         
         guard let idItem = pairs[1] else {
             // CBOR doesn't contain a transaction ID.
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         let id = try UUID(taggedCBOR: idItem)
         
         guard let bodyItem = pairs[2] else {
             // CBOR doesn't contain a body.
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         
         let body: Body
@@ -106,7 +110,7 @@ public struct TransactionRequest {
         } else if let psbtSignatureRequestBody = try PSBTSignatureRequestBody(taggedCBOR: bodyItem) {
             body = Body.psbtSignature(psbtSignatureRequestBody)
         } else {
-            throw Error.unknownRequestType
+            throw TransactionRequestError.unknownRequestType
         }
         
         let description: String?
@@ -114,7 +118,7 @@ public struct TransactionRequest {
         if let descriptionItem = pairs[3] {
             guard case let CBOR.utf8String(d) = descriptionItem else {
                 // description is not a string
-                throw Error.invalidFormat
+                throw CBORError.invalidFormat
             }
             description = d
         } else {
@@ -130,11 +134,5 @@ public struct TransactionRequest {
     
     public var sizeLimitedUR: UR {
         try! UR(type: "crypto-request", cbor: cbor(noteLimit: 500))
-    }
-    
-    public enum Error: Swift.Error {
-        case invalidURType
-        case invalidFormat
-        case unknownRequestType
     }
 }

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  PSBTSignatureRequestBody.swift
 //  
 //
 //  Created by Wolf McNally on 12/1/21.
@@ -29,11 +29,11 @@ public struct PSBTSignatureRequestBody {
     
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         guard let taggedCBORItem = pairs[1] else {
             // PSBT signing request doesn't contain PSBT data.
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         try self.init(psbt: PSBT(taggedCBOR: taggedCBORItem))
     }
@@ -43,9 +43,5 @@ public struct PSBTSignatureRequestBody {
             return nil
         }
         try self.init(cbor: cbor)
-    }
-
-    public enum Error: Swift.Error {
-        case invalidFormat
     }
 }

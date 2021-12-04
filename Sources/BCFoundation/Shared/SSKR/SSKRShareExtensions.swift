@@ -62,7 +62,7 @@ extension SSKRShare: Hashable {
     
     public init(ur: UR) throws {
         guard ur.type == "crypto-sskr" else {
-            throw SSKRError.invalidURType
+            throw URError.unexpectedType
         }
 
         self = try SSKRShare(data: ur.cbor.decodeCBOR(isTagged: false).bytes)
@@ -92,27 +92,20 @@ extension SSKRShare: CustomStringConvertible {
 extension Data {
     fileprivate func decodeCBOR(isTagged: Bool) throws -> Data {
         guard let cbor = try CBOR.decode(self.bytes) else {
-            throw SSKRError.invalidCBOR
+            throw CBORError.invalidFormat
         }
         let content: CBOR
         if isTagged {
             guard case let CBOR.tagged(tag, _content) = cbor, tag == .sskrShare else {
-                throw SSKRError.invalidTag
+                throw CBORError.invalidTag
             }
             content = _content
         } else {
             content = cbor
         }
         guard case let CBOR.byteString(bytes) = content else {
-            throw SSKRError.invalidFormat
+            throw CBORError.invalidFormat
         }
         return bytes.data
     }
-}
-
-public enum SSKRError: Error {
-    case invalidURType
-    case invalidCBOR
-    case invalidTag
-    case invalidFormat
 }

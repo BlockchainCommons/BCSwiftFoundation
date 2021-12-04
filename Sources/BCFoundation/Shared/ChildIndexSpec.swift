@@ -72,7 +72,7 @@ extension ChildIndexSpec {
         if parseWildcard(cbor: cbor) {
             return .indexWildcard
         }
-        throw Error.invalidChildIndexSpec
+        throw CBORError.invalidFormat
     }
     
     private static func parseWildcard(cbor: CBOR) -> Bool {
@@ -83,9 +83,5 @@ extension ChildIndexSpec {
             return false
         }
         return true
-    }
-    
-    public enum Error: Swift.Error {
-        case invalidChildIndexSpec
     }
 }

@@ -64,12 +64,8 @@ extension ChildIndex {
             return nil
         }
         guard value < 0x80000000 else {
-            throw Error.invalidChildIndex
+            throw CBORError.invalidFormat
         }
         self.init(UInt32(value))
-    }
-    
-    public enum Error: Swift.Error {
-        case invalidChildIndex
     }
 }

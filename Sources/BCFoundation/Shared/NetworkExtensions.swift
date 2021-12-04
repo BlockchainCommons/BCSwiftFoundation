@@ -27,10 +27,6 @@ extension Network: CustomStringConvertible {
 }
 
 extension Network {
-    public enum Error: Swift.Error {
-        case invalidNetwork
-    }
-    
     public var cbor: CBOR {
         CBOR.unsignedInt(UInt64(rawValue))
     }
@@ -39,7 +35,7 @@ extension Network {
         guard
             case let CBOR.unsignedInt(r) = cbor,
             let a = Network(rawValue: UInt32(r)) else {
-                throw Error.invalidNetwork
+                throw CBORError.invalidFormat
         }
         self = a
     }

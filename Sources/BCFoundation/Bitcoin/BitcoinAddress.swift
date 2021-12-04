@@ -176,13 +176,9 @@ extension Bitcoin {
                 guard
                     case let CBOR.unsignedInt(r) = cbor,
                     let a = CBORType(rawValue: Int(r)) else {
-                        throw Error.invalidAddressType
+                        throw CBORError.invalidFormat
                     }
                 self = a
-            }
-            
-            public enum Error: Swift.Error {
-                case invalidAddressType
             }
         }
         
@@ -208,21 +204,16 @@ extension Bitcoin.Address {
         CBOR.tagged(.address, cbor)
     }
     
-    public enum Error: Swift.Error {
-        case invalidFormat
-        case invalidTag
-    }
-
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.address, cbor) = taggedCBOR else {
-            throw Error.invalidTag
+            throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
     }
     
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         
         let useInfo: UseInfo
@@ -235,7 +226,7 @@ extension Bitcoin.Address {
         guard
             let typeItem = pairs[2]
         else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         let cborType = try CBORType(cbor: typeItem)
 
@@ -245,7 +236,7 @@ extension Bitcoin.Address {
             !bytes.isEmpty
         else {
              // CBOR doesn't contain data field
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         let data = bytes.data
         
@@ -263,7 +254,7 @@ extension Bitcoin.Address {
             case 32:
                 scriptPubKey = ScriptPubKey(Script(ops: [.op(.op_1), .data(data)]))
             default:
-                throw Error.invalidFormat
+                throw CBORError.invalidFormat
             }
         }
         

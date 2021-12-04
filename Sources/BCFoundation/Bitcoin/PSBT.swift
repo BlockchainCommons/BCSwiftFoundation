@@ -262,17 +262,12 @@ extension PSBT {
 }
 
 extension PSBT {
-    public enum Error: Swift.Error {
-        case unexpectedURType
-        case invalidFormat
-    }
-    
     public init(ur: UR) throws {
         guard ur.type == "crypto-psbt" else {
-            throw Error.unexpectedURType
+            throw URError.unexpectedType
         }
         guard let cbor = try CBOR.decode(ur.cbor.bytes) else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         try self.init(cbor: cbor)
     }
@@ -296,7 +291,7 @@ extension PSBT {
             try self.init(urString: string)
         } catch { }
 
-        throw Error.invalidFormat
+        throw CBORError.invalidFormat
     }
     
     public var ur: UR {
@@ -319,18 +314,18 @@ extension PSBT {
         guard
             case let CBOR.byteString(bytes) = cbor
         else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         let data = bytes.data
         guard let psbt = PSBT(data) else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         self = psbt
     }
     
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.psbt, cbor) = taggedCBOR else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         try self.init(cbor: cbor)
     }

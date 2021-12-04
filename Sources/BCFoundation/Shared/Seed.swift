@@ -8,13 +8,6 @@
 import Foundation
 @_exported import URKit
 
-public enum SeedError: Swift.Error {
-    case unexpectedURType
-    case unexpectedTag
-    case invalidCBOR
-    case invalidFormat
-}
-
 public protocol SeedProtocol: IdentityDigestable {
     var data: Data { get }
     var name: String { get set }
@@ -125,7 +118,7 @@ extension SeedProtocol {
 extension SeedProtocol {
     public init(ur: UR) throws {
         guard ur.type == "crypto-seed" else {
-            throw SeedError.unexpectedURType
+            throw URError.unexpectedType
         }
         try self.init(cborData: ur.cbor)
     }
@@ -137,7 +130,7 @@ extension SeedProtocol {
 
     public init(cborData: Data) throws {
         guard let cbor = try CBOR.decode(cborData.bytes) else {
-            throw SeedError.invalidCBOR
+            throw CBORError.invalidFormat
         }
         try self.init(cbor: cbor)
     }
@@ -145,7 +138,7 @@ extension SeedProtocol {
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor else {
             // CBOR doesn't contain a map.
-            throw SeedError.invalidFormat
+            throw CBORError.invalidFormat
         }
         guard
             let dataItem = pairs[1],
@@ -153,7 +146,7 @@ extension SeedProtocol {
             !bytes.isEmpty
         else {
             // CBOR doesn't contain data field.
-            throw SeedError.invalidFormat
+            throw CBORError.invalidFormat
         }
         let data = bytes.data
         
@@ -161,7 +154,7 @@ extension SeedProtocol {
         if let dateItem = pairs[2] {
             guard case let CBOR.date(d) = dateItem else {
                 // CreationDate field doesn't contain a date.
-                throw SeedError.invalidFormat
+                throw CBORError.invalidFormat
             }
             creationDate = d
         } else {
@@ -172,7 +165,7 @@ extension SeedProtocol {
         if let nameItem = pairs[3] {
             guard case let CBOR.utf8String(s) = nameItem else {
                 // Name field doesn't contain string.
-                throw SeedError.invalidFormat
+                throw CBORError.invalidFormat
             }
             name = s
         } else {
@@ -183,7 +176,7 @@ extension SeedProtocol {
         if let noteItem = pairs[4] {
             guard case let CBOR.utf8String(s) = noteItem else {
                 // Note field doesn't contain string.
-                throw SeedError.invalidFormat
+                throw CBORError.invalidFormat
             }
             note = s
         } else {
@@ -194,10 +187,10 @@ extension SeedProtocol {
 
     public init(taggedCBOR: Data) throws {
         guard let cbor = try CBOR.decode(taggedCBOR.bytes) else {
-            throw SeedError.invalidCBOR
+            throw CBORError.invalidFormat
         }
         guard case let CBOR.tagged(tag, content) = cbor, tag == .seed else {
-            throw SeedError.unexpectedTag
+            throw CBORError.invalidTag
         }
         try self.init(cbor: content)
     }

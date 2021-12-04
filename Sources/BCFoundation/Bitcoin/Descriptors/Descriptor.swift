@@ -40,6 +40,14 @@ public struct Descriptor {
     public var unparsed: String {
         function.unparsed
     }
+    
+    public var cbor: CBOR {
+        function.cbor
+    }
+    
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(.output, cbor)
+    }
 }
 
 extension Descriptor: CustomStringConvertible {

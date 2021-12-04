@@ -19,7 +19,6 @@ public enum HDKeyError: Error {
     case cannotDeriveInspecificStep
     case invalidDepth
     case unknownDerivationError
-    case invalidFormat
 }
 
 public protocol HDKeyProtocol: IdentityDigestable {
@@ -506,23 +505,23 @@ extension HDKeyProtocol {
         guard case let CBOR.map(pairs) = cbor
         else {
             // Doesn't contain a map.
-            throw HDKeyError.invalidFormat
+            throw CBORError.invalidFormat
         }
 
         guard case let CBOR.boolean(isMaster) = pairs[1] ?? CBOR.boolean(false)
         else {
             // Invalid `isMaster` field.
-            throw HDKeyError.invalidFormat
+            throw CBORError.invalidFormat
         }
 
         guard case let CBOR.boolean(isPrivate) = pairs[2] ?? CBOR.boolean(isMaster)
         else {
             // Invalid `isPrivate` field.
-            throw HDKeyError.invalidFormat
+            throw CBORError.invalidFormat
         }
         if isMaster && !isPrivate {
             // Master key cannot be public
-            throw HDKeyError.invalidFormat
+            throw CBORError.invalidFormat
         }
 
         guard
@@ -530,7 +529,7 @@ extension HDKeyProtocol {
             keyDataValue.count == 33
         else {
             // Invalid key data.
-            throw HDKeyError.invalidFormat
+            throw CBORError.invalidFormat
         }
         let keyData = Data(keyDataValue)
 
@@ -541,7 +540,7 @@ extension HDKeyProtocol {
                 chainCodeValue.count == 32
             else {
                 // Invalid key chain code.
-                throw HDKeyError.invalidFormat
+                throw CBORError.invalidFormat
             }
             chainCode = Data(chainCodeValue)
         } else {
@@ -577,7 +576,7 @@ extension HDKeyProtocol {
                 parentFingerprintValue <= UInt32.max
             else {
                 // Invalid parent fingerprint.
-                throw HDKeyError.invalidFormat
+                throw CBORError.invalidFormat
             }
             parentFingerprint = UInt32(parentFingerprintValue)
         } else {
@@ -588,7 +587,7 @@ extension HDKeyProtocol {
         if let nameItem = pairs[9] {
             guard case let CBOR.utf8String(s) = nameItem else {
                 // Name field doesn't contain string.
-                throw HDKeyError.invalidFormat
+                throw CBORError.invalidFormat
             }
             name = s
         } else {
@@ -599,7 +598,7 @@ extension HDKeyProtocol {
         if let noteItem = pairs[10] {
             guard case let CBOR.utf8String(s) = noteItem else {
                 // Note field doesn't contain string.
-                throw HDKeyError.invalidFormat
+                throw CBORError.invalidFormat
             }
             note = s
         } else {
@@ -614,7 +613,7 @@ extension HDKeyProtocol {
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.hdKey, cbor) = taggedCBOR else {
             // Tag (303) not found
-            throw HDKeyError.invalidFormat
+            throw CBORError.invalidFormat
         }
         try self.init(cbor: cbor)
     }

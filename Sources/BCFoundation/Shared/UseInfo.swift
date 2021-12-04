@@ -86,15 +86,10 @@ extension UseInfo {
     public var taggedCBOR: CBOR {
         CBOR.tagged(.useInfo, cbor)
     }
-    
-    public enum Error: Swift.Error {
-        case invalidFormat
-        case invalidTag
-    }
 
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         
         let asset: Asset
@@ -116,7 +111,7 @@ extension UseInfo {
     
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.useInfo, cbor) = taggedCBOR else {
-            throw Error.invalidTag
+            throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
     }

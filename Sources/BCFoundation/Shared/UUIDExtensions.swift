@@ -22,7 +22,7 @@ extension UUID {
             case let CBOR.byteString(bytes) = cbor,
             bytes.count == MemoryLayout<uuid_t>.size
         else {
-            throw Error.invalidUUID
+            throw CBORError.invalidFormat
         }
         self = bytes.withUnsafeBytes {
             UUID(uuid: $0.bindMemory(to: uuid_t.self).baseAddress!.pointee)
@@ -31,13 +31,8 @@ extension UUID {
     
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(CBOR.Tag.uuid, cbor) = taggedCBOR else {
-            throw Error.invalidTag
+            throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
-    }
-    
-    public enum Error: Swift.Error {
-        case invalidUUID
-        case invalidTag
     }
 }

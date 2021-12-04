@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  KeyRequestBody.swift
 //  
 //
 //  Created by Wolf McNally on 12/1/21.
@@ -43,15 +43,15 @@ public struct KeyRequestBody {
 
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         guard let boolItem = pairs[1], case let CBOR.boolean(isPrivate) = boolItem else {
             // Key request doesn't contain isPrivate.
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         guard let pathItem = pairs[2] else {
             // Key request doesn't contain derivation.
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         let path = try DerivationPath(taggedCBOR: pathItem)
         
@@ -66,7 +66,7 @@ public struct KeyRequestBody {
         if let isDerivableItem = pairs[4] {
             guard case let CBOR.boolean(d) = isDerivableItem else {
                 // Invalid isDerivable field
-                throw Error.invalidFormat
+                throw CBORError.invalidFormat
             }
             isDerivable = d
         } else {
@@ -81,9 +81,5 @@ public struct KeyRequestBody {
             return nil
         }
         try self.init(cbor: cbor)
-    }
-    
-    public enum Error: Swift.Error {
-        case invalidFormat
     }
 }

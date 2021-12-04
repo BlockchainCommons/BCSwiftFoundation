@@ -9,6 +9,14 @@ import Foundation
 import WolfBase
 @_exported import URKit
 
+public enum DerivationPathError: Error {
+    case invalidDerivationPath
+    case invalidDerivationPathComponents
+    case invalidPathComponent
+    case invalidSourceFingerprint
+    case invalidDepth
+}
+
 public struct DerivationPath : Equatable {
     public var origin: Origin?
     public var steps: [DerivationStep]
@@ -256,32 +264,23 @@ extension DerivationPath {
         CBOR.tagged(.derivationPath, cbor)
     }
     
-    public enum Error: Swift.Error {
-        case invalidDerivationPath
-        case invalidDerivationPathComponents
-        case invalidPathComponent
-        case invalidSourceFingerprint
-        case invalidDepth
-        case invalidTag
-    }
-    
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor
         else {
-            throw Error.invalidDerivationPath
+            throw DerivationPathError.invalidDerivationPath
         }
         
         guard
             case let CBOR.array(componentsItem) = pairs[1] ?? CBOR.null,
             componentsItem.count.isMultiple(of: 2)
         else {
-            throw Error.invalidDerivationPathComponents
+            throw DerivationPathError.invalidDerivationPathComponents
         }
         
         let steps: [DerivationStep] = try stride(from: 0, to: componentsItem.count, by: 2).map { i in
             let childIndexSpec = try ChildIndexSpec.decode(cbor: componentsItem[i])
             guard case let CBOR.boolean(isHardened) = componentsItem[i + 1] else {
-                throw Error.invalidPathComponent
+                throw DerivationPathError.invalidPathComponent
             }
             return DerivationStep(childIndexSpec, isHardened: isHardened)
         }
@@ -293,7 +292,7 @@ extension DerivationPath {
                 sourceFingerprintValue != 0,
                 sourceFingerprintValue <= UInt32.max
             else {
-                throw Error.invalidSourceFingerprint
+                throw DerivationPathError.invalidSourceFingerprint
             }
             origin = .fingerprint(UInt32(sourceFingerprintValue))
         } else {
@@ -306,7 +305,7 @@ extension DerivationPath {
                 case let CBOR.unsignedInt(depthValue) = depthItem,
                 depthValue <= UInt8.max
             else {
-                throw Error.invalidDepth
+                throw DerivationPathError.invalidDepth
             }
             depth = Int(depthValue)
         } else {
@@ -318,7 +317,7 @@ extension DerivationPath {
     
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.derivationPath, cbor) = taggedCBOR else {
-            throw Error.invalidTag
+            throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
     }

@@ -74,12 +74,8 @@ extension Asset {
         guard
             case let CBOR.unsignedInt(r) = cbor,
             let a = Asset(rawValue: UInt32(r)) else {
-                throw Error.invalidAsset
+                throw CBORError.invalidFormat
             }
         self = a
-    }
-    
-    public enum Error: Swift.Error {
-        case invalidAsset
     }
 }

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  SeedRequestBody.swift
 //  
 //
 //  Created by Wolf McNally on 12/1/21.
@@ -22,14 +22,14 @@ public struct SeedRequestBody {
     
     public init(digest: Data) throws {
         guard digest.count == SHA2.Variant.sha256.digestLength else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         self.digest = digest
     }
     
     public init(cbor: CBOR) throws {
         guard case let CBOR.byteString(bytes) = cbor else {
-            throw Error.invalidFormat
+            throw CBORError.invalidFormat
         }
         try self.init(digest: bytes.data)
     }
@@ -39,9 +39,5 @@ public struct SeedRequestBody {
             return nil
         }
         try self.init(cbor: cbor)
-    }
-    
-    public enum Error: Swift.Error {
-        case invalidFormat
     }
 }

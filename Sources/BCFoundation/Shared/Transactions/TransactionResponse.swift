@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  TransactionResponse.swift
 //  
 //
 //  Created by Wolf McNally on 12/1/21.

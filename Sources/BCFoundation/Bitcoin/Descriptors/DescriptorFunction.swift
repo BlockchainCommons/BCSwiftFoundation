@@ -6,12 +6,13 @@
 //
 
 import Foundation
+@_exported import URKit
 
 public protocol DescriptorFunction: CustomStringConvertible {
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey?
     var requiresWildcardChildNum: Bool { get }
     var unparsed: String { get }
-//    var cbor: CBOR { get }
+    var cbor: CBOR { get }
 }
 
 extension DescriptorFunction {
@@ -21,5 +22,9 @@ extension DescriptorFunction {
     
     public var description: String {
         unparsed
+    }
+    
+    public var cbor: CBOR {
+        fatalError()
     }
 }
