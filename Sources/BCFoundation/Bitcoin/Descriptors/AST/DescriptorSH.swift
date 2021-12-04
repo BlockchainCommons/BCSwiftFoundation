@@ -24,4 +24,27 @@ struct DescriptorSH: DescriptorAST {
     var unparsed: String {
         "sh(\(redeemScript))"
     }
+    
+    static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
+        guard parser.parseKind(.sh) else {
+            return nil
+        }
+        let redeemScript: DescriptorAST
+        try parser.expectOpenParen()
+        if let pk = try DescriptorPK.parse(parser) {
+            redeemScript = pk
+        } else if let pkh = try DescriptorPKH.parse(parser) {
+            redeemScript = pkh
+        } else if let wpkh = try DescriptorWPKH.parse(parser) {
+            redeemScript = wpkh
+        } else if let wsh = try DescriptorWSH.parse(parser) {
+            redeemScript = wsh
+        } else if let multi = try DescriptorMulti.parse(parser) {
+            redeemScript = multi
+        } else {
+            throw parser.error("wsh() expected one of: pk(), pkh(), wpkh(), wsh(), multi(), sortedmulti().")
+        }
+        try parser.expectCloseParen()
+        return DescriptorSH(redeemScript: redeemScript)
+    }
 }

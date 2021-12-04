@@ -27,37 +27,29 @@ final class DescriptorParser: Parser {
         Error(message, tokens.peek(), source: source)
     }
     
+    static let topLevelTypes: [DescriptorAST.Type] = [
+        DescriptorRaw.self,
+        DescriptorPK.self,
+        DescriptorPKH.self,
+        DescriptorWPKH.self,
+        DescriptorMulti.self,
+        DescriptorWSH.self,
+        DescriptorSH.self,
+        DescriptorAddress.self,
+        DescriptorCombo.self
+    ]
+    
     func parse() throws -> DescriptorAST {
-        if let raw = try parseRaw() {
-            return raw
-        }
-        if let pk = try parsePK() {
-            return pk
-        }
-        if let pkh = try parsePKH() {
-            return pkh
-        }
-        if let wpkh = try parseWPKH() {
-            return wpkh
-        }
-        if let multi = try parseMulti() {
-            return multi
-        }
-        if let wsh = try parseWSH() {
-            return wsh
-        }
-        if let sh = try parseSH() {
-            return sh
-        }
-        if let addr = try parseAddr() {
-            return addr
-        }
-        if let combo = try parseCombo() {
-            return combo
+        for type in Self.topLevelTypes {
+            if let raw = try type.parse(self) {
+                return raw
+            }
         }
         throw error("Descriptor: expected top-level script function.")
     }
-    
+}
+
+extension DescriptorParser {
     func parseFingerprint() -> UInt32? {
         let transaction = Transaction(self)
         guard
@@ -395,123 +387,5 @@ final class DescriptorParser: Parser {
             throw error("Expected script.")
         }
         return script
-    }
-
-    func parseRaw() throws -> DescriptorRaw? {
-        guard parseKind(.raw) else {
-            return nil
-        }
-        try expectOpenParen()
-        let data = try expectData()
-        try expectCloseParen()
-        return DescriptorRaw(data: data)
-    }
-    
-    func parsePK() throws -> DescriptorPK? {
-        guard parseKind(.pk) else {
-            return nil
-        }
-        try expectOpenParen()
-        let key = try expectKey()
-        try expectCloseParen()
-        return DescriptorPK(key: key)
-    }
-    
-    func parsePKH() throws -> DescriptorPKH? {
-        guard parseKind(.pkh) else {
-            return nil
-        }
-        try expectOpenParen()
-        let key = try expectKey()
-        try expectCloseParen()
-        return DescriptorPKH(key: key)
-    }
-    
-    func parseWPKH() throws -> DescriptorWPKH? {
-        guard parseKind(.wpkh) else {
-            return nil
-        }
-        try expectOpenParen()
-        let key = try expectKey()
-        try expectCloseParen()
-        return DescriptorWPKH(key: key)
-    }
-    
-    func parseCombo() throws -> DescriptorCombo? {
-        guard parseKind(.combo) else {
-            return nil
-        }
-        try expectOpenParen()
-        let key = try expectKey()
-        try expectCloseParen()
-        return DescriptorCombo(key: key)
-    }
-
-    func parseWSH() throws -> DescriptorWSH? {
-        guard parseKind(.wsh) else {
-            return nil
-        }
-        let redeemScript: DescriptorAST
-        try expectOpenParen()
-        if let pk = try parsePK() {
-            redeemScript = pk
-        } else if let pkh = try parsePKH() {
-            redeemScript = pkh
-        } else if let multi = try parseMulti() {
-            redeemScript = multi
-        } else {
-            throw error("wsh() expected one of: pk(), pkh(), multi(), sortedmulti().")
-        }
-        try expectCloseParen()
-        return DescriptorWSH(redeemScript: redeemScript)
-    }
-
-    func parseSH() throws -> DescriptorSH? {
-        guard parseKind(.sh) else {
-            return nil
-        }
-        let redeemScript: DescriptorAST
-        try expectOpenParen()
-        if let pk = try parsePK() {
-            redeemScript = pk
-        } else if let pkh = try parsePKH() {
-            redeemScript = pkh
-        } else if let wpkh = try parseWPKH() {
-            redeemScript = wpkh
-        } else if let wsh = try parseWSH() {
-            redeemScript = wsh
-        } else if let multi = try parseMulti() {
-            redeemScript = multi
-        } else {
-            throw error("wsh() expected one of: pk(), pkh(), wpkh(), wsh(), multi(), sortedmulti().")
-        }
-        try expectCloseParen()
-        return DescriptorSH(redeemScript: redeemScript)
-    }
-
-    func parseAddr() throws -> DescriptorAddress? {
-        guard parseKind(.addr) else {
-            return nil
-        }
-        try expectOpenParen()
-        let address = try expectAddress()
-        try expectCloseParen()
-        return DescriptorAddress(address: address)
-    }
-    
-    func parseMulti() throws -> DescriptorMulti? {
-        let isSorted: Bool
-        if parseKind(.multi) {
-            isSorted = false
-        } else if parseKind(.sortedmulti) {
-            isSorted = true
-        } else {
-            return nil
-        }
-        try expectOpenParen()
-        let threshold = try expectInt()
-        let keys = try expectKeyList(allowUncompressed: false)
-        try expectCloseParen()
-        return DescriptorMulti(threshold: threshold, keys: keys, isSorted: isSorted)
     }
 }

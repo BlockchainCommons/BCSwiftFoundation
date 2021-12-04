@@ -24,4 +24,14 @@ struct DescriptorWPKH: DescriptorAST {
     var unparsed: String {
         "wpkh(\(key))"
     }
+
+    static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
+        guard parser.parseKind(.wpkh) else {
+            return nil
+        }
+        try parser.expectOpenParen()
+        let key = try parser.expectKey()
+        try parser.expectCloseParen()
+        return DescriptorWPKH(key: key)
+    }
 }

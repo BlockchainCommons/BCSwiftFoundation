@@ -41,4 +41,20 @@ struct DescriptorMulti: DescriptorAST {
         let prefix = isSorted ? "sortedmulti" : "multi"
         return "\(prefix)(\(threshold),\(keysString))"
     }
+
+    static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
+        let isSorted: Bool
+        if parser.parseKind(.multi) {
+            isSorted = false
+        } else if parser.parseKind(.sortedmulti) {
+            isSorted = true
+        } else {
+            return nil
+        }
+        try parser.expectOpenParen()
+        let threshold = try parser.expectInt()
+        let keys = try parser.expectKeyList(allowUncompressed: false)
+        try parser.expectCloseParen()
+        return DescriptorMulti(threshold: threshold, keys: keys, isSorted: isSorted)
+    }
 }

@@ -17,4 +17,14 @@ struct DescriptorRaw: DescriptorAST {
     var unparsed: String {
         "raw(\(data.hex))"
     }
+    
+    static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
+        guard parser.parseKind(.raw) else {
+            return nil
+        }
+        try parser.expectOpenParen()
+        let data = try parser.expectData()
+        try parser.expectCloseParen()
+        return DescriptorRaw(data: data)
+    }
 }

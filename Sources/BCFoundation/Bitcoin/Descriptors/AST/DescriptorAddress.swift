@@ -17,4 +17,14 @@ struct DescriptorAddress: DescriptorAST {
     var unparsed: String {
         "addr(\(address))"
     }
+
+    static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
+        guard parser.parseKind(.addr) else {
+            return nil
+        }
+        try parser.expectOpenParen()
+        let address = try parser.expectAddress()
+        try parser.expectCloseParen()
+        return DescriptorAddress(address: address)
+    }
 }
