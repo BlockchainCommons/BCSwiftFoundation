@@ -29,6 +29,8 @@ extension Wally {
             precondition(wally_bip32_key_to_address(&key, type.wallyType, version, &output) == WALLY_OK)
         case .payToWitnessPubKeyHash:
             precondition(wally_bip32_key_to_addr_segwit(&key, hdKey.useInfo.network.segwitFamily, 0, &output) == WALLY_OK)
+        default:
+            fatalError()
         }
         
         return String(cString: output)

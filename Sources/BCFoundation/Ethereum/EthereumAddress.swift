@@ -9,7 +9,7 @@ import Foundation
 @_exported import BCWally
 
 extension Ethereum {
-    open class Address: AddressProtocol {
+    public struct Address: AddressProtocol {
         public let useInfo: UseInfo
         public let string: String
         
@@ -31,11 +31,11 @@ extension Ethereum {
             self.useInfo = UseInfo(asset: .eth, network: network)
         }
         
-        public convenience init(hdKey: HDKey) {
+        public init(hdKey: HDKey) {
             self.init(key: hdKey.ecPublicKey, network: hdKey.useInfo.network)
         }
 
-        open var description: String {
+        public var description: String {
             string
         }
 

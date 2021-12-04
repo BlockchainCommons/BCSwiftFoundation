@@ -1,7 +1,7 @@
 //
 //  ScriptPubKey.swift
 //
-//  Created by Sjors on 14/06/2019.
+//  Originally create by Sjors. Heavily modified by Wolf McNally, Blockchain Commons.
 //  Copyright © 2019 Blockchain. Distributed under the MIT software
 //  license, see the accompanying file LICENSE.md
 
@@ -87,5 +87,14 @@ extension ScriptPubKey: CustomStringConvertible {
             typeString = "unknown"
         }
         return "\(typeString):[\(script.description)]"
+    }
+}
+
+extension ScriptPubKey {
+    public func data(at index: Int) -> Data? {
+        guard case let .data(data) = script.operations![index] else {
+            return nil
+        }
+        return data
     }
 }

@@ -34,6 +34,8 @@ public struct Script: Equatable {
                 data.append(ScriptOperation.data(hexData).serialized)
             } else if let opcode = ScriptOpcode(name: token) {
                 data.append(opcode.rawValue)
+            } else {
+                return nil
             }
         }
         self.init(data)

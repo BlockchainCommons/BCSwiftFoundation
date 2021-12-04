@@ -2,7 +2,7 @@
 //  PSBT.swift
 //  PSBT
 //
-//  Created by Sjors Provoost on 16/12/2019.
+//  Originally create by Sjors. Heavily modified by Wolf McNally, Blockchain Commons Provoost on 16/12/2019.
 //  Copyright © 2019 Sjors Provoost. Distributed under the MIT software
 //  license, see the accompanying file LICENSE.md
 

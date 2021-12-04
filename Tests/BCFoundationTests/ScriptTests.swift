@@ -2,7 +2,7 @@
 //  ScriptTests.swift
 //  ScriptTests
 //
-//  Created by Sjors on 14/06/2019.
+//  Originally create by Sjors. Heavily modified by Wolf McNally, Blockchain Commons.
 //  Copyright © 2019 Blockchain. Distributed under the MIT software
 //  license, see the accompanying file LICENSE.md
 
@@ -104,25 +104,68 @@ class ScriptTests: XCTestCase {
 
         let address = Bitcoin.Address(scriptPubKey: multisig, network: .mainnet)!
         XCTAssertEqual(address.string, "bc1qe6x9y6m6dj2frmfnsc05fy3fnjr0l2zk0f6jsef47vtamm0rqc4qnfnxm0")
+        XCTAssertEqual(address.scriptPubKey†, "multi:[OP_2 022e3d55c64908832291348d1faa74bff4ae1047e9777a28b26b064e410a554737 03501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c OP_2 OP_CHECKMULTISIG]")
+        XCTAssertEqual(address.data.hex, "022e3d55c64908832291348d1faa74bff4ae1047e9777a28b26b064e410a554737")
+        XCTAssertEqual(address.type, .payToWitnessPubKeyHash)
     }
     
-    func testScriptPubKeyAddress() {
+    func testScriptPubKeyAddress1() {
         let scriptPubKeyPKH = ScriptPubKey(hex: "76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac")!
         XCTAssertEqual(scriptPubKeyPKH.type, .pkh)
-        XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKeyPKH, network: .mainnet)†, "1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj")
-        XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKeyPKH, network: .testnet)†, "mxvewdhKCenLkYgNa8irv1UM2omEWPMdEE")
+        let addr1 = Bitcoin.Address(scriptPubKey: scriptPubKeyPKH, network: .mainnet)!
+        XCTAssertEqual(addr1†, "1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj")
+        let addr2 = Bitcoin.Address(scriptPubKey: scriptPubKeyPKH, network: .testnet)!
+        XCTAssertEqual(addr2†, "mxvewdhKCenLkYgNa8irv1UM2omEWPMdEE")
+
+        XCTAssertEqual(addr1.scriptPubKey†, "pkh:[OP_DUP OP_HASH160 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe OP_EQUALVERIFY OP_CHECKSIG]")
+        XCTAssertEqual(addr1.data.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(addr1.type, .payToPubKeyHash)
+    }
     
+    func testScriptPubKeyAddress2() {
         let scriptPubKeyP2SH = ScriptPubKey(hex: "a91486cc442a97817c245ce90ed0d31d6dbcde3841f987")!
         XCTAssertEqual(scriptPubKeyP2SH.type, .sh)
-        XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKeyP2SH, network: .mainnet)†, "3DymAvEWH38HuzHZ3VwLus673bNZnYwNXu")
-        XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKeyP2SH, network: .testnet)†, "2N5XyEfAXtVde7mv6idZDXp5NFwajYEj9TD")
-
+        let addr1 = Bitcoin.Address(scriptPubKey: scriptPubKeyP2SH, network: .mainnet)!
+        XCTAssertEqual(addr1†, "3DymAvEWH38HuzHZ3VwLus673bNZnYwNXu")
+        let addr2 = Bitcoin.Address(scriptPubKey: scriptPubKeyP2SH, network: .testnet)!
+        XCTAssertEqual(addr2†, "2N5XyEfAXtVde7mv6idZDXp5NFwajYEj9TD")
+        
+        XCTAssertEqual(addr1.scriptPubKey†, "sh:[OP_HASH160 86cc442a97817c245ce90ed0d31d6dbcde3841f9 OP_EQUAL]")
+        XCTAssertEqual(addr1.data.hex, "86cc442a97817c245ce90ed0d31d6dbcde3841f9")
+        XCTAssertEqual(addr1.type, .payToScriptHash)
+    }
+    
+    func testScriptPubKeyAddress3() {
         let scriptP2WPKH = ScriptPubKey(hex: "0014bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")!
         XCTAssertEqual(scriptP2WPKH.type, .wpkh)
-        XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptP2WPKH, network: .mainnet)†, "bc1qhm6697d9d2224vfyt8mj4kw03ncec7a7fdafvt")
-        
+        let addr = Bitcoin.Address(scriptPubKey: scriptP2WPKH, network: .mainnet)!
+        XCTAssertEqual(addr†, "bc1qhm6697d9d2224vfyt8mj4kw03ncec7a7fdafvt")
+
+        XCTAssertEqual(addr.scriptPubKey†, "wpkh:[OP_0 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe]")
+        XCTAssertEqual(addr.data.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(addr.type, .payToWitnessPubKeyHash)
+    }
+
+    func testScriptPubKeyAddress4() {
         let scriptP2WSH = ScriptPubKey(hex: "0020f8608e6e5b537f8fc8182eb113cf40f564b99cf99d87170c4f1ac259074ee8fd")!
         XCTAssertEqual(scriptP2WSH.type, .wsh)
-        XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptP2WSH, network: .mainnet)†, "bc1qlpsgumjm2dlcljqc96c38n6q74jtn88enkr3wrz0rtp9jp6war7s2h4lrs")
+        let addr = Bitcoin.Address(scriptPubKey: scriptP2WSH, network: .mainnet)!
+        XCTAssertEqual(addr†, "bc1qlpsgumjm2dlcljqc96c38n6q74jtn88enkr3wrz0rtp9jp6war7s2h4lrs")
+
+        XCTAssertEqual(addr.scriptPubKey†, "wsh:[OP_0 f8608e6e5b537f8fc8182eb113cf40f564b99cf99d87170c4f1ac259074ee8fd]")
+        XCTAssertEqual(addr.data.hex, "f8608e6e5b537f8fc8182eb113cf40f564b99cf99d87170c4f1ac259074ee8fd")
+        XCTAssertEqual(addr.type, .payToWitnessPubKeyHash)
+    }
+    
+    func testScriptTaproot() {
+        let script = Script(asm: "OP_1 79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")!
+        let scriptPubKey = ScriptPubKey(script)
+        XCTAssertEqual(scriptPubKey.type, .tr)
+        let addr = Bitcoin.Address(scriptPubKey: scriptPubKey, network: .mainnet)!
+        XCTAssertEqual(addr†, "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0")
+
+        XCTAssertEqual(addr.scriptPubKey†, "tr:[OP_1 79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798]")
+        XCTAssertEqual(addr.data.hex, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
+        XCTAssertEqual(addr.type, .payToWitnessPubKeyHash)
     }
 }

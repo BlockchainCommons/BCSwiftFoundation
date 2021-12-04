@@ -2,7 +2,7 @@
 //  AddressTests.swift
 //  AddressTests
 //
-//  Created by Bitcoin Dev on 14/06/2019.
+//  Created by Bitcoin Dev.
 //  Copyright © 2019 Blockchain. Distributed under the MIT software
 //  license, see the accompanying file LICENSE.md
 
@@ -49,21 +49,33 @@ class AddressTests: XCTestCase {
     func testParseLegacyAddress() {
         let address = Bitcoin.Address(string: "1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac"))
+        XCTAssertEqual(address.scriptPubKey†, "pkh:[OP_DUP OP_HASH160 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe OP_EQUALVERIFY OP_CHECKSIG]")
+        XCTAssertEqual(address.data!.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(address.type!, .payToPubKeyHash)
     }
     
     func testParseWrappedSegWitAddress() {
         let address = Bitcoin.Address(string: "3DymAvEWH38HuzHZ3VwLus673bNZnYwNXu")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "a91486cc442a97817c245ce90ed0d31d6dbcde3841f987"))
+        XCTAssertEqual(address.scriptPubKey†, "sh:[OP_HASH160 86cc442a97817c245ce90ed0d31d6dbcde3841f9 OP_EQUAL]")
+        XCTAssertEqual(address.data!.hex, "86cc442a97817c245ce90ed0d31d6dbcde3841f9")
+        XCTAssertEqual(address.type!, .payToScriptHash)
     }
     
     func testParseNativeSegWitAddress() {
         let address = Bitcoin.Address(string: "bc1qhm6697d9d2224vfyt8mj4kw03ncec7a7fdafvt")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "0014bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe"))
+        XCTAssertEqual(address.scriptPubKey†, "wpkh:[OP_0 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe]")
+        XCTAssertEqual(address.data!.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(address.type!, .payToWitnessPubKeyHash)
     }
     
     func testParseTaprootAddress() {
         let address = Bitcoin.Address(string: "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "512079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"))
+        XCTAssertEqual(address.scriptPubKey†, "tr:[OP_1 79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798]")
+        XCTAssertEqual(address.data!.hex, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
+        XCTAssertEqual(address.type!, .taproot)
     }
 
     func testParseWIF() {

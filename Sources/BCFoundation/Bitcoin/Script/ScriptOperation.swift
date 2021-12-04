@@ -29,7 +29,7 @@ public enum ScriptOperation: Equatable {
             return nil
         }
     }
-
+    
     public var serialized: Data {
         var result = Data()
         switch self {

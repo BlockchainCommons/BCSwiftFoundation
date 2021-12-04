@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 
-open class Account {
+public class Account {
     public let useInfo: UseInfo
     public let account: UInt32?
     public let seed: Seed?

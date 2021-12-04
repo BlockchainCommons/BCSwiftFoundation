@@ -2,7 +2,7 @@
 //  BIP39Tests.swift
 //  BIP39Tests
 //
-//  Created by Sjors on 27/05/2019.
+//  Originally create by Sjors. Heavily modified by Wolf McNally, Blockchain Commons on 27/05/2019.
 //  Copyright © 2019 Blockchain. Distributed under the MIT software
 //  license, see the accompanying file LICENSE.md.
 //
