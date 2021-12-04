@@ -489,14 +489,14 @@ final class DescriptorParser: Parser {
         return DescriptorSH(redeemScript: redeemScript)
     }
 
-    func parseAddr() throws -> Bitcoin.Address? {
+    func parseAddr() throws -> DescriptorAddress? {
         guard parseKind(.addr) else {
             return nil
         }
         try expectOpenParen()
         let address = try expectAddress()
         try expectCloseParen()
-        return address
+        return DescriptorAddress(address: address)
     }
     
     func parseMulti() throws -> DescriptorMulti? {
@@ -516,11 +516,27 @@ final class DescriptorParser: Parser {
     }
 }
 
+struct DescriptorAddress: DescriptorFunction {
+    let address: Bitcoin.Address
+    
+    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
+        address.scriptPubKey
+    }
+    
+    var unparsed: String {
+        "addr(\(address))"
+    }
+}
+
 struct DescriptorRaw: DescriptorFunction {
     let data: Data
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
         ScriptPubKey(Script(data))
+    }
+    
+    var unparsed: String {
+        "raw(\(data.hex))"
     }
 }
 
@@ -537,6 +553,10 @@ struct DescriptorPK: DescriptorFunction {
     var requiresWildcardChildNum: Bool {
         key.requiresWildcardChildNum
     }
+    
+    var unparsed: String {
+        "pk(\(key))"
+    }
 }
 
 struct DescriptorPKH: DescriptorFunction {
@@ -552,6 +572,10 @@ struct DescriptorPKH: DescriptorFunction {
     var requiresWildcardChildNum: Bool {
         key.requiresWildcardChildNum
     }
+    
+    var unparsed: String {
+        "pkh(\(key))"
+    }
 }
 
 struct DescriptorWPKH: DescriptorFunction {
@@ -566,6 +590,10 @@ struct DescriptorWPKH: DescriptorFunction {
 
     var requiresWildcardChildNum: Bool {
         key.requiresWildcardChildNum
+    }
+    
+    var unparsed: String {
+        "wpkh(\(key))"
     }
 }
 
@@ -599,11 +627,9 @@ struct DescriptorCombo: DescriptorFunction {
     var requiresWildcardChildNum: Bool {
         key.requiresWildcardChildNum
     }
-}
-
-extension Bitcoin.Address: DescriptorFunction {
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
-        scriptPubKey
+    
+    var unparsed: String {
+        "combo(\(key))"
     }
 }
 
@@ -616,15 +642,16 @@ struct DescriptorMulti: DescriptorFunction {
         var ops: [ScriptOperation] = []
         ops.append(.op(ScriptOpcode(int: threshold)!))
         
-        var rawKeys = keys.compactMap { $0.pubKeyData(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider) }
+        let rawKeys = keys.compactMap { $0.pubKeyData(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider) }
         guard rawKeys.count == keys.count else {
             return nil
         }
+        var orderedKeys = Array(zip(keys, rawKeys))
         if isSorted {
-            rawKeys.sort { $0.lexicographicallyPrecedes($1) }
+            orderedKeys.sort { $0.1.lexicographicallyPrecedes($1.1) }
         }
-        for rawKey in rawKeys {
-            ops.append(.data(rawKey))
+        for orderedKey in orderedKeys {
+            ops.append(.data(orderedKey.1))
         }
         ops.append(.op(ScriptOpcode(int: keys.count)!))
         ops.append(.op(.op_checkmultisig))
@@ -633,6 +660,12 @@ struct DescriptorMulti: DescriptorFunction {
 
     var requiresWildcardChildNum: Bool {
         keys.contains(where: { $0.requiresWildcardChildNum })
+    }
+    
+    var unparsed: String {
+        let keysString = keys.map({$0.description}).joined(separator: ",")
+        let prefix = isSorted ? "sortedmulti" : "multi"
+        return "\(prefix)(\(threshold),\(keysString))"
     }
 }
 
@@ -649,6 +682,10 @@ struct DescriptorWSH: DescriptorFunction {
     var requiresWildcardChildNum: Bool {
         redeemScript.requiresWildcardChildNum
     }
+    
+    var unparsed: String {
+        "wsh(\(redeemScript))"
+    }
 }
 
 struct DescriptorSH: DescriptorFunction {
@@ -663,5 +700,9 @@ struct DescriptorSH: DescriptorFunction {
 
     var requiresWildcardChildNum: Bool {
         redeemScript.requiresWildcardChildNum
+    }
+    
+    var unparsed: String {
+        "sh(\(redeemScript))"
     }
 }
