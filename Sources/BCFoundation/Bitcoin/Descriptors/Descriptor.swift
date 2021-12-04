@@ -8,25 +8,6 @@
 import Foundation
 @_exported import URKit
 
-public typealias PrivateKeyProvider = (HDKeyProtocol) -> HDKey?
-
-public protocol DescriptorFunction: CustomStringConvertible {
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey?
-    var requiresWildcardChildNum: Bool { get }
-    var unparsed: String { get }
-//    var cbor: CBOR { get }
-}
-
-extension DescriptorFunction {
-    public var requiresWildcardChildNum: Bool {
-        false
-    }
-    
-    public var description: String {
-        unparsed
-    }
-}
-
 public struct Descriptor {
     public let source: String
     public let function: DescriptorFunction
