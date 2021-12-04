@@ -27,7 +27,7 @@ final class DescriptorParser: Parser {
         Error(message, tokens.peek(), source: source)
     }
     
-    func parse() throws -> DescriptorFunction {
+    func parse() throws -> DescriptorAST {
         if let raw = try parseRaw() {
             return raw
         }
@@ -451,7 +451,7 @@ final class DescriptorParser: Parser {
         guard parseKind(.wsh) else {
             return nil
         }
-        let redeemScript: DescriptorFunction
+        let redeemScript: DescriptorAST
         try expectOpenParen()
         if let pk = try parsePK() {
             redeemScript = pk
@@ -470,7 +470,7 @@ final class DescriptorParser: Parser {
         guard parseKind(.sh) else {
             return nil
         }
-        let redeemScript: DescriptorFunction
+        let redeemScript: DescriptorAST
         try expectOpenParen()
         if let pk = try parsePK() {
             redeemScript = pk
@@ -516,7 +516,7 @@ final class DescriptorParser: Parser {
     }
 }
 
-struct DescriptorAddress: DescriptorFunction {
+struct DescriptorAddress: DescriptorAST {
     let address: Bitcoin.Address
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
@@ -528,7 +528,7 @@ struct DescriptorAddress: DescriptorFunction {
     }
 }
 
-struct DescriptorRaw: DescriptorFunction {
+struct DescriptorRaw: DescriptorAST {
     let data: Data
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
@@ -540,7 +540,7 @@ struct DescriptorRaw: DescriptorFunction {
     }
 }
 
-struct DescriptorPK: DescriptorFunction {
+struct DescriptorPK: DescriptorAST {
     let key: DescriptorKeyExpression
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
@@ -559,7 +559,7 @@ struct DescriptorPK: DescriptorFunction {
     }
 }
 
-struct DescriptorPKH: DescriptorFunction {
+struct DescriptorPKH: DescriptorAST {
     let key: DescriptorKeyExpression
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
@@ -578,7 +578,7 @@ struct DescriptorPKH: DescriptorFunction {
     }
 }
 
-struct DescriptorWPKH: DescriptorFunction {
+struct DescriptorWPKH: DescriptorAST {
     let key: DescriptorKeyExpression
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
@@ -597,7 +597,7 @@ struct DescriptorWPKH: DescriptorFunction {
     }
 }
 
-struct DescriptorCombo: DescriptorFunction {
+struct DescriptorCombo: DescriptorAST {
     let key: DescriptorKeyExpression
     
     // https://github.com/bitcoin/bips/blob/master/bip-0384.mediawiki
@@ -633,7 +633,7 @@ struct DescriptorCombo: DescriptorFunction {
     }
 }
 
-struct DescriptorMulti: DescriptorFunction {
+struct DescriptorMulti: DescriptorAST {
     let threshold: Int
     let keys: [DescriptorKeyExpression]
     let isSorted: Bool
@@ -669,8 +669,8 @@ struct DescriptorMulti: DescriptorFunction {
     }
 }
 
-struct DescriptorWSH: DescriptorFunction {
-    let redeemScript: DescriptorFunction
+struct DescriptorWSH: DescriptorAST {
+    let redeemScript: DescriptorAST
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
         guard let redeemScript = redeemScript.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {
@@ -688,8 +688,8 @@ struct DescriptorWSH: DescriptorFunction {
     }
 }
 
-struct DescriptorSH: DescriptorFunction {
-    let redeemScript: DescriptorFunction
+struct DescriptorSH: DescriptorAST {
+    let redeemScript: DescriptorAST
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
         guard let redeemScript = redeemScript.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {

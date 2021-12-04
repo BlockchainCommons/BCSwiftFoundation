@@ -10,20 +10,20 @@ import Foundation
 
 public struct Descriptor {
     public let source: String
-    public let function: DescriptorFunction
+    private let ast: DescriptorAST
     
     public init(_ source: String) throws {
         self.source = source
         let tokens = try DescriptorLexer(source: source).lex()
-        self.function = try DescriptorParser(tokens: tokens, source: source).parse()
+        self.ast = try DescriptorParser(tokens: tokens, source: source).parse()
     }
     
     public func scriptPubKey(wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> ScriptPubKey? {
-        return function.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+        return ast.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
     }
     
     public var isCombo: Bool {
-        return (function as? DescriptorCombo) != nil
+        return (ast as? DescriptorCombo) != nil
     }
 
     public enum ComboOutput {
@@ -34,15 +34,15 @@ public struct Descriptor {
     }
     
     public var requiresWildcardChildNum: Bool {
-        function.requiresWildcardChildNum
+        ast.requiresWildcardChildNum
     }
 
     public var unparsed: String {
-        function.unparsed
+        ast.unparsed
     }
     
     public var cbor: CBOR {
-        function.cbor
+        ast.cbor
     }
     
     public var taggedCBOR: CBOR {

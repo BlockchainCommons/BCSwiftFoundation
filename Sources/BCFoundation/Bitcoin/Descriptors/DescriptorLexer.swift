@@ -9,7 +9,7 @@ import Foundation
 import Flexer
 
 
-public final class DescriptorLexer: Parser {
+final class DescriptorLexer: Parser {
     typealias Tokens = BasicTextCharacterLexer
     typealias Transaction = ParseTransaction<DescriptorLexer>
     typealias Error = DescriptorError<BasicTextCharacter>
@@ -17,7 +17,7 @@ public final class DescriptorLexer: Parser {
     let source: String
     var tokens: Tokens
     
-    public init(source: String) {
+    init(source: String) {
         self.source = source
         self.tokens = Tokens(string: source)
     }
@@ -34,7 +34,7 @@ public final class DescriptorLexer: Parser {
         return result
     }
     
-    public static func debugLex(_ source: String) throws -> String {
+    static func debugLex(_ source: String) throws -> String {
         let lexer = DescriptorLexer(source: source)
         let tokens = try lexer.lex()
         let strings = tokens.map { lexer.summary(of: $0) }
