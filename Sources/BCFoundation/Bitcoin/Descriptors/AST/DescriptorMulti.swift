@@ -35,12 +35,6 @@ struct DescriptorMulti: DescriptorAST {
     var requiresWildcardChildNum: Bool {
         keys.contains(where: { $0.requiresWildcardChildNum })
     }
-    
-    var unparsed: String {
-        let keysString = keys.map({$0.description}).joined(separator: ",")
-        let prefix = isSorted ? "sortedmulti" : "multi"
-        return "\(prefix)(\(threshold),\(keysString))"
-    }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         let isSorted: Bool
@@ -56,5 +50,11 @@ struct DescriptorMulti: DescriptorAST {
         let keys = try parser.expectKeyList(allowUncompressed: false)
         try parser.expectCloseParen()
         return DescriptorMulti(threshold: threshold, keys: keys, isSorted: isSorted)
+    }
+    
+    var unparsed: String {
+        let keysString = keys.map({$0.description}).joined(separator: ",")
+        let prefix = isSorted ? "sortedmulti" : "multi"
+        return "\(prefix)(\(threshold),\(keysString))"
     }
 }

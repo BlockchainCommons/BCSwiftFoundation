@@ -14,10 +14,6 @@ struct DescriptorRaw: DescriptorAST {
         ScriptPubKey(Script(data))
     }
     
-    var unparsed: String {
-        "raw(\(data.hex))"
-    }
-    
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.raw) else {
             return nil
@@ -26,5 +22,9 @@ struct DescriptorRaw: DescriptorAST {
         let data = try parser.expectData()
         try parser.expectCloseParen()
         return DescriptorRaw(data: data)
+    }
+    
+    var unparsed: String {
+        "raw(\(data.hex))"
     }
 }

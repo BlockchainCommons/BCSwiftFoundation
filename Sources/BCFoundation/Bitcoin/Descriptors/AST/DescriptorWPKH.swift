@@ -20,10 +20,6 @@ struct DescriptorWPKH: DescriptorAST {
     var requiresWildcardChildNum: Bool {
         key.requiresWildcardChildNum
     }
-    
-    var unparsed: String {
-        "wpkh(\(key))"
-    }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.wpkh) else {
@@ -33,5 +29,9 @@ struct DescriptorWPKH: DescriptorAST {
         let key = try parser.expectKey()
         try parser.expectCloseParen()
         return DescriptorWPKH(key: key)
+    }
+    
+    var unparsed: String {
+        "wpkh(\(key))"
     }
 }

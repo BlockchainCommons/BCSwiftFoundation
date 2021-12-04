@@ -21,10 +21,6 @@ struct DescriptorPKH: DescriptorAST {
         key.requiresWildcardChildNum
     }
     
-    var unparsed: String {
-        "pkh(\(key))"
-    }
-    
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.pkh) else {
             return nil
@@ -33,5 +29,9 @@ struct DescriptorPKH: DescriptorAST {
         let key = try parser.expectKey()
         try parser.expectCloseParen()
         return DescriptorPKH(key: key)
+    }
+    
+    var unparsed: String {
+        "pkh(\(key))"
     }
 }

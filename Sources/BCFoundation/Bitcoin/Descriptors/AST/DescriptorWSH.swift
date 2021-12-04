@@ -21,10 +21,6 @@ struct DescriptorWSH: DescriptorAST {
         redeemScript.requiresWildcardChildNum
     }
     
-    var unparsed: String {
-        "wsh(\(redeemScript))"
-    }
-    
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.wsh) else {
             return nil
@@ -42,5 +38,9 @@ struct DescriptorWSH: DescriptorAST {
         }
         try parser.expectCloseParen()
         return DescriptorWSH(redeemScript: redeemScript)
+    }
+    
+    var unparsed: String {
+        "wsh(\(redeemScript))"
     }
 }

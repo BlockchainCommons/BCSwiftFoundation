@@ -37,10 +37,6 @@ struct DescriptorCombo: DescriptorAST {
     var requiresWildcardChildNum: Bool {
         key.requiresWildcardChildNum
     }
-    
-    var unparsed: String {
-        "combo(\(key))"
-    }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.combo) else {
@@ -50,5 +46,9 @@ struct DescriptorCombo: DescriptorAST {
         let key = try parser.expectKey()
         try parser.expectCloseParen()
         return DescriptorCombo(key: key)
+    }
+    
+    var unparsed: String {
+        "combo(\(key))"
     }
 }
