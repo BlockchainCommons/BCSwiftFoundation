@@ -166,6 +166,6 @@ class ScriptTests: XCTestCase {
 
         XCTAssertEqual(addr.scriptPubKey†, "tr:[OP_1 79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798]")
         XCTAssertEqual(addr.data.hex, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
-        XCTAssertEqual(addr.type, .payToWitnessPubKeyHash)
+        XCTAssertEqual(addr.type, .taproot)
     }
 }

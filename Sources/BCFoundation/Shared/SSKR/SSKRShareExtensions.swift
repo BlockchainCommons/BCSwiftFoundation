@@ -106,7 +106,7 @@ extension Data {
         guard case let CBOR.byteString(bytes) = content else {
             throw SSKRError.invalidFormat
         }
-        return Data(bytes)
+        return bytes.data
     }
 }
 

@@ -155,7 +155,7 @@ extension SeedProtocol {
             // CBOR doesn't contain data field.
             throw SeedError.invalidFormat
         }
-        let data = Data(bytes)
+        let data = bytes.data
         
         let creationDate: Date?
         if let dateItem = pairs[2] {

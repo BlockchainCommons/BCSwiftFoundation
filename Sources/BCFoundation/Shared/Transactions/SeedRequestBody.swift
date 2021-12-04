@@ -31,7 +31,7 @@ public struct SeedRequestBody {
         guard case let CBOR.byteString(bytes) = cbor else {
             throw Error.invalidFormat
         }
-        try self.init(digest: Data(bytes))
+        try self.init(digest: bytes.data)
     }
     
     public init?(taggedCBOR: CBOR) throws {

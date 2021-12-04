@@ -88,13 +88,13 @@ extension UseInfo {
     }
     
     public enum Error: Swift.Error {
-        case invalidCoinInfo
+        case invalidFormat
         case invalidTag
     }
 
     public init(cbor: CBOR) throws {
         guard case let CBOR.map(pairs) = cbor else {
-            throw Error.invalidCoinInfo
+            throw Error.invalidFormat
         }
         
         let asset: Asset

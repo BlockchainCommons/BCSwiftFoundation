@@ -17,65 +17,91 @@ class AddressTests: XCTestCase {
     func testDeriveLegacyAddress() {
         let address = Bitcoin.Address(hdKey: hdKey, type: .payToPubKeyHash)
         XCTAssertEqual(address†, "1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj")
+        XCTAssertEqual(address.taggedCBOR.cborEncode().hex, "d90133a301d90131a002000354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
     }
 
     func testDeriveLegacyAddressTestnet() {
         let address = Bitcoin.Address(hdKey: hdKeyTestnet, type: .payToPubKeyHash)
         XCTAssertEqual(address†, "mnicNaAVzyGdFvDa9VkMrjgNdnr2wHBWxk")
+        XCTAssertEqual(address.taggedCBOR.cborEncode().hex, "d90133a301d90131a10201020003544efd3ded47d967e4122982422c9d84db60503972")
     }
 
     
     func testDeriveWrappedSegWitAddress() {
         let address = Bitcoin.Address(hdKey: hdKey, type: .payToScriptHashPayToWitnessPubKeyHash)
         XCTAssertEqual(address†, "3DymAvEWH38HuzHZ3VwLus673bNZnYwNXu")
+        XCTAssertEqual(address.taggedCBOR.cborEncode().hex, "d90133a301d90131a00201035486cc442a97817c245ce90ed0d31d6dbcde3841f9")
     }
     
     func testDeriveWrappedSegWitAddressTestnet() {
         let address = Bitcoin.Address(hdKey: hdKeyTestnet, type: .payToScriptHashPayToWitnessPubKeyHash)
         XCTAssertEqual(address†, "2N6M3ah9EoggimNz5pnAmQwnpE1Z3ya3V7A")
+        XCTAssertEqual(address.taggedCBOR.cborEncode().hex, "d90133a301d90131a10201020103548fb371a0195598d96e634b9eddb645fa1f128e11")
     }
     
     
     func testDeriveNativeSegWitAddress() {
         let address = Bitcoin.Address(hdKey: hdKey, type: .payToWitnessPubKeyHash)
         XCTAssertEqual(address†, "bc1qhm6697d9d2224vfyt8mj4kw03ncec7a7fdafvt")
+        XCTAssertEqual(address.taggedCBOR.cborEncode().hex, "d90133a301d90131a002020354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
     }
     
     func testDeriveNativeSegWitAddressTestnet() {
         let address = Bitcoin.Address(hdKey: hdKeyTestnet, type: .payToWitnessPubKeyHash)
         XCTAssertEqual(address†, "tb1qfm7nmm28m9n7gy3fsfpze8vymds9qwtjwn4w7y")
+        XCTAssertEqual(address.taggedCBOR.cborEncode().hex, "d90133a301d90131a10201020203544efd3ded47d967e4122982422c9d84db60503972")
     }
     
-    func testParseLegacyAddress() {
+    func testParseLegacyAddress() throws {
         let address = Bitcoin.Address(string: "1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac"))
         XCTAssertEqual(address.scriptPubKey†, "pkh:[OP_DUP OP_HASH160 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe OP_EQUALVERIFY OP_CHECKSIG]")
-        XCTAssertEqual(address.data!.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
-        XCTAssertEqual(address.type!, .payToPubKeyHash)
+        XCTAssertEqual(address.data.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(address.type, .payToPubKeyHash)
+
+        let cbor = address.taggedCBOR.cborEncode()
+        XCTAssertEqual(cbor.hex, "d90133a301d90131a002000354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR.decode(cbor)!)
+        XCTAssertEqual(address, address2)
     }
     
-    func testParseWrappedSegWitAddress() {
+    func testParseWrappedSegWitAddress() throws {
         let address = Bitcoin.Address(string: "3DymAvEWH38HuzHZ3VwLus673bNZnYwNXu")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "a91486cc442a97817c245ce90ed0d31d6dbcde3841f987"))
         XCTAssertEqual(address.scriptPubKey†, "sh:[OP_HASH160 86cc442a97817c245ce90ed0d31d6dbcde3841f9 OP_EQUAL]")
-        XCTAssertEqual(address.data!.hex, "86cc442a97817c245ce90ed0d31d6dbcde3841f9")
-        XCTAssertEqual(address.type!, .payToScriptHash)
+        XCTAssertEqual(address.data.hex, "86cc442a97817c245ce90ed0d31d6dbcde3841f9")
+        XCTAssertEqual(address.type, .payToScriptHash)
+
+        let cbor = address.taggedCBOR.cborEncode()
+        XCTAssertEqual(cbor.hex, "d90133a301d90131a00201035486cc442a97817c245ce90ed0d31d6dbcde3841f9")
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR.decode(cbor)!)
+        XCTAssertEqual(address, address2)
     }
     
-    func testParseNativeSegWitAddress() {
+    func testParseNativeSegWitAddress() throws {
         let address = Bitcoin.Address(string: "bc1qhm6697d9d2224vfyt8mj4kw03ncec7a7fdafvt")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "0014bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe"))
         XCTAssertEqual(address.scriptPubKey†, "wpkh:[OP_0 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe]")
-        XCTAssertEqual(address.data!.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
-        XCTAssertEqual(address.type!, .payToWitnessPubKeyHash)
+        XCTAssertEqual(address.data.hex, "bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(address.type, .payToWitnessPubKeyHash)
+
+        let cbor = address.taggedCBOR.cborEncode()
+        XCTAssertEqual(cbor.hex, "d90133a301d90131a002020354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR.decode(cbor)!)
+        XCTAssertEqual(address, address2)
     }
     
-    func testParseTaprootAddress() {
+    func testParseTaprootAddress() throws {
         let address = Bitcoin.Address(string: "bc1p0xlxvlhemja6c4dqv22uapctqupfhlxm9h8z3k2e72q4k9hcz7vqzk5jj0")!
         XCTAssertEqual(address.scriptPubKey, ScriptPubKey(hex: "512079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"))
         XCTAssertEqual(address.scriptPubKey†, "tr:[OP_1 79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798]")
-        XCTAssertEqual(address.data!.hex, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
-        XCTAssertEqual(address.type!, .taproot)
+        XCTAssertEqual(address.data.hex, "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
+        XCTAssertEqual(address.type, .taproot)
+
+        let cbor = address.taggedCBOR.cborEncode()
+        XCTAssertEqual(cbor.hex, "d90133a301d90131a0020203582079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR.decode(cbor)!)
+        XCTAssertEqual(address, address2)
     }
 
     func testParseWIF() {
@@ -92,48 +118,5 @@ class AddressTests: XCTestCase {
         let data = Data(hex: "0c28fca386c7a227600b2fe50b7cae11ec86d3bf1fbe471be89827e19d72aa1d")!
         let key = ECPrivateKey(data)!
         XCTAssertEqual(WIF(key: key, network: .mainnet, isPublicKeyCompressed: false)†, "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ")
-    }
-    
-    func testMine() {
-//        let wif1 = "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ"
-//        let w1 = WIF(wif1)!
-//        print(w1.key.hex)
-
-        func toAddress(_ wif: String) -> String {
-            let w = WIF(wif)!
-            let pubKey = w.key.public
-            let desc = try! Descriptor("pkh(\(pubKey.hex))")
-            let scriptPubKey = desc.scriptPubKey()!
-            let address = Bitcoin.Address(scriptPubKey: scriptPubKey, network: .mainnet)!.string
-            return address
-        }
-        
-        let addresses = """
-            5KSSEo99WYVjgSa3eukSzqNL8eXDHL9J1jUEX1VavcCmrg6dE6C
-            5KCHFf1L7GahZPZxssymoGxz2mmYkcJPWVjhopwmYDmYi9EpJiu
-            5K51suMPKbkqfw9hJvPi2mhFQ65Y2Fc8wjPdcYDG2sTb6bu5pJq
-            5KfKUMkWSrNUnPwr34nD9FFE1z77A1dw15PQJUf4wxccJZJ4L2o
-            5KW9ta5ZYMk2KceXqD8iGGApmiZG8ZWVfEhPBdmiDvw8fqd3TDh
-            5Httr2kbSqCsqrZNjnf29DKsnx1ReAA8XNV7Wga5mdjx637JQvw
-            5HwBUa9u7RhAHxU9t8NJmetBRXjbHGnueamLxJ4NGy7yr8L54d2
-            5KHedzqMAMYMo1V1qatHvh5TxQ56q6QxFYetsbZByHaUdfqgqyb
-            5JPQWa846FHCgJX2Hmvg4qF3aL4WssCPn2XDgodqCrazssfu4Mp
-            5KTnvr6YaFb8RDVhCZmo9YuYzGVje4VJYppiaufjdrEf4jP7oY4
-            5JmpUk6NfqV9Ne7jvmmWEnfBwSD4c6wPMQGKXr8NdLuFMQqjupf
-            5JrtksFt4Qi5exxbj552FgjgMp5WitFvJDk2qbmPAPJJBDtRbm6
-            5KaWNdgVm7CLzv8QoNitkpM6a9chh5iH4SD8XeQ2hf2aXoGrgzu
-            5JEK6PDvDjHJYBBYZjEi3LbJ1bFbPD1aeMtAVWi4bC8EJZWkyBV
-            5Jq1hnC49kwVbpAwEnjw3PxrhKBXAPdBTjUhyYHzW13nm6vmine
-            5KXPoGdCquDhBT1q6Aem3Q5dCsnkRQYap591a6RGjYtq45RMBx2
-            5KbBYhos5KPYUM1nWpt1NERETk2i9T7L2tM4qxPV9D9C6RRZrRm
-            """.split(separator: "\n").map({toAddress(String($0))})
-        addresses.forEach {
-            print($0)
-        }
-//        print(w.key.hex)
-//        print(w.key.public)
-//        print(w.network)
-//        print(w.isPublicKeyCompressed)
-        
     }
 }

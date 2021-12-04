@@ -321,7 +321,7 @@ extension PSBT {
         else {
             throw Error.invalidFormat
         }
-        let data = Data(bytes)
+        let data = bytes.data
         guard let psbt = PSBT(data) else {
             throw Error.invalidFormat
         }

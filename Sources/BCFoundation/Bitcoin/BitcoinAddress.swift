@@ -94,9 +94,10 @@ extension Bitcoin {
             let address = Wally.hdKeyToAddress(hdKey: hdKey, type: type)
             self.init(string: address)!
         }
-        
-        public init?(scriptPubKey: ScriptPubKey, network: Network) {
-            self.useInfo = UseInfo(asset: .btc, network: network)
+
+        public init?(scriptPubKey: ScriptPubKey, useInfo: UseInfo) {
+            self.useInfo = useInfo
+            let network = useInfo.network
             self.scriptPubKey = scriptPubKey
             switch scriptPubKey.type {
             case .pkh:
@@ -107,10 +108,14 @@ extension Bitcoin {
                 self.string = Wally.address(from: scriptPubKey, network: network)
                 self.data = scriptPubKey.data(at: 1)!
                 self.type = .payToScriptHash
-            case .wpkh, .wsh, .tr:
+            case .wpkh, .wsh:
                 self.string = Wally.segwitAddress(scriptPubKey: scriptPubKey, network: network)
                 self.data = scriptPubKey.data(at: 1)!
                 self.type = .payToWitnessPubKeyHash
+            case .tr:
+                self.string = Wally.segwitAddress(scriptPubKey: scriptPubKey, network: network)
+                self.data = scriptPubKey.data(at: 1)!
+                self.type = .taproot
             case .multi:
                 self.string = Wally.segwitAddress(script: scriptPubKey.witnessProgram, network: network)
                 self.data = scriptPubKey.data(at: 1)!
@@ -118,6 +123,10 @@ extension Bitcoin {
             default:
                 return nil
             }
+        }
+        
+        public init?(scriptPubKey: ScriptPubKey, network: Network) {
+            self.init(scriptPubKey: scriptPubKey, useInfo: UseInfo(network: network))
         }
                 
         public enum AddressType {
@@ -140,6 +149,41 @@ extension Bitcoin {
                     fatalError()
                 }
             }
+            
+            var cborType: CBORType {
+                switch self {
+                case .payToPubKeyHash:
+                    return .p2pkh
+                case .payToScriptHash, .payToScriptHashPayToWitnessPubKeyHash:
+                    return .p2sh
+                case .payToWitnessPubKeyHash, .taproot:
+                    return .p2wpkh
+                }
+            }
+        }
+        
+        // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
+        public enum CBORType: Int {
+            case p2pkh
+            case p2sh
+            case p2wpkh
+
+            public var cbor: CBOR {
+                CBOR.unsignedInt(UInt64(rawValue))
+            }
+
+            public init(cbor: CBOR) throws {
+                guard
+                    case let CBOR.unsignedInt(r) = cbor,
+                    let a = CBORType(rawValue: Int(r)) else {
+                        throw Error.invalidAddressType
+                    }
+                self = a
+            }
+            
+            public enum Error: Swift.Error {
+                case invalidAddressType
+            }
         }
         
         public var description: String {
@@ -149,13 +193,80 @@ extension Bitcoin {
 }
 
 extension Bitcoin.Address {
-//    public var cbor: CBOR {
-//        var a: [OrderedMapEntry] = []
-//
-//        a.append(.init(key: 1, value: useInfo.taggedCBOR))
-//
-//        // 2: type omitted
-//
-////        a.append(.init(key: 3, value: scriptPubKey.script.data))
-//    }
+    public var cbor: CBOR {
+        var a: [OrderedMapEntry] = []
+
+        // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
+        a.append(.init(key: 1, value: useInfo.taggedCBOR))
+        a.append(.init(key: 2, value: CBOR.unsignedInt(UInt64(type.cborType.rawValue))))
+        a.append(.init(key: 3, value: CBOR.byteString(data.bytes)))
+
+        return CBOR.orderedMap(a)
+    }
+
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(.address, cbor)
+    }
+    
+    public enum Error: Swift.Error {
+        case invalidFormat
+        case invalidTag
+    }
+
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(.address, cbor) = taggedCBOR else {
+            throw Error.invalidTag
+        }
+        try self.init(cbor: cbor)
+    }
+    
+    public init(cbor: CBOR) throws {
+        guard case let CBOR.map(pairs) = cbor else {
+            throw Error.invalidFormat
+        }
+        
+        let useInfo: UseInfo
+        if let rawUseInfo = pairs[1] {
+            useInfo = try UseInfo(taggedCBOR: rawUseInfo)
+        } else {
+            useInfo = UseInfo()
+        }
+
+        guard
+            let typeItem = pairs[2]
+        else {
+            throw Error.invalidFormat
+        }
+        let cborType = try CBORType(cbor: typeItem)
+
+        guard
+            let dataItem = pairs[3],
+            case let CBOR.byteString(bytes) = dataItem,
+            !bytes.isEmpty
+        else {
+             // CBOR doesn't contain data field
+            throw Error.invalidFormat
+        }
+        let data = bytes.data
+        
+        let scriptPubKey: ScriptPubKey
+        
+        switch cborType {
+        case .p2pkh:
+            scriptPubKey = ScriptPubKey(Script(ops: [.op(.op_dup), .op(.op_hash160), .data(data), .op(.op_equalverify), .op(.op_checksig)]))
+        case .p2sh:
+            scriptPubKey = ScriptPubKey(Script(ops: [.op(.op_hash160), .data(data), .op(.op_equal)]))
+        case .p2wpkh:
+            switch(data.count) {
+            case 20:
+                scriptPubKey = ScriptPubKey(Script(ops: [.op(.op_0), .data(data)]))
+            case 32:
+                scriptPubKey = ScriptPubKey(Script(ops: [.op(.op_1), .data(data)]))
+            default:
+                throw Error.invalidFormat
+            }
+        }
+        
+        self.init(scriptPubKey: scriptPubKey, useInfo: useInfo)!
+    }
 }
