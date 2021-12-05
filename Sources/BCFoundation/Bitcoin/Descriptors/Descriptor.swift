@@ -48,6 +48,10 @@ public struct Descriptor {
     public var taggedCBOR: CBOR {
         CBOR.tagged(.output, cbor)
     }
+    
+    public var ur: UR {
+        return try! UR(type: "crypto-output", cbor: cbor)
+    }
 }
 
 extension Descriptor: CustomStringConvertible {

@@ -12,11 +12,12 @@ import WolfBase
 class DescriptorParserTests: XCTestCase {
     func testRaw() throws {
         let source = "raw(76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac)"
-        let descriptor = try Descriptor(source)
-        XCTAssertEqual(descriptor.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe OP_EQUALVERIFY OP_CHECKSIG]")
-        XCTAssertEqual(descriptor.source, source)
-        XCTAssertEqual(descriptor.unparsed, source)
-        XCTAssertEqual(descriptor.taggedCBOR.hex, "d90134d90198581976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac")
+        let desc = try Descriptor(source)
+        XCTAssertEqual(desc.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe OP_EQUALVERIFY OP_CHECKSIG]")
+        XCTAssertEqual(desc.source, source)
+        XCTAssertEqual(desc.unparsed, source)
+        XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90198581976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac")
+        XCTAssertEqual(desc.ur†, "ur:crypto-output/taadmkhdcfkoptbbrnykoeytonimmwpkpadkhkyldrtatklkwnnskgrnlopslbzcfrio")
     }
     
     func testPK() throws {
@@ -365,6 +366,7 @@ class DescriptorParserTests: XCTestCase {
         XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKey1, network: .testnet)!.string, "tb1q7sgx6gscgtau57jduend6a8l445ahpk3dt3u5zu58rx5qm27lhkqgfdjdr")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90191d90196a201020282d9012fa601f502f5035821004e7fa77f7ca0d1e1417030ebdcf7f89067d7e37ce79a0af77b1c9539011dbf3e04582098b1992f76329c460890752a6087c3e4affeb89c2e78691726c69694893e50dc05d90131a1020107d90130a1018400f480f4d9012fa50358210375556045e9ec973aa370718f1425345a4b326a0a162696000f771c3658e112fd04582036d1c7d5522f8ee297323c43e25ea046ccefc93a2416227adc4d2221872875d205d90131a1020107d90130a1018401f480f4081abde5aaf9")
+        XCTAssertEqual(desc.ur†, "ur:crypto-output/taadmetaadmtoeadaoaolftaaddloladykaoykaxhdclaegllboslbkenbttvyfpjodywmuoylyamhiotsvlkevdnybkylkgcemdesadcarsfmaahdcxmkpanldlkoeynsfgaymhkpdrhnltsrvepezeronsdmksinchdsswmtmwldfmgduoahtaadehoyaoadattaaddyoyadlraewklawktaaddlonaxhdclaxkpgohnfewlwpmsftotjojsmybbdaeehtgreyimbkcmdsmtaebsktceenhdvybgzcaahdcxenttsttlgmdlmnvomseyfnfxvohynbfgsfwssoftdkcmcpknuogtcpclltdekptdahtaadehoyaoadattaaddyoyadlradwklawkaycyryvwpkytclpejnro")
     }
     
     func testCombo1() throws {
