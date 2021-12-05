@@ -27,4 +27,12 @@ struct DescriptorAddress: DescriptorAST {
     var unparsed: String {
         "addr(\(address))"
     }
+    
+    var cbor: CBOR {
+        address.cbor
+    }
+    
+    var taggedCBOR: CBOR {
+        address.taggedCBOR
+    }
 }

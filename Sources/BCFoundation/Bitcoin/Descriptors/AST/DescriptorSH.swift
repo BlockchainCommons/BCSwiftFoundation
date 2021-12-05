@@ -47,4 +47,12 @@ struct DescriptorSH: DescriptorAST {
     var unparsed: String {
         "sh(\(redeemScript))"
     }
+
+    var cbor: CBOR {
+        redeemScript.taggedCBOR
+    }
+    
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.outputScriptHash, cbor)
+    }
 }

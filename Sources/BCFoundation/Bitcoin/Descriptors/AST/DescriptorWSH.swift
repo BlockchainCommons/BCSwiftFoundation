@@ -43,4 +43,12 @@ struct DescriptorWSH: DescriptorAST {
     var unparsed: String {
         "wsh(\(redeemScript))"
     }
+
+    var cbor: CBOR {
+        redeemScript.taggedCBOR
+    }
+    
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.outputWitnessScriptHash, cbor)
+    }
 }

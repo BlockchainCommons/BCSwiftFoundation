@@ -10,16 +10,16 @@ import Foundation
 
 extension UUID {
     public var cbor: CBOR {
-        CBOR.byteString(serialized.bytes)
+        CBOR.data(serialized)
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(CBOR.Tag.uuid, cbor)
+        CBOR.tagged(.uuid, cbor)
     }
     
     public init(cbor: CBOR) throws {
         guard
-            case let CBOR.byteString(bytes) = cbor,
+            case let CBOR.data(bytes) = cbor,
             bytes.count == MemoryLayout<uuid_t>.size
         else {
             throw CBORError.invalidFormat
@@ -30,7 +30,7 @@ extension UUID {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(CBOR.Tag.uuid, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.uuid, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

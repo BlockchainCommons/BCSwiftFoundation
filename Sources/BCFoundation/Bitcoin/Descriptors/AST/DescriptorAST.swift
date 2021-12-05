@@ -13,6 +13,7 @@ protocol DescriptorAST: CustomStringConvertible {
     var requiresWildcardChildNum: Bool { get }
     var unparsed: String { get }
     var cbor: CBOR { get }
+    var taggedCBOR: CBOR { get }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST?
 }
@@ -24,9 +25,5 @@ extension DescriptorAST {
     
     var description: String {
         unparsed
-    }
-    
-    var cbor: CBOR {
-        fatalError()
     }
 }

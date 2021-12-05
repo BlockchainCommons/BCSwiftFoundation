@@ -195,7 +195,7 @@ extension Bitcoin.Address {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
         a.append(.init(key: 1, value: useInfo.taggedCBOR))
         a.append(.init(key: 2, value: CBOR.unsignedInt(UInt64(type.cborType.rawValue))))
-        a.append(.init(key: 3, value: CBOR.byteString(data.bytes)))
+        a.append(.init(key: 3, value: CBOR.data(data)))
 
         return CBOR.orderedMap(a)
     }
@@ -232,7 +232,7 @@ extension Bitcoin.Address {
 
         guard
             let dataItem = pairs[3],
-            case let CBOR.byteString(bytes) = dataItem,
+            case let CBOR.data(bytes) = dataItem,
             !bytes.isEmpty
         else {
              // CBOR doesn't contain data field

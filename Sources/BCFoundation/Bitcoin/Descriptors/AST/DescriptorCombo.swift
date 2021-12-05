@@ -51,4 +51,12 @@ struct DescriptorCombo: DescriptorAST {
     var unparsed: String {
         "combo(\(key))"
     }
+
+    var cbor: CBOR {
+        key.taggedCBOR
+    }
+    
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.outputCombo, cbor)
+    }
 }

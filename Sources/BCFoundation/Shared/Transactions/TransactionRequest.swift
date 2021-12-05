@@ -72,9 +72,7 @@ public struct TransactionRequest {
     }
     
     public init(cborData: Data, isRawPSBT: Bool = false) throws {
-        guard let cbor = try CBOR.decode(cborData.bytes) else {
-            throw CBORError.invalidFormat
-        }
+        let cbor = try CBOR(cborData)
         if isRawPSBT {
             let psbt = try PSBT(cbor: cbor)
             let body = TransactionRequest.Body.psbtSignature(PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true))

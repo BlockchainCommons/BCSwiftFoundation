@@ -34,4 +34,12 @@ struct DescriptorPKH: DescriptorAST {
     var unparsed: String {
         "pkh(\(key))"
     }
+
+    var cbor: CBOR {
+        key.taggedCBOR
+    }
+    
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.outputPublicKeyHash, cbor)
+    }
 }

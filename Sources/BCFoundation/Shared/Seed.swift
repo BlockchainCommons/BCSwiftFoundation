@@ -84,7 +84,7 @@ extension SeedProtocol {
 extension SeedProtocol {
     public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> CBOR {
         var a: [OrderedMapEntry] = [
-            .init(key: 1, value: CBOR.byteString(data.bytes))
+            .init(key: 1, value: CBOR.data(data))
         ]
         
         if let creationDate = creationDate {
@@ -129,9 +129,7 @@ extension SeedProtocol {
     }
 
     public init(cborData: Data) throws {
-        guard let cbor = try CBOR.decode(cborData.bytes) else {
-            throw CBORError.invalidFormat
-        }
+        let cbor = try CBOR(cborData)
         try self.init(cbor: cbor)
     }
 
@@ -142,7 +140,7 @@ extension SeedProtocol {
         }
         guard
             let dataItem = pairs[1],
-            case let CBOR.byteString(bytes) = dataItem,
+            case let CBOR.data(bytes) = dataItem,
             !bytes.isEmpty
         else {
             // CBOR doesn't contain data field.
@@ -186,9 +184,7 @@ extension SeedProtocol {
     }
 
     public init(taggedCBOR: Data) throws {
-        guard let cbor = try CBOR.decode(taggedCBOR.bytes) else {
-            throw CBORError.invalidFormat
-        }
+        let cbor = try CBOR(taggedCBOR)
         guard case let CBOR.tagged(tag, content) = cbor, tag == .seed else {
             throw CBORError.invalidTag
         }

@@ -7,6 +7,7 @@
 
 import Foundation
 @_exported import BCWally
+import URKit
 
 public protocol ECKey {
     static var keyLen: Int { get }
@@ -18,6 +19,9 @@ public protocol ECKey {
     var hex: String { get }
     
     var `public`: ECCompressedPublicKey { get }
+    
+    var cbor: CBOR { get }
+    var taggedCBOR: CBOR { get }
 }
 
 extension ECKey {
@@ -27,6 +31,10 @@ extension ECKey {
 
     public var description: String {
         hex
+    }
+    
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(.ecKey, cbor)
     }
 }
 
@@ -59,6 +67,14 @@ public struct ECPrivateKey: ECKey {
     
     public var wif: String {
         Wally.encodeWIF(key: data, network: .mainnet, isPublicKeyCompressed: true)
+    }
+
+    public var cbor: CBOR {
+        // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
+        CBOR.orderedMap([
+            .init(key: 2, value: .boolean(true)),
+            .init(key: 3, value: .data(data))
+        ])
     }
 }
 
@@ -127,6 +143,13 @@ public struct ECCompressedPublicKey: ECPublicKey, Hashable {
     public var hash160: Data {
         data.hash160
     }
+
+    public var cbor: CBOR {
+        // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
+        CBOR.orderedMap([
+            .init(key: 3, value: .data(data))
+        ])
+    }
 }
 
 extension ECCompressedPublicKey: CustomStringConvertible {
@@ -160,6 +183,13 @@ public struct ECUncompressedPublicKey: ECPublicKey {
 
     public var `public`: ECCompressedPublicKey {
         self.compressed
+    }
+
+    public var cbor: CBOR {
+        // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
+        CBOR.orderedMap([
+            .init(key: 3, value: .data(data))
+        ])
     }
 }
 

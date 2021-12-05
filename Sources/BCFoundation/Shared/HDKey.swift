@@ -454,10 +454,10 @@ extension HDKeyProtocol {
             a.append(.init(key: 2, value: true))
         }
 
-        a.append(.init(key: 3, value: CBOR.byteString(keyData.bytes)))
+        a.append(.init(key: 3, value: CBOR.data(keyData)))
 
         if let chainCode = chainCode {
-            a.append(.init(key: 4, value: CBOR.byteString(chainCode.bytes)))
+            a.append(.init(key: 4, value: CBOR.data(chainCode)))
         }
 
         if !useInfo.isDefault {
@@ -525,7 +525,7 @@ extension HDKeyProtocol {
         }
 
         guard
-            case let CBOR.byteString(keyDataValue) = pairs[3] ?? CBOR.null,
+            case let CBOR.data(keyDataValue) = pairs[3] ?? CBOR.null,
             keyDataValue.count == 33
         else {
             // Invalid key data.
@@ -536,7 +536,7 @@ extension HDKeyProtocol {
         let chainCode: Data?
         if let chainCodeItem = pairs[4] {
             guard
-                case let CBOR.byteString(chainCodeValue) = chainCodeItem,
+                case let CBOR.data(chainCodeValue) = chainCodeItem,
                 chainCodeValue.count == 32
             else {
                 // Invalid key chain code.
@@ -623,10 +623,10 @@ extension HDKeyProtocol {
     public var identityDigestSource: Data {
         var result: [CBOR] = []
 
-        result.append(CBOR.byteString(keyData.bytes))
+        result.append(CBOR.data(keyData))
 
         if let chainCode = chainCode {
-            result.append(CBOR.byteString(chainCode.bytes))
+            result.append(CBOR.data(chainCode))
         } else {
             result.append(CBOR.null)
         }

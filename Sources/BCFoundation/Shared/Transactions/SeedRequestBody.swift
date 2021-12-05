@@ -13,7 +13,7 @@ public struct SeedRequestBody {
     public let digest: Data
     
     public var cbor: CBOR {
-        CBOR.byteString(digest.bytes)
+        CBOR.data(digest)
     }
     
     public var taggedCBOR: CBOR {
@@ -28,7 +28,7 @@ public struct SeedRequestBody {
     }
     
     public init(cbor: CBOR) throws {
-        guard case let CBOR.byteString(bytes) = cbor else {
+        guard case let CBOR.data(bytes) = cbor else {
             throw CBORError.invalidFormat
         }
         try self.init(digest: bytes.data)

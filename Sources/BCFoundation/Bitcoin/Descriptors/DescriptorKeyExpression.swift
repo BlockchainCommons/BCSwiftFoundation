@@ -18,6 +18,19 @@ struct DescriptorKeyExpression {
         case wif(WIF)
         case hdKey(HDKey)
     }
+    
+    var taggedCBOR: CBOR {
+        switch key {
+        case .ecCompressedPublicKey(let k):
+            return k.taggedCBOR
+        case .ecUncompressedPublicKey(let k):
+            return k.taggedCBOR
+        case .wif(let k):
+            return k.taggedCBOR
+        case .hdKey(let k):
+            return k.taggedCBOR
+        }
+    }
 }
 
 extension DescriptorKeyExpression {

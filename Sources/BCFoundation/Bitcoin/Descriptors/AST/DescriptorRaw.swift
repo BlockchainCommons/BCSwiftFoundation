@@ -8,10 +8,10 @@
 import Foundation
 
 struct DescriptorRaw: DescriptorAST {
-    let data: Data
+    let script: Script
     
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
-        ScriptPubKey(Script(data))
+        ScriptPubKey(script)
     }
     
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
@@ -21,10 +21,18 @@ struct DescriptorRaw: DescriptorAST {
         try parser.expectOpenParen()
         let data = try parser.expectData()
         try parser.expectCloseParen()
-        return DescriptorRaw(data: data)
+        return DescriptorRaw(script: Script(data))
     }
     
     var unparsed: String {
-        "raw(\(data.hex))"
+        "raw(\(script.hex))"
+    }
+    
+    var cbor: CBOR {
+        CBOR.data(script.data)
+    }
+    
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.outputRawScript, cbor)
     }
 }

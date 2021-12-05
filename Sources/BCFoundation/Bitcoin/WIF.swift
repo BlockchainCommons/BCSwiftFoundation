@@ -48,4 +48,8 @@ public struct WIF : CustomStringConvertible {
     public var description: String {
         Wally.encodeWIF(key: key.data, network: network, isPublicKeyCompressed: isPublicKeyCompressed)
     }
+    
+    public var taggedCBOR: CBOR {
+        key.taggedCBOR
+    }
 }

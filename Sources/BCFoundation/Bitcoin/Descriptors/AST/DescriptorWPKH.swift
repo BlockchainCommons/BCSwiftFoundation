@@ -34,4 +34,12 @@ struct DescriptorWPKH: DescriptorAST {
     var unparsed: String {
         "wpkh(\(key))"
     }
+
+    var cbor: CBOR {
+        key.taggedCBOR
+    }
+    
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.outputWitnessPublicKeyHash, cbor)
+    }
 }

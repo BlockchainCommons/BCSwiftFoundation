@@ -91,9 +91,7 @@ extension SSKRShare: CustomStringConvertible {
 
 extension Data {
     fileprivate func decodeCBOR(isTagged: Bool) throws -> Data {
-        guard let cbor = try CBOR.decode(self.bytes) else {
-            throw CBORError.invalidFormat
-        }
+        let cbor = try CBOR(self)
         let content: CBOR
         if isTagged {
             guard case let CBOR.tagged(tag, _content) = cbor, tag == .sskrShare else {
@@ -103,7 +101,7 @@ extension Data {
         } else {
             content = cbor
         }
-        guard case let CBOR.byteString(bytes) = content else {
+        guard case let CBOR.data(bytes) = content else {
             throw CBORError.invalidFormat
         }
         return bytes.data

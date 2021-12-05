@@ -266,9 +266,7 @@ extension PSBT {
         guard ur.type == "crypto-psbt" else {
             throw URError.unexpectedType
         }
-        guard let cbor = try CBOR.decode(ur.cbor.bytes) else {
-            throw CBORError.invalidFormat
-        }
+        let cbor = try CBOR(ur.cbor)
         try self.init(cbor: cbor)
     }
     
@@ -303,7 +301,7 @@ extension PSBT {
     }
     
     public var cbor: CBOR {
-        CBOR.byteString(data.bytes)
+        CBOR.data(data)
     }
 
     public var taggedCBOR: CBOR {
@@ -312,7 +310,7 @@ extension PSBT {
     
     public init(cbor: CBOR) throws {
         guard
-            case let CBOR.byteString(bytes) = cbor
+            case let CBOR.data(bytes) = cbor
         else {
             throw CBORError.invalidFormat
         }
