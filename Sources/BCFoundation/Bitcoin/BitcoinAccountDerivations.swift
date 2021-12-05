@@ -1,5 +1,5 @@
 //
-//  BitcoinAccountExtensions.swift
+//  BitcoinAccountDerivations.swift
 //  BCFoundation
 //
 //  Created by Wolf McNally on 9/17/21.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Account {
+extension AccountDerivations {
     public func bitcoinAddress(type: Bitcoin.Address.AddressType) -> Bitcoin.Address? {
         guard
             useInfo.asset == .btc,

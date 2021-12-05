@@ -1,5 +1,5 @@
 //
-//  EthereumAccountExtensions.swift
+//  EthereumAccountDerivations.swift
 //  BCFoundation
 //
 //  Created by Wolf McNally on 9/17/21.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Account {
+extension AccountDerivations {
     public var ethereumAddress: Ethereum.Address? {
         guard
             useInfo.asset == .eth,

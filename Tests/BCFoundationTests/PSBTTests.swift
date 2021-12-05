@@ -390,7 +390,7 @@ extension PSBTSigningStatus where SignerType == NamedSeed {
 
 struct NamedSeed: CustomStringConvertible, Hashable {
     let name: String
-    let account: Account
+    let account: AccountDerivations
 
     var seed: Seed {
         account.seed!
@@ -405,7 +405,7 @@ struct NamedSeed: CustomStringConvertible, Hashable {
     }
     
     init(_ name: String, _ seed: Seed) {
-        self.account = Account(seed: seed, useInfo: .init(), account: 0)
+        self.account = AccountDerivations(seed: seed, useInfo: .init(), account: 0)
         self.name = name
     }
     
