@@ -33,6 +33,7 @@ struct DescriptorToken: TokenProtocol {
         case tr
         case addr
         case raw
+        case cosigner
         
         case address
         case hdKey

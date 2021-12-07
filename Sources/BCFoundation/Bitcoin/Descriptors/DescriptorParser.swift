@@ -35,8 +35,10 @@ final class DescriptorParser: Parser {
         DescriptorMulti.self,
         DescriptorWSH.self,
         DescriptorSH.self,
+        DescriptorTR.self,
         DescriptorAddress.self,
-        DescriptorCombo.self
+        DescriptorCombo.self,
+        DescriptorCosigner.self
     ]
     
     func parse() throws -> DescriptorAST {

@@ -190,22 +190,20 @@ extension Bitcoin {
 
 extension Bitcoin.Address {
     public var cbor: CBOR {
-        var a: [OrderedMapEntry] = []
-
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
-        a.append(.init(key: 1, value: useInfo.taggedCBOR))
-        a.append(.init(key: 2, value: CBOR.unsignedInt(UInt64(type.cborType.rawValue))))
-        a.append(.init(key: 3, value: CBOR.data(data)))
-
-        return CBOR.orderedMap(a)
+        CBOR.orderedMap([
+            .init(key: 1, value: useInfo.taggedCBOR),
+            .init(key: 2, value: .unsignedInt(UInt64(type.cborType.rawValue))),
+            .init(key: 3, value: .data(data))
+        ])
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.address, cbor)
+        CBOR.tagged(URType.address.tag, cbor)
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.address, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.address.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

@@ -37,8 +37,10 @@ struct DescriptorSH: DescriptorAST {
             redeemScript = wsh
         } else if let multi = try DescriptorMulti.parse(parser) {
             redeemScript = multi
+        } else if let cosigner = try DescriptorCosigner.parse(parser) {
+            redeemScript = cosigner
         } else {
-            throw parser.error("wsh() expected one of: pk(), pkh(), wpkh(), wsh(), multi(), sortedmulti().")
+            throw parser.error("wsh() expected one of: pk(), pkh(), wpkh(), wsh(), multi(), sortedmulti(), cosigner().")
         }
         try parser.expectCloseParen()
         return DescriptorSH(redeemScript: redeemScript)

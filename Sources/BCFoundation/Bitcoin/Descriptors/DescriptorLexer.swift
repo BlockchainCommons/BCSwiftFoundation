@@ -115,15 +115,16 @@ final class DescriptorLexer: Parser {
     static let keywords: [(String, DescriptorToken.Kind)] = [
         ("sh", .sh),
         ("wsh", .wsh),
-        ("pk", .pk),
         ("pkh", .pkh),
+        ("pk", .pk),
         ("wpkh", .wpkh),
         ("combo", .combo),
         ("multi", .multi),
         ("sortedmulti", .sortedmulti),
         ("tr", .tr),
         ("addr", .addr),
-        ("raw", .raw)
+        ("raw", .raw),
+        ("cosigner", .cosigner)
     ]
     
     func lexKeywords() -> DescriptorToken? {

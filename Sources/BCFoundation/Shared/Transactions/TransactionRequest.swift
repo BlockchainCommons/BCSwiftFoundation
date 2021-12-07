@@ -30,9 +30,9 @@ public struct TransactionRequest {
     }
     
     public func cbor(noteLimit: Int = .max) -> CBOR {
-        var a: [OrderedMapEntry] = []
-        
-        a.append(.init(key: 1, value: id.taggedCBOR))
+        var a: [OrderedMapEntry] = [
+            .init(key: 1, value: id.taggedCBOR)
+        ]
         
         switch body {
         case .seed(let body):
@@ -51,14 +51,14 @@ public struct TransactionRequest {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.transactionRequest, cbor())
+        CBOR.tagged(URType.transactionRequest.tag, cbor())
     }
     
     public init(ur: UR) throws {
         switch ur.type {
-        case "crypto-request":
+        case URType.transactionRequest.type:
             try self.init(cborData: ur.cbor)
-        case "crypto-psbt":
+        case URType.psbt.type:
             try self.init(cborData: ur.cbor, isRawPSBT: true)
         default:
             throw URError.unexpectedType
@@ -127,10 +127,10 @@ public struct TransactionRequest {
     }
 
     public var ur: UR {
-        try! UR(type: "crypto-request", cbor: cbor())
+        try! UR(type: URType.transactionRequest.type, cbor: cbor())
     }
     
     public var sizeLimitedUR: UR {
-        try! UR(type: "crypto-request", cbor: cbor(noteLimit: 500))
+        try! UR(type: URType.transactionRequest.type, cbor: cbor(noteLimit: 500))
     }
 }

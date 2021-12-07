@@ -10,7 +10,7 @@ import XCTest
 
 class DescriptorLexerTests: XCTestCase {
     func testLexDelimiters() {
-        try XCTAssertEqual(DescriptorLexer.debugLex("()[]{},"), "(openParen 0..<1), (closeParen 1..<2), (openBracket 2..<3), (closeBracket 3..<4), (openBrace 4..<5), (closeBrace 5..<6), (comma 6..<7)")
+        try XCTAssertEqual(DescriptorLexer.debugLex("(){},"), "(openParen 0..<1), (closeParen 1..<2), (openBrace 2..<3), (closeBrace 3..<4), (comma 4..<5)")
     }
     
     func testLexKeywords() {

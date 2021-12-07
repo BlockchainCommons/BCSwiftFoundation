@@ -84,40 +84,40 @@ extension SeedProtocol {
 extension SeedProtocol {
     public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> CBOR {
         var a: [OrderedMapEntry] = [
-            .init(key: 1, value: CBOR.data(data))
+            .init(key: 1, value: .data(data))
         ]
         
         if let creationDate = creationDate {
-            a.append(.init(key: 2, value: CBOR.date(creationDate)))
+            a.append(.init(key: 2, value: .date(creationDate)))
         }
 
         if !name.isEmpty {
-            a.append(.init(key: 3, value: CBOR.utf8String(name.prefix(count: nameLimit))))
+            a.append(.init(key: 3, value: .utf8String(name.prefix(count: nameLimit))))
         }
 
         if !note.isEmpty {
-            a.append(.init(key: 4, value: CBOR.utf8String(note.prefix(count: noteLimit))))
+            a.append(.init(key: 4, value: .utf8String(note.prefix(count: noteLimit))))
         }
 
         return CBOR.orderedMap(a)
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.seed, cbor())
+        CBOR.tagged(URType.seed.tag, cbor())
     }
 
     public var ur: UR {
-        try! UR(type: "crypto-seed", cbor: cbor())
+        try! UR(type: URType.seed.type, cbor: cbor())
     }
     
     public var sizeLimitedUR: UR {
-        try! UR(type: "crypto-seed", cbor: cbor(nameLimit: 100, noteLimit: 500))
+        try! UR(type: URType.seed.type, cbor: cbor(nameLimit: 100, noteLimit: 500))
     }
 }
 
 extension SeedProtocol {
     public init(ur: UR) throws {
-        guard ur.type == "crypto-seed" else {
+        guard ur.type == URType.seed.type else {
             throw URError.unexpectedType
         }
         try self.init(cborData: ur.cbor)
@@ -185,7 +185,7 @@ extension SeedProtocol {
 
     public init(taggedCBOR: Data) throws {
         let cbor = try CBOR(taggedCBOR)
-        guard case let CBOR.tagged(tag, content) = cbor, tag == .seed else {
+        guard case let CBOR.tagged(tag, content) = cbor, tag == URType.seed.tag else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: content)

@@ -55,6 +55,41 @@ class DescriptorParserTests: XCTestCase {
         XCTAssertEqual(desc5.taggedCBOR.hex, "d90134d90192d9012fa503582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f20458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
     }
     
+    func testCosigner() throws {
+        let tprv = "tprv8gzC1wn3dmCrBiqDFrqhw9XXgy5t4mzeL5SdWayHBHz1GmWbRKoqDBSwDLfunPAWxMqZ9bdGsdpTiYUfYiWypv4Wfj9g7AYX5K3H9gRYNCA"
+        
+        let hdKey = try HDKey(base58: tprv)
+        let ecPub = hdKey.ecPublicKey.hex
+        let ecPubUncompressed = hdKey.ecPublicKey.uncompressed.hex
+        let wif = hdKey.ecPrivateKey!.wif
+        let tpub = hdKey.base58PublicKey!
+        
+        let desc1 = try Descriptor("cosigner(\(ecPub))")
+        XCTAssertNil(desc1.scriptPubKey())
+        XCTAssertEqual(desc1.unparsed, desc1.source)
+        XCTAssertEqual(desc1.taggedCBOR.hex, "d90134d9019ad90132a103582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2")
+        
+        let desc2 = try Descriptor("cosigner(\(ecPubUncompressed))")
+        XCTAssertNil(desc2.scriptPubKey())
+        XCTAssertEqual(desc2.unparsed, desc2.source)
+        XCTAssertEqual(desc2.taggedCBOR.hex, "d90134d9019ad90132a103584104e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27")
+
+        let desc3 = try Descriptor("cosigner(\(wif))")
+        XCTAssertNil(desc3.scriptPubKey())
+        XCTAssertEqual(desc3.unparsed, desc3.source)
+        XCTAssertEqual(desc3.taggedCBOR.hex, "d90134d9019ad90132a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e")
+
+        let desc4 = try Descriptor("cosigner(\(tprv))")
+        XCTAssertNil(desc4.scriptPubKey())
+        XCTAssertEqual(desc4.unparsed, desc4.source)
+        XCTAssertEqual(desc4.taggedCBOR.hex, "d90134d9019ad9012fa602f503582100347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e0458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
+
+        let desc5 = try Descriptor("cosigner(\(tpub))")
+        XCTAssertNil(desc5.scriptPubKey())
+        XCTAssertEqual(desc5.unparsed, desc5.source)
+        XCTAssertEqual(desc5.taggedCBOR.hex, "d90134d9019ad9012fa503582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f20458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
+    }
+
     func testPKH() throws {
         let tprv = "tprv8gzC1wn3dmCrBiqDFrqhw9XXgy5t4mzeL5SdWayHBHz1GmWbRKoqDBSwDLfunPAWxMqZ9bdGsdpTiYUfYiWypv4Wfj9g7AYX5K3H9gRYNCA"
         

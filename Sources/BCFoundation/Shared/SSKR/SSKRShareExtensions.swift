@@ -61,7 +61,7 @@ extension SSKRShare: Hashable {
     }
     
     public init(ur: UR) throws {
-        guard ur.type == "crypto-sskr" else {
+        guard ur.type == URType.sskrShare.type else {
             throw URError.unexpectedType
         }
 
@@ -70,7 +70,7 @@ extension SSKRShare: Hashable {
 
     public var ur: UR {
         let cbor = CBOR.encode(Data(data))
-        return try! UR(type: "crypto-sskr", cbor: cbor)
+        return try! UR(type: URType.sskrShare.type, cbor: cbor)
     }
     
     public var urString: String {
@@ -78,7 +78,7 @@ extension SSKRShare: Hashable {
     }
 
     public func bytewords(style: Bytewords.Style) -> String {
-        let cbor = CBOR.encodeTagged(tag: .sskrShare, value: Data(data))
+        let cbor = CBOR.encodeTagged(tag: URType.sskrShare.tag, value: Data(data))
         return Bytewords.encode(Data(cbor), style: style)
     }
 }
@@ -94,7 +94,11 @@ extension Data {
         let cbor = try CBOR(self)
         let content: CBOR
         if isTagged {
-            guard case let CBOR.tagged(tag, _content) = cbor, tag == .sskrShare else {
+            guard
+                case let CBOR.tagged(tag, _content) = cbor,
+                tag == URType.sskrShare.tag
+            else
+            {
                 throw CBORError.invalidTag
             }
             content = _content

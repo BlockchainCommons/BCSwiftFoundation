@@ -18,9 +18,9 @@ public struct PSBTSignatureRequestBody {
     }
     
     public var cbor: CBOR {
-        var a: [OrderedMapEntry] = []
-        a.append(.init(key: 1, value: psbt.taggedCBOR))
-        return CBOR.orderedMap(a)
+        CBOR.orderedMap([
+            .init(key: 1, value: psbt.taggedCBOR)
+        ])
     }
 
     public var taggedCBOR: CBOR {

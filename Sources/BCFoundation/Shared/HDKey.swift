@@ -454,10 +454,10 @@ extension HDKeyProtocol {
             a.append(.init(key: 2, value: true))
         }
 
-        a.append(.init(key: 3, value: CBOR.data(keyData)))
+        a.append(.init(key: 3, value: .data(keyData)))
 
         if let chainCode = chainCode {
-            a.append(.init(key: 4, value: CBOR.data(chainCode)))
+            a.append(.init(key: 4, value: .data(chainCode)))
         }
 
         if !useInfo.isDefault {
@@ -473,30 +473,30 @@ extension HDKeyProtocol {
         }
 
         if let parentFingerprint = parentFingerprint {
-            a.append(.init(key: 8, value: CBOR.unsignedInt(UInt64(parentFingerprint))))
+            a.append(.init(key: 8, value: .unsignedInt(UInt64(parentFingerprint))))
         }
         
         if !name.isEmpty {
-            a.append(.init(key: 9, value: CBOR.utf8String(name.prefix(count: nameLimit))))
+            a.append(.init(key: 9, value: .utf8String(name.prefix(count: nameLimit))))
         }
 
         if !note.isEmpty {
-            a.append(.init(key: 10, value: CBOR.utf8String(note.prefix(count: noteLimit))))
+            a.append(.init(key: 10, value: .utf8String(note.prefix(count: noteLimit))))
         }
 
         return CBOR.orderedMap(a)
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.hdKey, cbor())
+        CBOR.tagged(URType.hdKey.tag, cbor())
     }
 
     public var ur: UR {
-        return try! UR(type: "crypto-hdkey", cbor: cbor())
+        return try! UR(type: URType.hdKey.type, cbor: cbor())
     }
 
     public var sizeLimitedUR: UR {
-        return try! UR(type: "crypto-hdkey", cbor: cbor(nameLimit: 100, noteLimit: 500))
+        return try! UR(type: URType.hdKey.type, cbor: cbor(nameLimit: 100, noteLimit: 500))
     }
 }
 
@@ -611,7 +611,7 @@ extension HDKeyProtocol {
     }
 
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.hdKey, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.hdKey.tag, cbor) = taggedCBOR else {
             // Tag (303) not found
             throw CBORError.invalidFormat
         }

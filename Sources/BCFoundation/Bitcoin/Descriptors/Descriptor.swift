@@ -46,11 +46,11 @@ public struct Descriptor {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.output, cbor)
+        CBOR.tagged(URType.output.tag, cbor)
     }
     
     public var ur: UR {
-        return try! UR(type: "crypto-output", cbor: cbor)
+        return try! UR(type: URType.output.type, cbor: cbor)
     }
 }
 

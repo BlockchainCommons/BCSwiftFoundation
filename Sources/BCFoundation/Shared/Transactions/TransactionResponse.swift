@@ -24,9 +24,9 @@ public struct TransactionResponse {
     }
 
     public var cbor: CBOR {
-        var a: [OrderedMapEntry] = []
-        
-        a.append(.init(key: 1, value: id.taggedCBOR))
+        var a: [OrderedMapEntry] = [
+            .init(key: 1, value: id.taggedCBOR)
+        ]
 
         switch body {
         case .seed(let seed):
@@ -36,14 +36,15 @@ public struct TransactionResponse {
         case .psbtSignature(let psbt):
             a.append(.init(key: 2, value: psbt.taggedCBOR))
         }
+        
         return CBOR.orderedMap(a)
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.transactionResponse, cbor)
+        CBOR.tagged(URType.transactionResponse.tag, cbor)
     }
 
     public var ur: UR {
-        try! UR(type: "crypto-response", cbor: cbor)
+        try! UR(type: URType.transactionResponse.type, cbor: cbor)
     }
 }

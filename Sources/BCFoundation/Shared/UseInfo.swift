@@ -84,7 +84,7 @@ extension UseInfo {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.useInfo, cbor)
+        CBOR.tagged(URType.useInfo.tag, cbor)
     }
 
     public init(cbor: CBOR) throws {
@@ -110,7 +110,7 @@ extension UseInfo {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.useInfo, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.useInfo.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

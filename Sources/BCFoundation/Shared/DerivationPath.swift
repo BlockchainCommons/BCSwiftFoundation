@@ -246,22 +246,22 @@ extension DerivationPath {
 extension DerivationPath {
     public var cbor: CBOR {
         var a: [OrderedMapEntry] = [
-            .init(key: 1, value: CBOR.array(steps.flatMap { $0.array } ))
+            .init(key: 1, value: .array(steps.flatMap { $0.array } ))
         ]
         
         if case let .fingerprint(sourceFingerprint) = origin {
-            a.append(.init(key: 2, value: CBOR.unsignedInt(UInt64(sourceFingerprint))))
+            a.append(.init(key: 2, value: .unsignedInt(UInt64(sourceFingerprint))))
         }
         
         if let depth = depth {
-            a.append(.init(key: 3, value: CBOR.unsignedInt(UInt64(depth))))
+            a.append(.init(key: 3, value: .unsignedInt(UInt64(depth))))
         }
         
         return CBOR.orderedMap(a)
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.derivationPath, cbor)
+        CBOR.tagged(URType.derivationPath.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -316,7 +316,7 @@ extension DerivationPath {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.derivationPath, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.derivationPath.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

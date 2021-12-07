@@ -263,7 +263,7 @@ extension PSBT {
 
 extension PSBT {
     public init(ur: UR) throws {
-        guard ur.type == "crypto-psbt" else {
+        guard ur.type == URType.psbt.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
@@ -293,7 +293,7 @@ extension PSBT {
     }
     
     public var ur: UR {
-        try! UR(type: "crypto-psbt", cbor: cbor)
+        try! UR(type: URType.psbt.type, cbor: cbor)
     }
     
     public var urString: String {
@@ -305,7 +305,7 @@ extension PSBT {
     }
 
     public var taggedCBOR: CBOR {
-        return CBOR.tagged(.psbt, cbor)
+        return CBOR.tagged(URType.psbt.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -322,7 +322,7 @@ extension PSBT {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.psbt, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.psbt.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidFormat
         }
         try self.init(cbor: cbor)
