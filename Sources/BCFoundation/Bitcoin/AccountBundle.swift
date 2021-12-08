@@ -28,7 +28,7 @@ public struct AccountBundle {
         case trsingle
         
         public var id: String {
-            return "\(self†)"
+            return self†
         }
     }
     
