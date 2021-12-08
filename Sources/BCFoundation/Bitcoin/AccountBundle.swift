@@ -11,7 +11,7 @@ import Foundation
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md
 
 public struct AccountBundle {
-    public let masterKey: HDKey
+    public let masterKey: HDKeyProtocol
     public let network: Network
     public let account: UInt32
     public let outputTypes: [OutputType]
@@ -28,7 +28,7 @@ public struct AccountBundle {
         case trsingle
     }
     
-    public init?(masterKey: HDKey, network: Network, account: UInt32, outputTypes: [OutputType] = OutputType.allCases) {
+    public init?(masterKey: HDKeyProtocol, network: Network, account: UInt32, outputTypes: [OutputType] = OutputType.allCases) {
         guard
             masterKey.isMaster,
             !outputTypes.isEmpty,
@@ -46,18 +46,18 @@ public struct AccountBundle {
         self.descriptors = descriptors
     }
     
-    static func accountDescriptor(masterKey: HDKey, outputType: OutputType, network: Network, account: UInt32) throws -> Descriptor {
+    static func accountDescriptor(masterKey: HDKeyProtocol, outputType: OutputType, network: Network, account: UInt32) throws -> Descriptor {
         let accountKey = try accountPublicKey(masterKey: masterKey, outputType: outputType, network: network, account: account)
         let source = descriptorSource(outputType: outputType, accountKey: accountKey)
         return try Descriptor(source)
     }
     
-    static func accountPublicKey(masterKey: HDKey, outputType: OutputType, network: Network, account: UInt32) throws -> HDKey {
+    static func accountPublicKey(masterKey: HDKeyProtocol, outputType: OutputType, network: Network, account: UInt32) throws -> HDKey {
         let path = accountDerivationPath(outputType: outputType, network: network, account: account)
         return try HDKey(parent: masterKey, derivedKeyType: .public, childDerivationPath: path)
     }
     
-    static func descriptorSource(outputType: OutputType, accountKey: HDKey) -> String {
+    static func descriptorSource(outputType: OutputType, accountKey: HDKeyProtocol) -> String {
         let key = accountKey.description(withParent: true)
         switch outputType {
         case .pkh:
