@@ -307,7 +307,7 @@ extension HDKeyProtocol {
         }
         derivedKey = try HDKey(key: derivedKey, derivedKeyType: derivedKeyType)
         self.init(
-            isMaster: false,
+            isMaster: derivedKey.isMaster,
             keyType: derivedKeyType,
             keyData: derivedKey.keyData,
             chainCode: isDerivable ? derivedKey.chainCode : nil,
