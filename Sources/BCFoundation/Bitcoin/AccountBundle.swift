@@ -14,9 +14,8 @@ public struct AccountBundle {
     public let masterKey: HDKeyProtocol
     public let network: Network
     public let account: UInt32
-    public let outputTypes: [OutputType]
-    
     public let descriptors: [Descriptor]
+    public let descriptorsByOutputType: [OutputType: Descriptor]
     
     public enum OutputType: CaseIterable {
         case pkh
@@ -39,11 +38,15 @@ public struct AccountBundle {
         else {
             return nil
         }
+        var descriptorsByOutputType: [OutputType: Descriptor] = [:]
+        zip(outputTypes, descriptors).forEach {
+            descriptorsByOutputType[$0] = $1
+        }
         self.masterKey = masterKey
         self.network = network
-        self.outputTypes = outputTypes
         self.account = account
         self.descriptors = descriptors
+        self.descriptorsByOutputType = descriptorsByOutputType
     }
     
     static func accountDescriptor(masterKey: HDKeyProtocol, outputType: OutputType, network: Network, account: UInt32) throws -> Descriptor {
