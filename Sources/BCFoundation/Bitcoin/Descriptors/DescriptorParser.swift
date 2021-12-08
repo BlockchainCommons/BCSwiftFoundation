@@ -102,15 +102,22 @@ extension DescriptorParser {
     
     func parseInt() -> Int? {
         let transaction = Transaction(self)
-        guard
-            let token = tokens.next(),
-            token.kind == .int
-        else {
+        guard let token = tokens.next() else {
             return nil
         }
-        let i = token.int
-        transaction.commit()
-        return i
+        if token.kind == .int {
+            let i = token.int
+            transaction.commit()
+            return i
+        } else if token.kind == .data {
+            guard let i = Int(token.data.hex) else {
+                return nil
+            }
+            transaction.commit()
+            return i
+        } else {
+            return nil
+        }
     }
     
     func expectInt() throws -> Int {
@@ -123,13 +130,9 @@ extension DescriptorParser {
     func parseChildnum() -> ChildIndex? {
         let transaction = Transaction(self)
         guard
-            let token = tokens.next(),
-            token.kind == .int
+            let i = parseInt(),
+            (0 ..< Int(BIP32_INITIAL_HARDENED_CHILD)).contains(i)
         else {
-            return nil
-        }
-        let i = token.int
-        guard (0 ..< Int(BIP32_INITIAL_HARDENED_CHILD)).contains(i) else {
             return nil
         }
         transaction.commit()
