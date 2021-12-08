@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WolfBase
 @_exported import URKit
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md
@@ -17,7 +18,7 @@ public struct AccountBundle {
     public let descriptors: [Descriptor]
     public let descriptorsByOutputType: [OutputType: Descriptor]
     
-    public enum OutputType: CaseIterable {
+    public enum OutputType: CaseIterable, Identifiable {
         case pkh
         case shwpkh
         case wpkh
@@ -25,6 +26,10 @@ public struct AccountBundle {
         case shwshcosigner
         case wshcosigner
         case trsingle
+        
+        public var id: String {
+            return "\(self†)"
+        }
     }
     
     public init?(masterKey: HDKeyProtocol, network: Network, account: UInt32, outputTypes: [OutputType] = OutputType.allCases) {
