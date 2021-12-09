@@ -12,7 +12,7 @@ import Flexer
 final class DescriptorLexer: Parser {
     typealias Tokens = BasicTextCharacterLexer
     typealias Transaction = ParseTransaction<DescriptorLexer>
-    typealias Error = DescriptorError<BasicTextCharacter>
+    typealias Error = OutputDescriptorError<BasicTextCharacter>
 
     let source: String
     var tokens: Tokens

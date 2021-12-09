@@ -11,7 +11,7 @@ import Foundation
 struct DescriptorTR: DescriptorAST {
     let key: DescriptorKeyExpression
     
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
+    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
         fatalError("unimplemented")
     }
     

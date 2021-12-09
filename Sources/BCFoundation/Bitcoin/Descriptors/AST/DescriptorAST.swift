@@ -9,7 +9,7 @@ import Foundation
 @_exported import URKit
 
 protocol DescriptorAST: CustomStringConvertible {
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey?
+    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey?
     var requiresWildcardChildNum: Bool { get }
     var unparsed: String { get }
     var cbor: CBOR { get }

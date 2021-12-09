@@ -12,7 +12,7 @@ import WolfBase
 class DescriptorParserTests: XCTestCase {
     func testRaw() throws {
         let source = "raw(76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac)"
-        let desc = try Descriptor(source)
+        let desc = try OutputDescriptor(source)
         XCTAssertEqual(desc.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc.source, source)
         XCTAssertEqual(desc.unparsed, source)
@@ -29,27 +29,27 @@ class DescriptorParserTests: XCTestCase {
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         
-        let desc1 = try Descriptor("pk(\(ecPub))")
+        let desc1 = try OutputDescriptor("pk(\(ecPub))")
         XCTAssertEqual(desc1.scriptPubKey()†, "pk:[03e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2 OP_CHECKSIG]")
         XCTAssertEqual(desc1.unparsed, desc1.source)
         XCTAssertEqual(desc1.taggedCBOR.hex, "d90134d90192d90132a103582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2")
         
-        let desc2 = try Descriptor("pk(\(ecPubUncompressed))")
+        let desc2 = try OutputDescriptor("pk(\(ecPubUncompressed))")
         XCTAssertEqual(desc2.scriptPubKey()†, "pk:[04e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27 OP_CHECKSIG]")
         XCTAssertEqual(desc2.unparsed, desc2.source)
         XCTAssertEqual(desc2.taggedCBOR.hex, "d90134d90192d90132a103584104e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27")
 
-        let desc3 = try Descriptor("pk(\(wif))")
+        let desc3 = try OutputDescriptor("pk(\(wif))")
         XCTAssertEqual(desc3.scriptPubKey()†, "pk:[03e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2 OP_CHECKSIG]")
         XCTAssertEqual(desc3.unparsed, desc3.source)
         XCTAssertEqual(desc3.taggedCBOR.hex, "d90134d90192d90132a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e")
 
-        let desc4 = try Descriptor("pk(\(tprv))")
+        let desc4 = try OutputDescriptor("pk(\(tprv))")
         XCTAssertEqual(desc4.scriptPubKey()†, "pk:[03e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2 OP_CHECKSIG]")
         XCTAssertEqual(desc4.unparsed, desc4.source)
         XCTAssertEqual(desc4.taggedCBOR.hex, "d90134d90192d9012fa602f503582100347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e0458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
 
-        let desc5 = try Descriptor("pk(\(tpub))")
+        let desc5 = try OutputDescriptor("pk(\(tpub))")
         XCTAssertEqual(desc5.scriptPubKey()†, "pk:[03e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2 OP_CHECKSIG]")
         XCTAssertEqual(desc5.unparsed, desc5.source)
         XCTAssertEqual(desc5.taggedCBOR.hex, "d90134d90192d9012fa503582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f20458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
@@ -64,27 +64,27 @@ class DescriptorParserTests: XCTestCase {
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         
-        let desc1 = try Descriptor("cosigner(\(ecPub))")
+        let desc1 = try OutputDescriptor("cosigner(\(ecPub))")
         XCTAssertNil(desc1.scriptPubKey())
         XCTAssertEqual(desc1.unparsed, desc1.source)
         XCTAssertEqual(desc1.taggedCBOR.hex, "d90134d9019ad90132a103582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2")
         
-        let desc2 = try Descriptor("cosigner(\(ecPubUncompressed))")
+        let desc2 = try OutputDescriptor("cosigner(\(ecPubUncompressed))")
         XCTAssertNil(desc2.scriptPubKey())
         XCTAssertEqual(desc2.unparsed, desc2.source)
         XCTAssertEqual(desc2.taggedCBOR.hex, "d90134d9019ad90132a103584104e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27")
 
-        let desc3 = try Descriptor("cosigner(\(wif))")
+        let desc3 = try OutputDescriptor("cosigner(\(wif))")
         XCTAssertNil(desc3.scriptPubKey())
         XCTAssertEqual(desc3.unparsed, desc3.source)
         XCTAssertEqual(desc3.taggedCBOR.hex, "d90134d9019ad90132a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e")
 
-        let desc4 = try Descriptor("cosigner(\(tprv))")
+        let desc4 = try OutputDescriptor("cosigner(\(tprv))")
         XCTAssertNil(desc4.scriptPubKey())
         XCTAssertEqual(desc4.unparsed, desc4.source)
         XCTAssertEqual(desc4.taggedCBOR.hex, "d90134d9019ad9012fa602f503582100347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e0458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
 
-        let desc5 = try Descriptor("cosigner(\(tpub))")
+        let desc5 = try OutputDescriptor("cosigner(\(tpub))")
         XCTAssertNil(desc5.scriptPubKey())
         XCTAssertEqual(desc5.unparsed, desc5.source)
         XCTAssertEqual(desc5.taggedCBOR.hex, "d90134d9019ad9012fa503582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f20458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
@@ -99,27 +99,27 @@ class DescriptorParserTests: XCTestCase {
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         
-        let desc1 = try Descriptor("pkh(\(ecPub))")
+        let desc1 = try OutputDescriptor("pkh(\(ecPub))")
         XCTAssertEqual(desc1.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 4efd3ded47d967e4122982422c9d84db60503972 OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc1.unparsed, desc1.source)
         XCTAssertEqual(desc1.taggedCBOR.hex, "d90134d90193d90132a103582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2")
 
-        let desc2 = try Descriptor("pkh(\(ecPubUncompressed))")
+        let desc2 = try OutputDescriptor("pkh(\(ecPubUncompressed))")
         XCTAssertEqual(desc2.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 335f3a94aeed3518f0baedc04330945e3dd0744b OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc2.unparsed, desc2.source)
         XCTAssertEqual(desc2.taggedCBOR.hex, "d90134d90193d90132a103584104e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27")
 
-        let desc3 = try Descriptor("pkh(\(wif))")
+        let desc3 = try OutputDescriptor("pkh(\(wif))")
         XCTAssertEqual(desc3.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 4efd3ded47d967e4122982422c9d84db60503972 OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc3.unparsed, desc3.source)
         XCTAssertEqual(desc3.taggedCBOR.hex, "d90134d90193d90132a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e")
 
-        let desc4 = try Descriptor("pkh(\(tprv))")
+        let desc4 = try OutputDescriptor("pkh(\(tprv))")
         XCTAssertEqual(desc4.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 4efd3ded47d967e4122982422c9d84db60503972 OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc4.unparsed, desc4.source)
         XCTAssertEqual(desc4.taggedCBOR.hex, "d90134d90193d9012fa602f503582100347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e0458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
 
-        let desc5 = try Descriptor("pkh(\(tpub))")
+        let desc5 = try OutputDescriptor("pkh(\(tpub))")
         XCTAssertEqual(desc5.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 4efd3ded47d967e4122982422c9d84db60503972 OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc5.unparsed, desc5.source)
         XCTAssertEqual(desc5.taggedCBOR.hex, "d90134d90193d9012fa503582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f20458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
@@ -134,27 +134,27 @@ class DescriptorParserTests: XCTestCase {
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         
-        let desc1 = try Descriptor("wpkh(\(ecPub))")
+        let desc1 = try OutputDescriptor("wpkh(\(ecPub))")
         XCTAssertEqual(desc1.scriptPubKey()†, "wpkh:[OP_0 4efd3ded47d967e4122982422c9d84db60503972]")
         XCTAssertEqual(desc1.unparsed, desc1.source)
         XCTAssertEqual(desc1.taggedCBOR.hex, "d90134d90194d90132a103582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2")
 
-        let desc2 = try Descriptor("wpkh(\(ecPubUncompressed))")
+        let desc2 = try OutputDescriptor("wpkh(\(ecPubUncompressed))")
         XCTAssertEqual(desc2.scriptPubKey()†, "wpkh:[OP_0 335f3a94aeed3518f0baedc04330945e3dd0744b]")
         XCTAssertEqual(desc2.unparsed, desc2.source)
         XCTAssertEqual(desc2.taggedCBOR.hex, "d90134d90194d90132a103584104e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27")
 
-        let desc3 = try Descriptor("wpkh(\(wif))")
+        let desc3 = try OutputDescriptor("wpkh(\(wif))")
         XCTAssertEqual(desc3.scriptPubKey()†, "wpkh:[OP_0 4efd3ded47d967e4122982422c9d84db60503972]")
         XCTAssertEqual(desc3.unparsed, desc3.source)
         XCTAssertEqual(desc3.taggedCBOR.hex, "d90134d90194d90132a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e")
 
-        let desc4 = try Descriptor("wpkh(\(tprv))")
+        let desc4 = try OutputDescriptor("wpkh(\(tprv))")
         XCTAssertEqual(desc4.scriptPubKey()†, "wpkh:[OP_0 4efd3ded47d967e4122982422c9d84db60503972]")
         XCTAssertEqual(desc4.unparsed, desc4.source)
         XCTAssertEqual(desc4.taggedCBOR.hex, "d90134d90194d9012fa602f503582100347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e0458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
 
-        let desc5 = try Descriptor("wpkh(\(tpub))")
+        let desc5 = try OutputDescriptor("wpkh(\(tpub))")
         XCTAssertEqual(desc5.scriptPubKey()†, "wpkh:[OP_0 4efd3ded47d967e4122982422c9d84db60503972]")
         XCTAssertEqual(desc5.unparsed, desc5.source)
         XCTAssertEqual(desc5.taggedCBOR.hex, "d90134d90194d9012fa503582103e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f20458205b74b3709e229bc49589525249b8997e83a5387c27fef500f2f2e1d608757bb305d90131a1020106d90130a3018200f5021a4efd3ded0303081ae0c98d67")
@@ -162,13 +162,13 @@ class DescriptorParserTests: XCTestCase {
     
     func testMulti() throws {
         let m1 = "multi(1,022f8bde4d1a07209355b4a7250a5c5128e88b84bddc619ab7cba8d569b240efe4,025cbdf0646e5db4eaa398f365f2ea7a0e3d419b7e0330e39ce92bddedcac4f9bc)"
-        let desc1 = try Descriptor(m1);
+        let desc1 = try OutputDescriptor(m1);
         XCTAssertEqual(desc1.scriptPubKey()†, "multi:[OP_1 022f8bde4d1a07209355b4a7250a5c5128e88b84bddc619ab7cba8d569b240efe4 025cbdf0646e5db4eaa398f365f2ea7a0e3d419b7e0330e39ce92bddedcac4f9bc OP_2 OP_CHECKMULTISIG]")
         XCTAssertEqual(desc1.unparsed, desc1.source)
         XCTAssertEqual(desc1.taggedCBOR.hex, "d90134d90196a201010282d90132a1035821022f8bde4d1a07209355b4a7250a5c5128e88b84bddc619ab7cba8d569b240efe4d90132a1035821025cbdf0646e5db4eaa398f365f2ea7a0e3d419b7e0330e39ce92bddedcac4f9bc")
 
         let m2 = "multi(2,03a0434d9e47f3c86235477c7b1ae6ae5d3442d49b1943c2b752a68e2a47e247c7,03774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cb,03d01115d548e7561b15c38f004d734633687cf4419620095bc5b0f47070afe85a)"
-        let desc2 = try Descriptor(m2)
+        let desc2 = try OutputDescriptor(m2)
         XCTAssertEqual(desc2.scriptPubKey()†, "multi:[OP_2 03a0434d9e47f3c86235477c7b1ae6ae5d3442d49b1943c2b752a68e2a47e247c7 03774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cb 03d01115d548e7561b15c38f004d734633687cf4419620095bc5b0f47070afe85a OP_3 OP_CHECKMULTISIG]")
         XCTAssertEqual(desc2.unparsed, desc2.source)
         XCTAssertEqual(desc2.taggedCBOR.hex, "d90134d90196a201020283d90132a103582103a0434d9e47f3c86235477c7b1ae6ae5d3442d49b1943c2b752a68e2a47e247c7d90132a103582103774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cbd90132a103582103d01115d548e7561b15c38f004d734633687cf4419620095bc5b0f47070afe85a")
@@ -178,7 +178,7 @@ class DescriptorParserTests: XCTestCase {
         func test(_ threshold: Int, _ keys: [String], _ expectedScript: String, _ expectedAddress: String, _ expectedCBOR: String) throws {
             let k = keys.joined(separator: ",")
             let source = "sortedmulti(\(threshold),\(k))"
-            let desc = try Descriptor(source)
+            let desc = try OutputDescriptor(source)
             XCTAssertEqual(desc.scriptPubKey()?.hex, expectedScript)
             let address = Bitcoin.Address(scriptPubKey: desc.scriptPubKey()!, network: .mainnet)!.string
             XCTAssertEqual(address, expectedAddress)
@@ -239,7 +239,7 @@ class DescriptorParserTests: XCTestCase {
     
     func testSortedMulti2() throws {
         let source = "sortedmulti(1,xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB,xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH)"
-        let desc = try Descriptor(source)
+        let desc = try OutputDescriptor(source)
         XCTAssertEqual(desc.scriptPubKey()?.asm, "OP_1 02fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea 03cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a7 OP_2 OP_CHECKMULTISIG")
         XCTAssertEqual(desc.unparsed, source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90197a201010282d9012fa301f503582103cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a704582060499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd9689d9012fa303582102fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea045820f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c081abd16bee5")
@@ -251,21 +251,21 @@ class DescriptorParserTests: XCTestCase {
         let addressp2pkh = Bitcoin.Address(hdKey: hdKey, type: .payToPubKeyHash).string
         XCTAssertEqual(addressp2pkh, "mnicNaAVzyGdFvDa9VkMrjgNdnr2wHBWxk")
         
-        let desc1 = try Descriptor("addr(\(addressp2pkh))")
+        let desc1 = try OutputDescriptor("addr(\(addressp2pkh))")
         XCTAssertEqual(desc1.scriptPubKey()†, "pkh:[OP_DUP OP_HASH160 4efd3ded47d967e4122982422c9d84db60503972 OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc1.unparsed, desc1.source)
         let p2shp2wpkh = Bitcoin.Address(hdKey: hdKey, type: .payToScriptHashPayToWitnessPubKeyHash).string
         XCTAssertEqual(p2shp2wpkh, "2N6M3ah9EoggimNz5pnAmQwnpE1Z3ya3V7A")
         XCTAssertEqual(desc1.taggedCBOR.hex, "d90134d90133a301d90131a10201020003544efd3ded47d967e4122982422c9d84db60503972")
 
-        let desc2 = try Descriptor("addr(\(p2shp2wpkh))")
+        let desc2 = try OutputDescriptor("addr(\(p2shp2wpkh))")
         XCTAssertEqual(desc2.scriptPubKey()†, "sh:[OP_HASH160 8fb371a0195598d96e634b9eddb645fa1f128e11 OP_EQUAL]")
         XCTAssertEqual(desc2.unparsed, desc2.source)
         let p2wpkh = Bitcoin.Address(hdKey: hdKey, type: .payToWitnessPubKeyHash).string
         XCTAssertEqual(p2wpkh, "tb1qfm7nmm28m9n7gy3fsfpze8vymds9qwtjwn4w7y")
         XCTAssertEqual(desc2.taggedCBOR.hex, "d90134d90133a301d90131a10201020103548fb371a0195598d96e634b9eddb645fa1f128e11")
 
-        let desc3 = try Descriptor("addr(\(p2wpkh))")
+        let desc3 = try OutputDescriptor("addr(\(p2wpkh))")
         XCTAssertEqual(desc3.unparsed, desc3.source)
         XCTAssertEqual(desc3.scriptPubKey()†, "wpkh:[OP_0 4efd3ded47d967e4122982422c9d84db60503972]")
         XCTAssertEqual(desc3.taggedCBOR.hex, "d90134d90133a301d90131a10201020203544efd3ded47d967e4122982422c9d84db60503972")
@@ -273,7 +273,7 @@ class DescriptorParserTests: XCTestCase {
     
     func testHDKey1() throws {
         let source = "pkh([d34db33f/44'/0'/0']xpub6CY2xt3mvQejPFUw26CychtL4GMq1yp41aMW2U27mvThqefpZYwXpGscV26JuVj13Fpg4kgSENheUSbTqm5f8z25zrhXpPVss5zWeMGnAKR/1/*)"
-        let desc = try Descriptor(source)
+        let desc = try OutputDescriptor(source)
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertTrue(desc.requiresWildcardChildNum)
         XCTAssertNil(desc.scriptPubKey()) // requires wildcard
@@ -298,7 +298,7 @@ class DescriptorParserTests: XCTestCase {
         XCTAssertEqual(accountPublicKey.fullDescription, "[4efd3ded/44'/0'/0']tpubDC9aPjGeWbUu5sLz9JDSvmYPwuLGVLTFVKqcAcatHSuiTewT2XAsNQc7tsvhcXMz216Ed28BvtnWN73aANARJFSfFdT39vPTTf28Mtbkn7D/1'/*")
         
         let source = "pkh(\(accountPublicKey.fullDescription))"
-        let desc = try Descriptor(source)
+        let desc = try OutputDescriptor(source)
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertTrue(desc.requiresWildcardChildNum)
         XCTAssertNil(desc.scriptPubKey(wildcardChildNum: 0)) // requires private key.
@@ -327,7 +327,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_SH_WPKH() throws {
         let a = "sh(wpkh(03fff97bd5755eeea420453a14355235d382f6472f8568a18b2f057a1460297556))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertEqual(desc.scriptPubKey()†, "sh:[OP_HASH160 cc6ffbc0bf31af759451068f90ba7a0272b6b332 OP_EQUAL]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90190d90194d90132a103582103fff97bd5755eeea420453a14355235d382f6472f8568a18b2f057a1460297556")
@@ -335,7 +335,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_WSH_PKH() throws {
         let a = "wsh(pkh(02e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertEqual(desc.scriptPubKey()†, "wsh:[OP_0 fc5acc302aab97f821f9a61e1cc572e7968a603551e95d4ba12b51df6581482f]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90191d90193d90132a103582102e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13")
@@ -343,7 +343,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_SH_WSH_PKH() throws {
         let a = "sh(wsh(pkh(02e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13)))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertEqual(desc.scriptPubKey()†, "sh:[OP_HASH160 55e8d5e8ee4f3604aba23c71c2684fa0a56a3a12 OP_EQUAL]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90190d90191d90193d90132a103582102e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13")
@@ -351,7 +351,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_SH_MULTI() throws {
         let a = "sh(multi(2,022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01,03acd484e2f0c7f65309ad178a9f559abde09796974c57e714c35f110dfc27ccbe))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertEqual(desc.scriptPubKey()†, "sh:[OP_HASH160 a6a8b030a38762f4c1f5cbe387b61a3c5da5cd26 OP_EQUAL]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90190d90196a201020282d90132a1035821022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01d90132a103582103acd484e2f0c7f65309ad178a9f559abde09796974c57e714c35f110dfc27ccbe")
@@ -359,7 +359,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_SH_SORTEDMULTI() throws {
         let a = "sh(sortedmulti(2,03acd484e2f0c7f65309ad178a9f559abde09796974c57e714c35f110dfc27ccbe,022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertEqual(desc.scriptPubKey()†, "sh:[OP_HASH160 a6a8b030a38762f4c1f5cbe387b61a3c5da5cd26 OP_EQUAL]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90190d90197a201020282d90132a103582103acd484e2f0c7f65309ad178a9f559abde09796974c57e714c35f110dfc27ccbed90132a1035821022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01")
@@ -367,7 +367,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_WSH_MULTI() throws {
         let a = "wsh(multi(2,03a0434d9e47f3c86235477c7b1ae6ae5d3442d49b1943c2b752a68e2a47e247c7,03774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cb,03d01115d548e7561b15c38f004d734633687cf4419620095bc5b0f47070afe85a))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertEqual(desc.scriptPubKey()†, "wsh:[OP_0 773d709598b76c4e3b575c08aad40658963f9322affc0f8c28d1d9a68d0c944a]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90191d90196a201020283d90132a103582103a0434d9e47f3c86235477c7b1ae6ae5d3442d49b1943c2b752a68e2a47e247c7d90132a103582103774ae7f858a9411e5ef4246b70c65aac5649980be5c17891bbec17895da008cbd90132a103582103d01115d548e7561b15c38f004d734633687cf4419620095bc5b0f47070afe85a")
@@ -375,7 +375,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_SH_WSH_MULTI() throws {
         let a = "sh(wsh(multi(1,03f28773c2d975288bc7d1d205c3748651b075fbc6610e58cddeeddf8f19405aa8,03499fdf9e895e719cfd64e67f07d38e3226aa7b63678949e6e49b241a60e823e4,02d7924d4f7d43ea965a465ae3095ff41131e5946f3c85f79e44adbcf8e27e080e)))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertFalse(desc.requiresWildcardChildNum)
         XCTAssertEqual(desc.scriptPubKey()†, "sh:[OP_HASH160 aec509e284f909f769bb7dda299a717c87cc97ac OP_EQUAL]")
         XCTAssertEqual(desc.unparsed, desc.source)
@@ -384,7 +384,7 @@ class DescriptorParserTests: XCTestCase {
     
     func test_WSH_MULTI_HD() throws {
         let a = "wsh(multi(1,xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/1/0/*,xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH/0/0/*))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         XCTAssertTrue(desc.requiresWildcardChildNum)
         XCTAssertEqual(desc.scriptPubKey(wildcardChildNum: 0)†, "wsh:[OP_0 64969d8cdca2aa0bb72cfe88427612878db98a5f07f9a7ec6ec87b85e9f9208b]")
         XCTAssertEqual(desc.unparsed, desc.source)
@@ -394,7 +394,7 @@ class DescriptorParserTests: XCTestCase {
     func test_WSH_MULTI_HD_2() throws {
         // This test vector from: https://bitcoindevkit.org/descriptors/
         let a = "wsh(multi(2,tprv8ZgxMBicQKsPePmENhT9N9yiSfTtDoC1f39P7nNmgEyCB6Nm4Qiv1muq4CykB9jtnQg2VitBrWh8PJU8LHzoGMHTrS2VKBSgAz7Ssjf9S3P/0/*,tpubDBYDcH8P2PedrEN3HxWYJJJMZEdgnrqMsjeKpPNzwe7jmGwk5M3HRdSf5vudAXwrJPfUsfvUPFooKWmz79Lh111U51RNotagXiGNeJe3i6t/1/*))"
-        let desc = try Descriptor(a)
+        let desc = try OutputDescriptor(a)
         let scriptPubKey0 = desc.scriptPubKey(wildcardChildNum: 0)!
         let scriptPubKey1 = desc.scriptPubKey(wildcardChildNum: 1)!
         XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKey0, network: .testnet)!.string, "tb1qqsat6c82fvdy73rfzye8f7nwxcz3xny7t56azl73g95mt3tmzvgs9a8vjs")
@@ -407,7 +407,7 @@ class DescriptorParserTests: XCTestCase {
     func testCombo1() throws {
         // https://github.com/bitcoin/bips/blob/master/bip-0384.mediawiki
         let comboCompressed = "combo(022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01)"
-        let desc = try Descriptor(comboCompressed)
+        let desc = try OutputDescriptor(comboCompressed)
         XCTAssertTrue(desc.isCombo)
         XCTAssertFalse(desc.requiresWildcardChildNum)
         XCTAssertEqual(desc.scriptPubKey(comboOutput: .pk)†, "pk:[022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01 OP_CHECKSIG]")
@@ -421,7 +421,7 @@ class DescriptorParserTests: XCTestCase {
     func testCombo2() throws {
         // https://github.com/bitcoin/bips/blob/master/bip-0384.mediawiki
         let comboUncompressed = "combo(04e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27)"
-        let desc = try Descriptor(comboUncompressed)
+        let desc = try OutputDescriptor(comboUncompressed)
         XCTAssertTrue(desc.isCombo)
         XCTAssertEqual(desc.scriptPubKey(comboOutput: .pk)†, "pk:[04e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27 OP_CHECKSIG]")
         XCTAssertEqual(desc.scriptPubKey(comboOutput: .pkh)†, "pkh:[OP_DUP OP_HASH160 335f3a94aeed3518f0baedc04330945e3dd0744b OP_EQUALVERIFY OP_CHECKSIG]")

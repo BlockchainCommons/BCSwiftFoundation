@@ -65,10 +65,10 @@ public enum AccountOutputType: CaseIterable, Identifiable {
         }
     }
     
-    public func accountDescriptor(masterKey: HDKeyProtocol, network: Network, account: UInt32) throws -> Descriptor {
+    public func accountDescriptor(masterKey: HDKeyProtocol, network: Network, account: UInt32) throws -> OutputDescriptor {
         let accountKey = try accountPublicKey(masterKey: masterKey, network: network, account: account)
         let source = descriptorSource(accountKey: accountKey)
-        return try Descriptor(source)
+        return try OutputDescriptor(source)
     }
     
     public func accountPublicKey(masterKey: HDKeyProtocol, network: Network, account: UInt32) throws -> HDKey {

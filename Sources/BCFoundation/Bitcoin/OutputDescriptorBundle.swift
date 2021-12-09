@@ -1,5 +1,5 @@
 //
-//  AccountBundle.swift
+//  OutputDescriptorBundle.swift
 //  
 //
 //  Created by Wolf McNally on 12/5/21.
@@ -10,25 +10,25 @@ import Foundation
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md
 
-public struct AccountBundle {
+public struct OutputDescriptorBundle {
     public let masterKey: HDKeyProtocol
     public let network: Network
     public let account: UInt32
-    public let descriptors: [Descriptor]
-    public let descriptorsByOutputType: [AccountOutputType: Descriptor]
+    public let descriptors: [OutputDescriptor]
+    public let descriptorsByOutputType: [AccountOutputType: OutputDescriptor]
     
     public init?(masterKey: HDKeyProtocol, network: Network, account: UInt32, outputTypes: [AccountOutputType] = AccountOutputType.allCases) {
         guard
             masterKey.isMaster,
             !outputTypes.isEmpty,
-            let descriptors: [Descriptor] = try? outputTypes.map( {
+            let descriptors: [OutputDescriptor] = try? outputTypes.map( {
                 let a = try $0.accountDescriptor(masterKey: masterKey, network: network, account: account)
                 return a;
             })
         else {
             return nil
         }
-        var descriptorsByOutputType: [AccountOutputType: Descriptor] = [:]
+        var descriptorsByOutputType: [AccountOutputType: OutputDescriptor] = [:]
         zip(outputTypes, descriptors).forEach {
             descriptorsByOutputType[$0] = $1
         }

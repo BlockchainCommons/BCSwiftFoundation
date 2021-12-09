@@ -13,7 +13,7 @@ import WolfBase
 final class DescriptorParser: Parser {
     typealias Tokens = LookAheadSequence<[DescriptorToken]>
     typealias Transaction = ParseTransaction<DescriptorParser>
-    typealias Error = DescriptorError<DescriptorToken>
+    typealias Error = OutputDescriptorError<DescriptorToken>
 
     let source: String
     var tokens: Tokens

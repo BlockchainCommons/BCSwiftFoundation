@@ -11,7 +11,7 @@ struct DescriptorCombo: DescriptorAST {
     let key: DescriptorKeyExpression
     
     // https://github.com/bitcoin/bips/blob/master/bip-0384.mediawiki
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
+    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
         guard let comboOutput = comboOutput else {
             return nil
         }

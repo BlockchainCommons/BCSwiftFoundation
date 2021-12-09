@@ -10,7 +10,7 @@ import Foundation
 struct DescriptorAddress: DescriptorAST {
     let address: Bitcoin.Address
     
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
+    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
         address.scriptPubKey
     }
 

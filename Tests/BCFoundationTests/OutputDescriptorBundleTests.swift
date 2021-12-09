@@ -1,5 +1,5 @@
 //
-//  AccountBundleTests.swift
+//  OutputDescriptorBundleTests.swift
 //  
 //
 //  Created by Wolf McNally on 12/5/21.
@@ -9,10 +9,10 @@ import XCTest
 import BCFoundation
 import WolfBase
 
-class AccountBundleTests: XCTestCase {
-    func testAccountBundle() throws {
+class OutputDescriptorBundleTests: XCTestCase {
+    func testOutputDescriptorBundle() throws {
         let masterKey = try HDKey(bip39Seed: .init(bip39: .init(mnemonic: "shield group erode awake lock sausage cash glare wave crew flame glove")!))
-        let bundle = AccountBundle(masterKey: masterKey, network: .mainnet, account: 0)!
+        let bundle = OutputDescriptorBundle(masterKey: masterKey, network: .mainnet, account: 0)!
         //    let descriptors = bundle.descriptors.map({ "\"\($0†)\"" }).joined(separator:",\n")
         //    print(descriptors)
         let expectedDescriptors = [

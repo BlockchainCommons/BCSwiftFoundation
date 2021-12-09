@@ -1,5 +1,5 @@
 //
-//  DescriptorError.swift
+//  OutputDescriptorError.swift
 //  BCFoundation
 //
 //  Created by Wolf McNally on 9/2/21.
@@ -8,10 +8,10 @@
 import Foundation
 import Flexer
 
-struct DescriptorError<T>: Error, CustomStringConvertible where T: TokenProtocol, T.Index == String.Index {
-    let message: String
+public struct OutputDescriptorError<T>: Error, CustomStringConvertible where T: TokenProtocol, T.Index == String.Index {
+    public let message: String
     let token: T?
-    let source: String
+    public let source: String
     
     init(_ message: String, _ token: T?, source: String) {
         self.message = message

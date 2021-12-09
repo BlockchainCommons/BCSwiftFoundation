@@ -1,5 +1,5 @@
 //
-//  Descriptor.swift
+//  OutputDescriptor.swift
 //  BCFoundation
 //
 //  Created by Wolf McNally on 9/2/21.
@@ -8,7 +8,7 @@
 import Foundation
 @_exported import URKit
 
-public struct Descriptor {
+public struct OutputDescriptor {
     public let source: String
     private let astRoot: DescriptorAST
     
@@ -54,7 +54,7 @@ public struct Descriptor {
     }
 }
 
-extension Descriptor: CustomStringConvertible {
+extension OutputDescriptor: CustomStringConvertible {
     public var description: String {
         source
     }

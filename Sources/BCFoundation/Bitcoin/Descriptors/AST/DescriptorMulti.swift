@@ -12,7 +12,7 @@ struct DescriptorMulti: DescriptorAST {
     let keys: [DescriptorKeyExpression]
     let isSorted: Bool
     
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: Descriptor.ComboOutput?) -> ScriptPubKey? {
+    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
         var ops: [ScriptOperation] = []
         ops.append(.op(ScriptOpcode(int: threshold)!))
         
