@@ -443,8 +443,9 @@ extension HDKeyProtocol {
 }
 
 extension HDKeyProtocol {
-    public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> CBOR {
+    public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
         var a: [OrderedMapEntry] = []
+        var didLimit: Bool = false
 
         if isMaster {
             a.append(.init(key: 1, value: true))
@@ -477,26 +478,33 @@ extension HDKeyProtocol {
         }
         
         if !name.isEmpty {
-            a.append(.init(key: 9, value: .utf8String(name.prefix(count: nameLimit))))
+            let limitedName = name.prefix(count: nameLimit)
+            didLimit = didLimit || limitedName.count < name.count
+            a.append(.init(key: 9, value: .utf8String(limitedName)))
         }
 
         if !note.isEmpty {
-            a.append(.init(key: 10, value: .utf8String(note.prefix(count: noteLimit))))
+            let limitedNote = note.prefix(count: noteLimit)
+            didLimit = didLimit || limitedNote.count < note.count
+            a.append(.init(key: 10, value: .utf8String(limitedNote)))
         }
 
-        return CBOR.orderedMap(a)
+        return (CBOR.orderedMap(a), didLimit)
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.hdKey.tag, cbor())
+        let (c, _) = cbor()
+        return CBOR.tagged(URType.hdKey.tag, c)
     }
 
     public var ur: UR {
-        return try! UR(type: URType.hdKey.type, cbor: cbor())
+        let (c, _) = cbor()
+        return try! UR(type: URType.hdKey.type, cbor: c)
     }
 
-    public var sizeLimitedUR: UR {
-        return try! UR(type: URType.hdKey.type, cbor: cbor(nameLimit: 100, noteLimit: 500))
+    public func sizeLimitedUR(nameLimit: Int = 100, noteLimit: Int = 500) -> (UR, Bool) {
+        let (c, didLimit) = cbor(nameLimit: nameLimit, noteLimit: noteLimit)
+        return try! (UR(type: URType.hdKey.type, cbor: c), didLimit)
     }
 }
 

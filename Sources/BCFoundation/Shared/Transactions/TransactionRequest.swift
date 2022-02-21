@@ -130,7 +130,7 @@ public struct TransactionRequest {
         try! UR(type: URType.transactionRequest.type, cbor: cbor())
     }
     
-    public var sizeLimitedUR: UR {
-        try! UR(type: URType.transactionRequest.type, cbor: cbor(noteLimit: 500))
+    public func sizeLimitedUR(noteLimit: Int = 500) -> UR {
+        try! UR(type: URType.transactionRequest.type, cbor: cbor(noteLimit: noteLimit))
     }
 }

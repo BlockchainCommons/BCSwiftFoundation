@@ -82,36 +82,44 @@ extension SeedProtocol {
 }
 
 extension SeedProtocol {
-    public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> CBOR {
+    public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
         var a: [OrderedMapEntry] = [
             .init(key: 1, value: .data(data))
         ]
-        
+        var didLimit = false
+
         if let creationDate = creationDate {
             a.append(.init(key: 2, value: .date(creationDate)))
         }
 
         if !name.isEmpty {
-            a.append(.init(key: 3, value: .utf8String(name.prefix(count: nameLimit))))
+            let limitedName = name.prefix(count: nameLimit)
+            didLimit = didLimit || limitedName.count < name.count
+            a.append(.init(key: 3, value: .utf8String(limitedName)))
         }
 
         if !note.isEmpty {
-            a.append(.init(key: 4, value: .utf8String(note.prefix(count: noteLimit))))
+            let limitedNote = note.prefix(count: noteLimit)
+            didLimit = didLimit || limitedNote.count < note.count
+            a.append(.init(key: 4, value: .utf8String(limitedNote)))
         }
 
-        return CBOR.orderedMap(a)
+        return (CBOR.orderedMap(a), didLimit)
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.seed.tag, cbor())
+        let (c, _) = cbor()
+        return CBOR.tagged(URType.seed.tag, c)
     }
 
     public var ur: UR {
-        try! UR(type: URType.seed.type, cbor: cbor())
+        let (c, _) = cbor()
+        return try! UR(type: URType.seed.type, cbor: c)
     }
     
-    public var sizeLimitedUR: UR {
-        try! UR(type: URType.seed.type, cbor: cbor(nameLimit: 100, noteLimit: 500))
+    public func sizeLimitedUR(nameLimit: Int = 100, noteLimit: Int = 500) -> (UR, Bool) {
+        let (c, didLimit) = cbor(nameLimit: nameLimit, noteLimit: noteLimit)
+        return try! (UR(type: URType.seed.type, cbor: c), didLimit)
     }
 }
 
