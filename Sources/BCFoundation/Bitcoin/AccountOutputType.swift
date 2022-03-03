@@ -8,63 +8,32 @@
 import Foundation
 import WolfBase
 
-public enum AccountOutputType: CaseIterable, Identifiable {
-    case pkh
-    case shwpkh
-    case wpkh
-    case shcosigner
-    case shwshcosigner
-    case wshcosigner
-    case trsingle
+public struct AccountOutputType: Hashable, Identifiable {
+    public let name: String
+    public let shortName: String
+    public let descriptorSource: String
+    public let accountDerivationPath: String
     
     public var id: String {
-        return self†
+        shortName
     }
-    
+
     public func descriptorSource(accountKey: HDKeyProtocol) -> String {
         let keyExpression = accountKey.description(withParent: true)
         return descriptorSource(keyExpression: keyExpression)
     }
-    
+
     public func descriptorSource(keyExpression: String) -> String {
-        switch self {
-        case .pkh:
-            return "pkh(\(keyExpression))"
-        case .shwpkh:
-            return "sh(wpkh(\(keyExpression)))"
-        case .wpkh:
-            return "wpkh(\(keyExpression))"
-        case .shcosigner:
-            return "sh(cosigner(\(keyExpression)))"
-        case .shwshcosigner:
-            return "sh(wsh(cosigner(\(keyExpression))))"
-        case .wshcosigner:
-            return "wsh(cosigner(\(keyExpression)))"
-        case .trsingle:
-            return "tr(\(keyExpression))"
-        }
+        self.descriptorSource.replacingOccurrences(of: "KEY", with: keyExpression)
+    }
+    
+    public func accountDerivationPath(network: Network, account: UInt32) -> DerivationPath {
+        let coinType = UseInfo(network: network).coinType†
+        return DerivationPath(string: self.accountDerivationPath
+            .replacingOccurrences(of: "COIN_TYPE", with: coinType)
+            .replacingOccurrences(of: "ACCOUNT", with: account†))!
     }
 
-    public func accountDerivationPath(network: Network, account: UInt32) -> DerivationPath {
-        let coinType = UseInfo(network: network).coinType
-        switch self {
-        case .pkh:
-            return .init(string: "44'/\(coinType)'/\(account)'")!
-        case .shwpkh:
-            return .init(string: "49'/\(coinType)'/\(account)'")!
-        case .wpkh:
-            return .init(string: "84'/\(coinType)'/\(account)'")!
-        case .shcosigner:
-            return .init(string: "45'")!
-        case .shwshcosigner:
-            return .init(string: "48'/\(coinType)'/\(account)'/1'")!
-        case .wshcosigner:
-            return .init(string: "48'/\(coinType)'/\(account)'/2'")!
-        case .trsingle:
-            return .init(string: "86'/\(coinType)'/\(account)'")!
-        }
-    }
-    
     public func accountDescriptor(masterKey: HDKeyProtocol, network: Network, account: UInt32) throws -> OutputDescriptor {
         let accountKey = try accountPublicKey(masterKey: masterKey, network: network, account: account)
         let source = descriptorSource(accountKey: accountKey)
@@ -75,4 +44,63 @@ public enum AccountOutputType: CaseIterable, Identifiable {
         let path = accountDerivationPath(network: network, account: account)
         return try HDKey(parent: masterKey, derivedKeyType: .public, childDerivationPath: path)
     }
+    
+    public static let pkh = AccountOutputType(
+        name: "Legacy Single Key",
+        shortName: "legacy",
+        descriptorSource: "pkh(KEY)",
+        accountDerivationPath: "44'/COIN_TYPE'/ACCOUNT'"
+    )
+
+    public static let shwpkh = AccountOutputType(
+        name: "Nested Segwit Single Key",
+        shortName: "nested",
+        descriptorSource: "sh(wpkh(KEY))",
+        accountDerivationPath: "49'/COIN_TYPE'/ACCOUNT'"
+    )
+
+    public static let wpkh = AccountOutputType(
+        name: "Native Segwit Single Key",
+        shortName: "segwit",
+        descriptorSource: "wpkh(KEY)",
+        accountDerivationPath: "84'/COIN_TYPE'/ACCOUNT'"
+    )
+
+    public static let shcosigner = AccountOutputType(
+        name: "Legacy Multisig Cosigner",
+        shortName: "legacymultisig",
+        descriptorSource: "sh(cosigner(KEY))",
+        accountDerivationPath: "45'"
+    )
+
+    public static let shwshcosigner = AccountOutputType(
+        name: "Nested Segwit Multisig Cosigner",
+        shortName: "nestedmultisig",
+        descriptorSource: "sh(wsh(cosigner(KEY)))",
+        accountDerivationPath: "48'/COIN_TYPE'/ACCOUNT'/1'"
+    )
+
+    public static let wshcosigner = AccountOutputType(
+        name: "Native Segwit Multisig Cosigner",
+        shortName: "segwitmultisig",
+        descriptorSource: "wsh(cosigner(KEY))",
+        accountDerivationPath: "48'/COIN_TYPE'/ACCOUNT'/2'"
+    )
+
+    public static let trsingle = AccountOutputType(
+        name: "Taproot Single Key",
+        shortName: "taproot",
+        descriptorSource: "tr(KEY)",
+        accountDerivationPath: "86'/COIN_TYPE'/ACCOUNT'"
+    )
+    
+    public static let bundleCases = [
+        pkh,
+        shwpkh,
+        wpkh,
+        shcosigner,
+        shwshcosigner,
+        wshcosigner,
+        trsingle,
+    ]
 }

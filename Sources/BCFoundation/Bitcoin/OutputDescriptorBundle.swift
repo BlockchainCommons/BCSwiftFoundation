@@ -17,7 +17,7 @@ public struct OutputDescriptorBundle {
     public let descriptors: [OutputDescriptor]
     public let descriptorsByOutputType: [AccountOutputType: OutputDescriptor]
     
-    public init?(masterKey: HDKeyProtocol, network: Network, account: UInt32, outputTypes: [AccountOutputType] = AccountOutputType.allCases) {
+    public init?(masterKey: HDKeyProtocol, network: Network, account: UInt32, outputTypes: [AccountOutputType] = AccountOutputType.bundleCases) {
         guard
             masterKey.isMaster,
             !outputTypes.isEmpty,
