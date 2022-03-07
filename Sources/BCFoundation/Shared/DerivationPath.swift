@@ -143,6 +143,10 @@ public struct DerivationPath : Equatable {
     public var effectiveDepth: Int {
         return depth ?? steps.count
     }
+    
+    public var count: Int {
+        steps.count
+    }
 
     public var isEmpty: Bool {
         steps.isEmpty

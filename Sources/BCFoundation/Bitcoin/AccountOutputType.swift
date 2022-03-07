@@ -45,6 +45,53 @@ public struct AccountOutputType: Hashable, Identifiable {
         return try HDKey(parent: masterKey, derivedKeyType: .public, childDerivationPath: path)
     }
     
+    public func matchesPath(_ path: DerivationPath) -> Bool {
+        let myPath = DerivationPath(string: accountDerivationPath)!
+        guard path.count == myPath.count else {
+            return false
+        }
+        for (step, myStep) in zip(path.steps, myPath.steps) {
+            guard step.isHardened == myStep.isHardened else {
+                return false
+            }
+            switch myStep.childIndexSpec {
+            case .index(let myIndex):
+                guard
+                    case let .index(index) = step.childIndexSpec,
+                    index == myIndex
+                else {
+                    return false
+                }
+            case .coinTypePlaceholder:
+                guard
+                    case let .index(index) = step.childIndexSpec,
+                    index == 0 || index == 1
+                else {
+                    return false
+                }
+            case .accountPlaceholder:
+                guard
+                    case .index = step.childIndexSpec
+                else {
+                    return false
+                }
+            default:
+                break
+            }
+        }
+        return true
+    }
+    
+    public static func firstMatching(in types: [AccountOutputType], path: DerivationPath) -> AccountOutputType? {
+        types.first {
+            $0.matchesPath(path)
+        }
+    }
+    
+    public static func firstMatching(path: DerivationPath) -> AccountOutputType? {
+        firstMatching(in: bundleCases, path: path)
+    }
+    
     public static let pkh = AccountOutputType(
         name: "Legacy Single Key",
         shortName: "legacy",

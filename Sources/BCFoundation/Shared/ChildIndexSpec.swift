@@ -12,6 +12,8 @@ public enum ChildIndexSpec: Equatable {
     case index(ChildIndex)
     case indexRange(ChildIndexRange)
     case indexWildcard
+    case coinTypePlaceholder
+    case accountPlaceholder
     
     public var isFixed: Bool {
         switch self {
@@ -32,6 +34,10 @@ extension ChildIndexSpec: CustomStringConvertible {
             return indexRange.description
         case .indexWildcard:
             return "*"
+        case .coinTypePlaceholder:
+            return "COIN_TYPE"
+        case .accountPlaceholder:
+            return "ACCOUNT"
         }
     }
 }
@@ -40,6 +46,10 @@ extension ChildIndexSpec {
     public static func parse(_ s: String) -> ChildIndexSpec? {
         if s == "*" {
             return .indexWildcard
+        } else if s == "COIN_TYPE" {
+            return .coinTypePlaceholder
+        } else if s == "ACCOUNT" {
+            return .accountPlaceholder
         } else if let range = ChildIndexRange.parse(s) {
             return .indexRange(range)
         } else if let index = ChildIndex.parse(s) {
@@ -59,6 +69,8 @@ extension ChildIndexSpec {
             return indexRange.cbor
         case .indexWildcard:
             return CBOR.array([])
+        default:
+            fatalError()
         }
     }
     
