@@ -52,6 +52,18 @@ public struct OutputDescriptor {
     public var ur: UR {
         return try! UR(type: URType.output.type, cbor: cbor)
     }
+    
+    public var checksum: String {
+        Self.checksum(source)!
+    }
+    
+    public var sourceWithChecksum: String {
+        return "\(source)#\(checksum)"
+    }
+    
+    public static func checksum(_ source: String) -> String? {
+        descriptorChecksum(source)
+    }
 }
 
 extension OutputDescriptor: CustomStringConvertible {

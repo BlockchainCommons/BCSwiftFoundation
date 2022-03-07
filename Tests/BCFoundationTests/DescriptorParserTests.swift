@@ -430,4 +430,11 @@ class DescriptorParserTests: XCTestCase {
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.hex, "d90134d90195d90132a103584104e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f22fa358bbfca32197efabe42755e5ab36c73b9bfee5b6ada22807cb125c1b7a27")
     }
+    
+    func testChecksum() throws {
+        let source = "pkh([00000000/0'/0']tprv8et1s5VnWCG3v3R6vXX5hprTpdCdcBp3jRuoDByaF9uAkCt5XjfuX52hgh63aWzCYpXNU2YyxAj78qg8PS2EuGUKE8Untk6NVe7FAG8RdLk/*')"
+        let expectedChecksum = "3428vapa"
+        let checksum = OutputDescriptor.checksum(source)!
+        XCTAssertEqual(checksum, expectedChecksum)
+    }
 }
