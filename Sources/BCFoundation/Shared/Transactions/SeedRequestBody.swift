@@ -10,28 +10,45 @@ import CryptoSwift
 @_exported import URKit
 
 public struct SeedRequestBody {
-    public let digest: Data
+    public let seedDigest: SeedDigest
+    
+    public var digest: Data {
+        seedDigest.digest
+    }
     
     public var cbor: CBOR {
-        CBOR.data(digest)
+        CBOR.orderedMap([
+            .init(key: 1, value: seedDigest.taggedCBOR)
+        ])
     }
     
     public var taggedCBOR: CBOR {
-        return CBOR.tagged(.seedRequestBody, cbor)
+        CBOR.tagged(.seedRequestBody, cbor)
+    }
+    
+    public init(seedDigest: SeedDigest) {
+        self.seedDigest = seedDigest
     }
     
     public init(digest: Data) throws {
-        guard digest.count == SHA2.Variant.sha256.digestLength else {
-            throw CBORError.invalidFormat
-        }
-        self.digest = digest
+        self.seedDigest = try SeedDigest(digest: digest)
     }
     
     public init(cbor: CBOR) throws {
-        guard case let CBOR.data(bytes) = cbor else {
+        guard case let CBOR.map(pairs) = cbor else {
+            // Seed request doesn't contain map
             throw CBORError.invalidFormat
         }
-        try self.init(digest: bytes.data)
+        guard let digestItem = pairs[1] else {
+            // Seed request doesn't contain digest field
+            throw CBORError.invalidFormat
+        }
+        guard let seedDigest = try SeedDigest(taggedCBOR: digestItem) else {
+            // Seed request doesn't contain valid digest
+            throw CBORError.invalidFormat
+        }
+                
+        self.init(seedDigest: seedDigest)
     }
     
     public init?(taggedCBOR: CBOR) throws {
