@@ -17,7 +17,7 @@ public struct TransactionRequest {
     public let body: Body
     public let note: String?
 
-    public init(id: UUID, body: Body, note: String?) {
+    public init(id: UUID = UUID(), body: Body, note: String? = nil) {
         self.id = id
         self.body = body
         self.note = note
@@ -64,19 +64,13 @@ public struct TransactionRequest {
             throw URError.unexpectedType
         }
     }
-
-    public init(id: UUID = UUID(), body: TransactionRequest.Body, description: String? = nil) {
-        self.id = id
-        self.body = body
-        self.note = description
-    }
     
     public init(cborData: Data, isRawPSBT: Bool = false) throws {
         let cbor = try CBOR(cborData)
         if isRawPSBT {
             let psbt = try PSBT(cbor: cbor)
             let body = TransactionRequest.Body.psbtSignature(PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true))
-            self.init(id: UUID(), body: body, description: nil)
+            self.init(id: UUID(), body: body, note: nil)
         } else {
             try self.init(cbor: cbor)
         }
@@ -111,19 +105,19 @@ public struct TransactionRequest {
             throw TransactionRequestError.unknownRequestType
         }
         
-        let description: String?
+        let note: String?
         
-        if let descriptionItem = pairs[3] {
-            guard case let CBOR.utf8String(d) = descriptionItem else {
-                // description is not a string
+        if let noteItem = pairs[3] {
+            guard case let CBOR.utf8String(d) = noteItem else {
+                // note is not a string
                 throw CBORError.invalidFormat
             }
-            description = d
+            note = d
         } else {
-            description = nil
+            note = nil
         }
         
-        self.init(id: id, body: body, description: description)
+        self.init(id: id, body: body, note: note)
     }
 
     public var ur: UR {
