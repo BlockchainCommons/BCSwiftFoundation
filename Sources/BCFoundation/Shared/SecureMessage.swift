@@ -8,33 +8,33 @@ import URKit
 public struct SecureMessage: CustomStringConvertible, Equatable {
     public let plaintext: Data
     public let ciphertext: Data
-    public let additionalData: Data // Additional authenticated data (AAD) per RFC8439
+    public let aad: Data // Additional authenticated data (AAD) per RFC8439
     public let key: Key
     public let nonce: Nonce
-    public let authenticationTag: AuthenticationTag
+    public let auth: Auth
     
     /// Encrypt.
-    public init?(plaintext: Data, additionalData: Data, key: Key, nonce: Nonce) {
+    public init?(plaintext: Data, aad: Data, key: Key, nonce: Nonce) {
         self.plaintext = plaintext
-        self.additionalData = additionalData
+        self.aad = aad
         self.key = key
         self.nonce = nonce
-        guard let (ciphertext, authenticationTag) = try? AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: key.bytes, iv: nonce.bytes, authenticationHeader: additionalData.bytes) else {
+        guard let (ciphertext, auth) = try? AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: key.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes) else {
             return nil
         }
         self.ciphertext = Data(ciphertext)
-        self.authenticationTag = AuthenticationTag(authenticationTag)!
+        self.auth = Auth(auth)!
     }
     
     /// Decrypt.
-    public init?(ciphertext: Data, additionalData: Data, key: Key, nonce: Nonce, authenticationTag: AuthenticationTag) {
+    public init?(ciphertext: Data, aad: Data, key: Key, nonce: Nonce, auth: Auth) {
         self.ciphertext = ciphertext
-        self.additionalData = additionalData
+        self.aad = aad
         self.key = key
         self.nonce = nonce
-        self.authenticationTag = authenticationTag
+        self.auth = auth
         guard let (plaintext, success) =
-                try? AEADChaCha20Poly1305.decrypt(ciphertext.bytes, key: key.bytes, iv: nonce.bytes, authenticationHeader: additionalData.bytes, authenticationTag: authenticationTag.bytes),
+                try? AEADChaCha20Poly1305.decrypt(ciphertext.bytes, key: key.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes, authenticationTag: auth.bytes),
                 success
         else {
             return nil
@@ -43,7 +43,7 @@ public struct SecureMessage: CustomStringConvertible, Equatable {
     }
     
     public var description: String {
-        "Encrypted(plaintext: \(plaintext), ciphertext: \(ciphertext.hex), additionalData: \(additionalData.hex), key: \(key), nonce: \(nonce), authenticationTag: \(authenticationTag))"
+        "Encrypted(plaintext: \(plaintext), ciphertext: \(ciphertext.hex), aad: \(aad.hex), key: \(key), nonce: \(nonce), auth: \(auth))"
     }
     
     public struct Key: CustomStringConvertible, Equatable, Hashable {
@@ -92,7 +92,7 @@ public struct SecureMessage: CustomStringConvertible, Equatable {
         }
     }
     
-    public struct AuthenticationTag: CustomStringConvertible, Equatable, Hashable {
+    public struct Auth: CustomStringConvertible, Equatable, Hashable {
         public let data: Data
         
         public init?(_ data: Data) {
@@ -111,7 +111,7 @@ public struct SecureMessage: CustomStringConvertible, Equatable {
         }
         
         public var description: String {
-            data.hex.flanked("AuthenticationTag(", ")")
+            data.hex.flanked("auth(", ")")
         }
     }
 }
@@ -121,15 +121,15 @@ extension SecureMessage {
         // Rationale for ordering:
         //   Type number first to support progressive decoding,
         //   then fixed-length fields, nonce first because it is shorter,
-        //   then additionalData ("header") before ciphertext ("body").
+        //   then aad ("header") before ciphertext ("body").
 
         let type = CBOR.unsignedInt(1)
         let nonce = CBOR.data(self.nonce.data)
-        let authenticationTag = CBOR.data(self.authenticationTag.data)
-        let additionalData = CBOR.data(self.additionalData)
+        let auth = CBOR.data(self.auth.data)
+        let aad = CBOR.data(self.aad)
         let ciphertext = CBOR.data(self.ciphertext)
         
-        return CBOR.array([type, nonce, authenticationTag, additionalData, ciphertext])
+        return CBOR.array([type, nonce, auth, aad, ciphertext])
     }
     
     public var taggedCBOR: CBOR {
@@ -137,8 +137,8 @@ extension SecureMessage {
     }
     
     public init(cbor: CBOR, key: Key) throws {
-        let (nonce, authenticationTag, additionalData, ciphertext) = try Self.decode(cbor: cbor)
-        self.init(ciphertext: ciphertext, additionalData: additionalData, key: key, nonce: nonce, authenticationTag: authenticationTag)!
+        let (nonce, auth, aad, ciphertext) = try Self.decode(cbor: cbor)
+        self.init(ciphertext: ciphertext, aad: aad, key: key, nonce: nonce, auth: auth)!
     }
     
     public init(taggedCBOR: CBOR, key: Key) throws {
@@ -148,7 +148,7 @@ extension SecureMessage {
         try self.init(cbor: cbor, key: key)
     }
     
-    public static func decode(cbor: CBOR) throws -> (nonce: Nonce, authenticationTag: AuthenticationTag, additionalData: Data, ciphertext: Data)
+    public static func decode(cbor: CBOR) throws -> (nonce: Nonce, auth: Auth, aad: Data, ciphertext: Data)
     {
         guard case let CBOR.array(elements) = cbor else {
             // Doesn't contain an array.
@@ -175,14 +175,14 @@ extension SecureMessage {
         }
 
         guard
-            case let CBOR.data(authenticationTagData) = elements[2],
-            let authenticationTag = AuthenticationTag(authenticationTagData)
+            case let CBOR.data(authData) = elements[2],
+            let auth = Auth(authData)
         else {
             throw CBORError.invalidFormat
         }
         
         guard
-            case let CBOR.data(additionalData) = elements[3]
+            case let CBOR.data(aad) = elements[3]
         else {
             throw CBORError.invalidFormat
         }
@@ -193,10 +193,10 @@ extension SecureMessage {
             throw CBORError.invalidFormat
         }
         
-        return (nonce, authenticationTag, additionalData, ciphertext)
+        return (nonce, auth, aad, ciphertext)
     }
     
-    public static func decode(taggedCBOR: CBOR) throws -> (nonce: Nonce, authenticationTag: AuthenticationTag, additionalData: Data, ciphertext: Data) {
+    public static func decode(taggedCBOR: CBOR) throws -> (nonce: Nonce, auth: Auth, aad: Data, ciphertext: Data) {
         guard case let CBOR.tagged(URType.secureMessage.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
@@ -217,7 +217,7 @@ extension SecureMessage {
         try self.init(cbor: cbor, key: key)
     }
     
-    public static func decode(ur: UR) throws -> (nonce: Nonce, authenticationTag: AuthenticationTag, additionalData: Data, ciphertext: Data) {
+    public static func decode(ur: UR) throws -> (nonce: Nonce, auth: Auth, aad: Data, ciphertext: Data) {
         guard ur.type == URType.secureMessage.type else {
             throw URError.unexpectedType
         }
