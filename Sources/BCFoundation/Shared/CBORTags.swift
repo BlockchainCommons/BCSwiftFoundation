@@ -15,6 +15,7 @@ public struct URType {
     public let tag: CBOR.Tag
 }
 
+/// UR types and CBOR tags for objects that can be top-level.
 extension URType {
     public static let seed = URType(type: "crypto-seed", tag: 300)
     public static let hdKey = URType(type: "crypto-hdkey", tag: 303)
@@ -28,6 +29,7 @@ extension URType {
     public static let account = URType(type: "crypto-account", tag: 311)
     public static let transactionRequest = URType(type: "crypto-request", tag: 312)
     public static let transactionResponse = URType(type: "crypto-response", tag: 313)
+    public static let secureMessage = URType(type: "crypto-msg", tag: 48)
 }
 
 /// Tags for subtypes specific to AccountBundle (crypto-output)

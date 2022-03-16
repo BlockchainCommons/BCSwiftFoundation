@@ -621,7 +621,7 @@ extension HDKeyProtocol {
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(URType.hdKey.tag, cbor) = taggedCBOR else {
             // Tag (303) not found
-            throw CBORError.invalidFormat
+            throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
     }

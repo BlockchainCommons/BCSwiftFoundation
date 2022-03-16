@@ -323,7 +323,7 @@ extension PSBT {
     
     public init(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(URType.psbt.tag, cbor) = taggedCBOR else {
-            throw CBORError.invalidFormat
+            throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
     }
