@@ -2,7 +2,7 @@ import Foundation
 import WolfBase
 import class CryptoSwift.Scrypt
 
-public class SecurePassword: SecureIdentityDataProvider {
+public class Password: IdentityDataProvider {
     public let identityData: Data
     public let salt: Data
     

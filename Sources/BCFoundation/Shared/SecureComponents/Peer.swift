@@ -1,7 +1,7 @@
 import Foundation
 import CryptoKit
 
-public struct SecurePeer: CustomStringConvertible, Hashable {
+public struct Peer: CustomStringConvertible, Hashable {
     public let signingPublicKey: PublicSigningKey
     public let agreementPublicKey: PublicAgreementKey
     public let salt: Data
@@ -13,17 +13,17 @@ public struct SecurePeer: CustomStringConvertible, Hashable {
     }
     
     public var description: String {
-        "SecurePeer(signingKey: \(signingPublicKey), agreementKey: \(agreementPublicKey), salt: \(salt.hex)"
+        "Peer(signingKey: \(signingPublicKey), agreementKey: \(agreementPublicKey), salt: \(salt.hex)"
     }
 }
 
-extension SecurePeer {
-    public init(identity: SecureIdentity) {
+extension Peer {
+    public init(identity: Identity) {
         self.init(signingPublicKey: identity.signingPublicKey, agreementPublicKey: identity.agreementPublicKey, salt: identity.salt)
     }
 }
 
-extension SecurePeer {
+extension Peer {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let signingKey = signingPublicKey.taggedCBOR

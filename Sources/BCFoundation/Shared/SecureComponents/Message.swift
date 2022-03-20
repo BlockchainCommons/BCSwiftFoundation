@@ -6,7 +6,7 @@ import CryptoKit
 /// Implements IETF ChaCha20-Poly1305 encryption
 ///
 /// https://datatracker.ietf.org/doc/html/rfc8439
-public struct SecureMessage: CustomStringConvertible, Equatable {
+public struct Message: CustomStringConvertible, Equatable {
     public let ciphertext: Data
     public let aad: Data // Additional authenticated data (AAD) per RFC8439
     public let nonce: Nonce
@@ -32,7 +32,7 @@ public struct SecureMessage: CustomStringConvertible, Equatable {
     }
     
     public var description: String {
-        "SecureMessage(ciphertext: \(ciphertext.hex), aad: \(aad.hex), nonce: \(nonce), auth: \(auth))"
+        "Message(ciphertext: \(ciphertext.hex), aad: \(aad.hex), nonce: \(nonce), auth: \(auth))"
     }
     
     public struct Key: CustomStringConvertible, Equatable, Hashable, RawRepresentable {
@@ -65,7 +65,7 @@ public struct SecureMessage: CustomStringConvertible, Equatable {
             return (ciphertext: Data(ciphertext), auth: Auth(auth)!)
         }
         
-        public func decrypt(message: SecureMessage) -> Data? {
+        public func decrypt(message: Message) -> Data? {
             guard let (plaintext, success) =
                     try? AEADChaCha20Poly1305.decrypt(message.ciphertext.bytes, key: self.bytes, iv: message.nonce.bytes, authenticationHeader: message.aad.bytes, authenticationTag: message.auth.bytes),
                     success
@@ -123,14 +123,14 @@ public struct SecureMessage: CustomStringConvertible, Equatable {
     }
 }
 
-extension SecureMessage {
-    public static func sharedKey(identity: SecureIdentity, peer: SecurePeer) -> Key {
+extension Message {
+    public static func sharedKey(identity: Identity, peer: Peer) -> Key {
         let sharedSecret = try! identity.agreementPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: peer.agreementPublicKey.cryptoKitForm)
         return Key(rawValue: sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: peer.salt, sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
     }
 }
 
-extension SecureMessage {
+extension Message {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let ciphertext = CBOR.data(self.ciphertext)
@@ -189,7 +189,7 @@ extension SecureMessage {
     }
 }
 
-extension SecureMessage {
+extension Message {
     public var ur: UR {
         return try! UR(type: URType.secureMessage.type, cbor: cbor)
     }

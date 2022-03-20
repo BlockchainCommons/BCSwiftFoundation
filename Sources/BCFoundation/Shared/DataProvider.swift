@@ -22,7 +22,7 @@ extension CBOR: DataProvider {
     }
 }
 
-extension SecureDigest: DataProvider {
+extension Digest: DataProvider {
     public var providedData: Data {
         rawValue
     }

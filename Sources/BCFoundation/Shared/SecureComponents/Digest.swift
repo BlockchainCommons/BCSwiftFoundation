@@ -5,7 +5,7 @@ import URKit
 /// Implements Blake2b hashing.
 ///
 /// https://datatracker.ietf.org/doc/rfc7693
-public struct SecureDigest: CustomStringConvertible, Equatable, RawRepresentable {
+public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
     public let rawValue: Data
     public static let defaultDigestLength = 32
     
@@ -25,11 +25,11 @@ public struct SecureDigest: CustomStringConvertible, Equatable, RawRepresentable
     }
     
     public var description: String {
-        "SecureDigest(\(rawValue.hex))"
+        "Digest(\(rawValue.hex))"
     }
 }
 
-extension SecureDigest {
+extension Digest {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let digest = CBOR.data(self.rawValue)
@@ -59,7 +59,7 @@ extension SecureDigest {
         
         guard
             case let CBOR.data(digestData) = elements[1],
-            let digest = SecureDigest(rawValue: digestData)
+            let digest = Digest(rawValue: digestData)
         else {
             throw CBORError.invalidFormat
         }
@@ -75,7 +75,7 @@ extension SecureDigest {
     }
 }
 
-extension SecureDigest {
+extension Digest {
     public var ur: UR {
         return try! UR(type: URType.secureDigest.type, cbor: cbor)
     }

@@ -2,11 +2,11 @@ import Foundation
 import CryptoKit
 import WolfBase
 
-public struct SecureIdentity {
+public struct Identity {
     let identityData: Data
     let salt: Data
     
-    public init(_ dataProvider: SecureIdentityDataProvider, salt: DataProvider? = nil) {
+    public init(_ dataProvider: IdentityDataProvider, salt: DataProvider? = nil) {
         self.identityData = dataProvider.identityData
         self.salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
     }

@@ -2,8 +2,8 @@ import XCTest
 import WolfBase
 @testable import BCFoundation
 
-class SecureDigestTests: XCTestCase {
-    static let secureDigest = SecureDigest(data: "Wolf McNally".utf8Data)
+class DigestTests: XCTestCase {
+    static let secureDigest = Digest(data: "Wolf McNally".utf8Data)
     
     func testVectors() {
         // Test vectors from https://github.com/emilbayes/blake2b/blob/master/test-vectors.json
@@ -18,15 +18,15 @@ class SecureDigestTests: XCTestCase {
             "2fa3f686df876995167e7c2e5d74c4c7b6e48f8068fe0e44208344d480f7904c36963e44115fe3eb2a3ac8694c28bcb4f5a0f3276f2e79487d8219057a506e4b",
             "bfbabbef45554ccfa0dc83752a19cc35d5920956b301d558d772282bc867009168e9e98606bb5ba73a385de5749228c925a85019b71f72fe29b3cd37ca52efe6",
             "f15ab26d4cdfcf56e196bb6ba170a8fccc414de9285afd98a3d3cf2fb88fcbc0f19832ac433a5b2cc2392a4ce34332987d8d2c2bef6c3466138db0c6e42fa47b"
-        ].map { SecureDigest(rawValue: $0.hexData!, digestLength: 64)! }
-        let digest = data.map { SecureDigest(data: $0, digestLength: 64) }
+        ].map { Digest(rawValue: $0.hexData!, digestLength: 64)! }
+        let digest = data.map { Digest(data: $0, digestLength: 64) }
         XCTAssertEqual(digest, expectedDigest)
     }
     
     func testSimple() {
         XCTAssertEqual(
             Self.secureDigest,
-            SecureDigest(rawValue: "4d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b".hexData!)
+            Digest(rawValue: "4d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b".hexData!)
         )
     }
     

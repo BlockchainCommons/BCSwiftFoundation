@@ -1,23 +1,23 @@
 import Foundation
 
-public struct SecureSealedMessage {
-    public let message: SecureMessage
-    public let peer: SecurePeer
+public struct SealedMessage {
+    public let message: Message
+    public let peer: Peer
     
-    public init(plaintext: Data, peer: SecurePeer, aad: Data? = nil) {
-        let ephemeralIdentity = SecureIdentity()
-        let key = SecureMessage.sharedKey(identity: ephemeralIdentity, peer: peer)
-        self.message = SecureMessage(plaintext: plaintext, key: key, aad: aad)
+    public init(plaintext: Data, peer: Peer, aad: Data? = nil) {
+        let ephemeralIdentity = Identity()
+        let key = Message.sharedKey(identity: ephemeralIdentity, peer: peer)
+        self.message = Message(plaintext: plaintext, key: key, aad: aad)
         self.peer = peer
     }
     
-    public init(message: SecureMessage, peer: SecurePeer) {
+    public init(message: Message, peer: Peer) {
         self.message = message
         self.peer = peer
     }
 }
 
-extension SecureSealedMessage {
+extension SealedMessage {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let message = self.message.taggedCBOR
@@ -37,9 +37,9 @@ extension SecureSealedMessage {
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
             case let CBOR.data(messageData) = elements[1],
-            let message = SecureMessage(taggedCBOR: messageData),
+            let message = Message(taggedCBOR: messageData),
             case let CBOR.data(peerData) = elements[2],
-            let peer = SecurePeer(taggedCBOR: peerData)
+            let peer = Peer(taggedCBOR: peerData)
         else {
             throw CBORError.invalidFormat
         }

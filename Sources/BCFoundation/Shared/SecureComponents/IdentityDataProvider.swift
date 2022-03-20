@@ -1,22 +1,22 @@
 import Foundation
 
-public protocol SecureIdentityDataProvider {
+public protocol IdentityDataProvider {
     var identityData: Data { get }
 }
 
-extension Seed: SecureIdentityDataProvider {
+extension Seed: IdentityDataProvider {
     public var identityData: Data {
         data
     }
 }
 
-extension HDKey: SecureIdentityDataProvider {
+extension HDKey: IdentityDataProvider {
     public var identityData: Data {
         keyData
     }
 }
 
-extension Data: SecureIdentityDataProvider {
+extension Data: IdentityDataProvider {
     public var identityData: Data {
         self
     }

@@ -2,7 +2,7 @@ import Foundation
 import CryptoKit
 import URKit
 
-public struct SecureSignature: Equatable {
+public struct Signature: Equatable {
     public let rawValue: Data
     
     public init?(rawValue: Data) {
@@ -13,21 +13,11 @@ public struct SecureSignature: Equatable {
     }
     
     public var description: String {
-        "SecureSignature(\(rawValue.hex))"
+        "Signature(\(rawValue.hex))"
     }
 }
 
-//extension SecureSignature {
-//    public init(message: DataProvider, identity: SecureIdentity) {
-//        self.init(digest: SecureDigest(data: message.providedData), privateKey: identity.signingPrivateKey)
-//    }
-//
-//    public init?(digest: SecureDigest, publicKey: SigningPublicKey, signature: SecureSignature) {
-//        self.init(digest: digest, publicKey: publicKey, sig: signature.sig)
-//    }
-//}
-
-extension SecureSignature {
+extension Signature {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let sig = CBOR.data(self.rawValue)
@@ -57,7 +47,7 @@ extension SecureSignature {
 
         guard
             case let CBOR.data(sigData) = elements[1],
-            let sig = SecureSignature(rawValue: sigData)
+            let sig = Signature(rawValue: sigData)
         else {
             throw CBORError.invalidFormat
         }
@@ -77,7 +67,7 @@ extension SecureSignature {
     }
 }
 
-extension SecureSignature {
+extension Signature {
     public var ur: UR {
         return try! UR(type: URType.secureSignature.type, cbor: cbor)
     }

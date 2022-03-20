@@ -3,17 +3,17 @@ import URKit
 import SSKR
 import CryptoKit
 
-public struct SecureEnvelope {
+public struct Envelope {
     public let content: Content
 
     public enum Content {
-        case plaintext(Data, [SecureSignature])
-        case encrypted(SecureMessage, Permit)
+        case plaintext(Data, [Signature])
+        case encrypted(Message, Permit)
     }
 
     public enum Permit {
         case symmetric
-        case recipients([SecureSealedMessage])
+        case recipients([SealedMessage])
         case share(SSKRShare)
     }
     
@@ -22,30 +22,30 @@ public struct SecureEnvelope {
     }
 }
 
-extension SecureEnvelope {
-    public init(message: SecureMessage) {
+extension Envelope {
+    public init(message: Message) {
         self.init(content: .encrypted(message, .symmetric))
     }
     
-    public init(plaintext: DataProvider, key: SecureMessage.Key) {
-        self.init(message: SecureMessage(plaintext: plaintext, key: key))
+    public init(plaintext: DataProvider, key: Message.Key) {
+        self.init(message: Message(plaintext: plaintext, key: key))
     }
     
-    public func plaintext(with key: SecureMessage.Key) -> Data? {
+    public func plaintext(with key: Message.Key) -> Data? {
         guard case let(.encrypted(message, .symmetric)) = content else {
             return nil
         }
         return key.decrypt(message: message)
     }
     
-    public init(inner: SecureEnvelope, key: SecureMessage.Key) {
+    public init(inner: Envelope, key: Message.Key) {
         self.init(plaintext: inner.taggedCBOR, key: key)
     }
     
-    public func inner(with key: SecureMessage.Key) -> SecureEnvelope? {
+    public func inner(with key: Message.Key) -> Envelope? {
         guard
             let innerCBOR = plaintext(with: key),
-            let inner = SecureEnvelope(taggedCBOR: innerCBOR)
+            let inner = Envelope(taggedCBOR: innerCBOR)
         else {
             return nil
         }
@@ -54,39 +54,39 @@ extension SecureEnvelope {
     }
 }
 
-extension SecureEnvelope {
+extension Envelope {
     public init(plaintext: DataProvider) {
         self.init(content: .plaintext(plaintext.providedData, []))
     }
     
-    public init(inner: SecureEnvelope) {
+    public init(inner: Envelope) {
         self.init(plaintext: inner.taggedCBOR)
     }
     
-    public init(plaintext: DataProvider, signatures: [SecureSignature]) {
+    public init(plaintext: DataProvider, signatures: [Signature]) {
         self.init(content: .plaintext(plaintext.providedData, signatures))
     }
     
-    public init(inner: SecureEnvelope, signatures: [SecureSignature]) {
+    public init(inner: Envelope, signatures: [Signature]) {
         self.init(plaintext: inner.taggedCBOR, signatures: signatures)
     }
 
-    public init(plaintext: DataProvider, signers: [SecureIdentity]) {
+    public init(plaintext: DataProvider, signers: [Identity]) {
         let signatures = signers.map {
             $0.signingPrivateKey.sign(data: plaintext)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: SecureEnvelope, signers: [SecureIdentity]) {
+    public init(inner: Envelope, signers: [Identity]) {
         self.init(plaintext: inner.taggedCBOR, signers: signers)
     }
     
-    public init(plaintext: DataProvider, signer: SecureIdentity) {
+    public init(plaintext: DataProvider, signer: Identity) {
         self.init(plaintext: plaintext, signers: [signer])
     }
     
-    public init(inner: SecureEnvelope, signer: SecureIdentity) {
+    public init(inner: Envelope, signer: Identity) {
         self.init(plaintext: inner.taggedCBOR, signer: signer)
     }
     
@@ -97,28 +97,28 @@ extension SecureEnvelope {
         return data
     }
     
-    public var inner: SecureEnvelope? {
+    public var inner: Envelope? {
         guard let plaintext = plaintext else {
             return nil
         }
-        return SecureEnvelope(taggedCBOR: plaintext)
+        return Envelope(taggedCBOR: plaintext)
     }
     
-    public var signatures: [SecureSignature] {
+    public var signatures: [Signature] {
         guard case let(.plaintext(_, signatures)) = content else {
             return []
         }
         return signatures
     }
     
-    public func isValidSignature(_ signature: SecureSignature, key: PublicSigningKey) -> Bool {
+    public func isValidSignature(_ signature: Signature, key: PublicSigningKey) -> Bool {
         guard let plaintext = plaintext else {
             return false
         }
         return key.isValidSignature(signature, for: plaintext)
     }
     
-    public func isValidSignature(_ signature: SecureSignature, peer: SecurePeer) -> Bool {
+    public func isValidSignature(_ signature: Signature, peer: Peer) -> Bool {
         isValidSignature(signature, key: peer.signingPublicKey)
     }
     
@@ -126,7 +126,7 @@ extension SecureEnvelope {
         signatures.contains { isValidSignature($0, key: key) }
     }
     
-    public func hasValidSignature(from peer: SecurePeer) -> Bool {
+    public func hasValidSignature(from peer: Peer) -> Bool {
         hasValidSignature(with: peer.signingPublicKey)
     }
     
@@ -134,12 +134,12 @@ extension SecureEnvelope {
         keys.filter(hasValidSignature).count >= threshold ?? keys.count
     }
     
-    public func hasValidSignatures(from peers: [SecurePeer], threshold: Int? = nil) -> Bool {
+    public func hasValidSignatures(from peers: [Peer], threshold: Int? = nil) -> Bool {
         hasValidSignatures(with: peers.map { $0.signingPublicKey }, threshold: threshold)
     }
 }
 
-extension SecureEnvelope {
+extension Envelope {
     public var cbor: CBOR {
         var array: [CBOR] = []
         
@@ -183,11 +183,11 @@ extension SecureEnvelope {
                 throw CBORError.invalidFormat
             }
             let signatures = try signatureItems.map {
-                try SecureSignature(taggedCBOR: $0)
+                try Signature(taggedCBOR: $0)
             }
             self.content = .plaintext(plaintext, signatures)
         case 2:
-            let message = try SecureMessage(taggedCBOR: elements[1])
+            let message = try Message(taggedCBOR: elements[1])
             let permit = try Permit(taggedCBOR: elements[2])
             self.content = .encrypted(message, permit)
         default:
@@ -203,7 +203,7 @@ extension SecureEnvelope {
     }
 }
 
-extension SecureEnvelope.Permit {
+extension Envelope.Permit {
     public var cbor: CBOR {
         var array: [CBOR] = []
         
@@ -250,7 +250,7 @@ extension SecureEnvelope.Permit {
                 throw CBORError.invalidFormat
             }
             let sealedMessages = try sealedMessageItems.map {
-                try SecureSealedMessage(taggedCBOR: $0)
+                try SealedMessage(taggedCBOR: $0)
             }
             self = .recipients(sealedMessages)
         case 3:
@@ -272,7 +272,7 @@ extension SecureEnvelope.Permit {
     }
 }
 
-extension SecureEnvelope {
+extension Envelope {
     public var ur: UR {
         return try! UR(type: URType.secureEnvelope.type, cbor: cbor)
     }

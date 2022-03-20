@@ -20,8 +20,8 @@ public struct PrivateSigningKey: RawRepresentable, CustomStringConvertible, Hash
         self.rawValue = Curve25519.Signing.PrivateKey().rawRepresentation
     }
     
-    public func sign(data: DataProvider) -> SecureSignature {
-        return try! SecureSignature(rawValue: cryptoKitForm.signature(for: data.providedData))!
+    public func sign(data: DataProvider) -> Signature {
+        return try! Signature(rawValue: cryptoKitForm.signature(for: data.providedData))!
     }
     
     public var description: String {
@@ -86,7 +86,7 @@ public struct PublicSigningKey: RawRepresentable, CustomStringConvertible, Hasha
         try! .init(rawRepresentation: rawValue)
     }
     
-    public func isValidSignature(_ signature: SecureSignature, for data: DataProvider) -> Bool {
+    public func isValidSignature(_ signature: Signature, for data: DataProvider) -> Bool {
         cryptoKitForm.isValidSignature(signature.rawValue, for: data.providedData)
     }
 }
