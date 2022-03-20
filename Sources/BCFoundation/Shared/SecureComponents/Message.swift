@@ -126,7 +126,7 @@ public struct Message: CustomStringConvertible, Equatable {
 extension Message {
     public static func sharedKey(identity: Identity, peer: Peer) -> Key {
         let sharedSecret = try! identity.agreementPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: peer.agreementPublicKey.cryptoKitForm)
-        return Key(rawValue: sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: peer.salt, sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
+        return Key(rawValue: sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: Data(), sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
     }
 }
 

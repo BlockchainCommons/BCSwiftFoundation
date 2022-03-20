@@ -137,7 +137,7 @@ public struct PrivateAgreementKey: RawRepresentable, CustomStringConvertible, Ha
         "PrivateAgreementKey\(rawValue)"
     }
 
-    var cryptoKitForm: Curve25519.KeyAgreement.PrivateKey {
+    public var cryptoKitForm: Curve25519.KeyAgreement.PrivateKey {
         try! .init(rawRepresentation: rawValue)
     }
 }

@@ -111,8 +111,7 @@ class EnvelopeTests: XCTestCase {
         // Bob checks the signature of the outer envelope, then decrypts the inner envelope.
         guard
             envelope.hasValidSignature(from: Self.alicePeer),
-            let innerEnvelope = envelope.inner,
-            let plaintext = innerEnvelope.plaintext(with: key)
+            let plaintext = envelope.inner?.plaintext(with: key)
         else {
             XCTFail()
             return

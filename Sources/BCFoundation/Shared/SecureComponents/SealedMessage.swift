@@ -4,16 +4,21 @@ public struct SealedMessage {
     public let message: Message
     public let peer: Peer
     
-    public init(plaintext: Data, peer: Peer, aad: Data? = nil) {
-        let ephemeralIdentity = Identity()
-        let key = Message.sharedKey(identity: ephemeralIdentity, peer: peer)
-        self.message = Message(plaintext: plaintext, key: key, aad: aad)
-        self.peer = peer
+    public init(plaintext: DataProvider, peer: Peer, aad: Data? = nil) {
+        let ephemeralSender = Identity()
+        let key = Message.sharedKey(identity: ephemeralSender, peer: peer)
+        self.message = Message(plaintext: plaintext.providedData, key: key, aad: aad)
+        self.peer = Peer(identity: ephemeralSender)
     }
     
     public init(message: Message, peer: Peer) {
         self.message = message
         self.peer = peer
+    }
+    
+    public func plaintext(with identity: Identity) -> Data? {
+        let key = Message.sharedKey(identity: identity, peer: peer)
+        return key.decrypt(message: message)
     }
 }
 
