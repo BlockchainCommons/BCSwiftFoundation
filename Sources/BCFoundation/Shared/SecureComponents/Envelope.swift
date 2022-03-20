@@ -52,6 +52,30 @@ extension Envelope {
         
         return inner
     }
+    
+    public func plaintext(for identity: Identity) -> Data? {
+        guard
+            case let(.encrypted(message, .recipients(sealedMessages))) = content,
+            let sealedMessage = sealedMessages.first(where: { $0.receiverPublicKey == identity.agreementPublicKey }),
+            let contentKeyData = sealedMessage.plaintext(with: identity),
+            let contentKey = Message.Key(rawValue: contentKeyData),
+            let plaintext = contentKey.decrypt(message: message)
+        else {
+            return nil
+        }
+        return plaintext
+    }
+    
+    public func inner(for identity: Identity) -> Envelope? {
+        guard
+            let innerCBOR = plaintext(for: identity),
+            let inner = Envelope(taggedCBOR: innerCBOR)
+        else {
+            return nil
+        }
+        
+        return inner
+    }
 }
 
 extension Envelope {
@@ -88,6 +112,19 @@ extension Envelope {
     
     public init(inner: Envelope, signer: Identity) {
         self.init(plaintext: inner.taggedCBOR, signer: signer)
+    }
+    
+    public init(plaintext: DataProvider, recipients: [Peer]) {
+        let contentKey = Message.Key()
+        let message = Message(plaintext: plaintext, key: contentKey)
+        let sealedMessages = recipients.map { peer in
+            SealedMessage(plaintext: contentKey, receiver: peer)
+        }
+        self.init(content: .encrypted(message, .recipients(sealedMessages)))
+    }
+    
+    public init(inner: Envelope, recipients: [Peer]) {
+        self.init(plaintext: inner.taggedCBOR, recipients: recipients)
     }
     
     public var plaintext: Data? {

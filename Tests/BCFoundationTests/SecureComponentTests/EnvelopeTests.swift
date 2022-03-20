@@ -120,4 +120,36 @@ class EnvelopeTests: XCTestCase {
         // Bob reads the message.
         XCTAssertEqual(plaintext, Self.plaintext)
     }
+    
+    func testMultiRecipient() {
+        // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
+        let envelope = Envelope(plaintext: Self.plaintext, recipients: [Self.bobPeer, Self.carolPeer])
+        
+        // Bob decrypts and reads the message.
+        XCTAssertEqual(envelope.plaintext(for: Self.bobIdentity), Self.plaintext)
+
+        // Carol decrypts and reads the message.
+        XCTAssertEqual(envelope.plaintext(for: Self.carolIdentity), Self.plaintext)
+
+        // Alice didn't encrypt it to herself, so she can't read it.
+        XCTAssertNil(envelope.plaintext(for: Self.aliceIdentity))
+    }
+    
+    func testSignedMultiRecipient() {
+        // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
+        let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
+        let envelope = Envelope(inner: innerSignedEnvelope, recipients: [Self.bobPeer, Self.carolPeer])
+
+        // Bob decrypts the outer envelope with his identity.
+        guard
+            let innerEnvelope = envelope.inner(for: Self.bobIdentity)
+        else {
+            XCTFail()
+            return
+        }
+        // Bob validates Alice's signature
+        XCTAssertTrue(innerEnvelope.hasValidSignature(from: Self.alicePeer))
+        // Bob reads the message.
+        XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
+    }
 }

@@ -18,17 +18,15 @@ class SealedMessageTests: XCTestCase {
     static let carolIdentity = Identity(carolSeed, salt: "Salt")
     static let carolPeer = Peer(identity: carolIdentity)
 
-    func test1() {
-        // Alice constrructs a message for Bob's eyes only.
-        let message = SealedMessage(plaintext: Self.plaintext, peer: Self.bobPeer)
-        
-        print(message.taggedCBOR.hex)
+    func testSealedMessage() {
+        // Alice constructs a message for Bob's eyes only.
+        let sealedMessage = SealedMessage(plaintext: Self.plaintext, receiver: Self.bobPeer)
         
         // Bob decrypts and reads the message.
-        XCTAssertEqual(message.plaintext(with: Self.bobIdentity), Self.plaintext)
+        XCTAssertEqual(sealedMessage.plaintext(with: Self.bobIdentity), Self.plaintext)
         
-        // No one else can decrypt the message.
-        XCTAssertNil(message.plaintext(with: Self.aliceIdentity))
-        XCTAssertNil(message.plaintext(with: Self.carolIdentity))
+        // No one else can decrypt the message, not even the sender.
+        XCTAssertNil(sealedMessage.plaintext(with: Self.aliceIdentity))
+        XCTAssertNil(sealedMessage.plaintext(with: Self.carolIdentity))
     }
 }

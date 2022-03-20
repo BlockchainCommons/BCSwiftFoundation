@@ -35,7 +35,7 @@ public struct Message: CustomStringConvertible, Equatable {
         "Message(ciphertext: \(ciphertext.hex), aad: \(aad.hex), nonce: \(nonce), auth: \(auth))"
     }
     
-    public struct Key: CustomStringConvertible, Equatable, Hashable, RawRepresentable {
+    public struct Key: CustomStringConvertible, Equatable, Hashable, RawRepresentable, DataProvider {
         public let rawValue: Data
         
         public init?(rawValue: Data) {
@@ -73,6 +73,10 @@ public struct Message: CustomStringConvertible, Equatable {
                 return nil
             }
             return Data(plaintext)
+        }
+        
+        public var providedData: Data {
+            rawValue
         }
     }
     
@@ -124,8 +128,8 @@ public struct Message: CustomStringConvertible, Equatable {
 }
 
 extension Message {
-    public static func sharedKey(identity: Identity, peer: Peer) -> Key {
-        let sharedSecret = try! identity.agreementPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: peer.agreementPublicKey.cryptoKitForm)
+    public static func sharedKey(identityPrivateKey: PrivateAgreementKey, peerPublicKey: PublicAgreementKey) -> Key {
+        let sharedSecret = try! identityPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: peerPublicKey.cryptoKitForm)
         return Key(rawValue: sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: Data(), sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
     }
 }
