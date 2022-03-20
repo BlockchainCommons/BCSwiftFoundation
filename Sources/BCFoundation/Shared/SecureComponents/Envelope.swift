@@ -3,6 +3,7 @@ import URKit
 import SSKR
 import CryptoKit
 
+/// An `Envelope` (serialized as `ur:crypto-envelope`) allows for flexible signing, encryption, and sharding of messages.
 public struct Envelope {
     public let content: Content
 
@@ -173,6 +174,34 @@ extension Envelope {
     
     public func hasValidSignatures(from peers: [Peer], threshold: Int? = nil) -> Bool {
         hasValidSignatures(with: peers.map { $0.signingPublicKey }, threshold: threshold)
+    }
+}
+
+extension Envelope {
+    public static func split(plaintext: DataProvider, groupThreshold: Int, groups: [(Int, Int)]) -> [[Envelope]] {
+        let ephemeralKey = Message.Key()
+        let message = Message(plaintext: plaintext, key: ephemeralKey)
+        let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: ephemeralKey)
+        return shares.map { groupShares in
+            groupShares.map { share in Envelope(content: .encrypted(message, .share(share))) }
+        }
+    }
+    
+    public static func plaintext(from envelopes: [Envelope]) -> Data? {
+        let shares = envelopes.map { (envelope: Envelope) -> SSKRShare in
+            guard case let .encrypted(_, .share(share)) = envelope.content else {
+                fatalError()
+            }
+            return share
+        }
+        guard
+            let ephemeralKey = try? Message.Key(rawValue: SSKRCombine(shares: shares)),
+            case let .encrypted(message, .share(_)) = envelopes.first?.content,
+            let plaintext = ephemeralKey.decrypt(message: message)
+        else {
+            return nil
+        }
+        return plaintext
     }
 }
 

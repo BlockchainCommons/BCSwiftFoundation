@@ -9,6 +9,17 @@ import Foundation
 @_exported import SSKR
 @_exported import URKit
 
+public func SSKRGenerate(groupThreshold: Int, groups: [SSKRGroupDescriptor], secret: DataProvider) throws -> [[SSKRShare]] {
+    try SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: secret.providedData) {
+        SecureRandomNumberGenerator.shared.data(count: $0)
+    }
+}
+
+public func SSKRGenerate(groupThreshold: Int, groups: [(Int, Int)], secret: DataProvider) throws -> [[SSKRShare]] {
+    let groups = groups.map { SSKRGroupDescriptor(threshold: UInt8($0.0), count: UInt8($0.1)) }
+    return try SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: secret.providedData)
+}
+
 extension SSKRShare {
     public var identifier: UInt16 {
         (UInt16(data[0]) << 8) | UInt16(data[1])

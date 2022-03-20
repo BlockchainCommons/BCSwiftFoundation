@@ -152,4 +152,39 @@ class EnvelopeTests: XCTestCase {
         // Bob reads the message.
         XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
     }
+    
+    func testSSKR() throws {
+        // Dan has a cryptographic seed he wants to backup using a social recovery scheme.
+        // The seed includes metadata he wants to back up with the key, making it too large
+        // to fit into a basic SSKR share.
+        var danSeed = Seed(data: "59f2293a5bce7d4de59e71b4207ac5d2".hexData!)!
+        danSeed.name = "Dark Purple Aqua Love"
+        danSeed.creationDate = try! Date("2021-02-24T00:00:00Z", strategy: .iso8601)
+        danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+
+        // Dan splits the seed into a single group 2-of-3. Thie returns an array of arrays of Envelope,
+        // each array holding the encrypted seed and a single share.
+        let envelopes = Envelope.split(plaintext: danSeed.taggedCBOR, groupThreshold: 1, groups: [(2, 3)])
+        
+        // Flattening the array of arrays gives just a single array of all the envelopes to be distributed.
+        let sentEnvelopes = envelopes.flatMap { $0 }
+
+        // Dan sends one envelope to each of Alice, Bob, and Carol.
+        // let aliceEnvelope = sentEnvelopes[0] // unrecovered
+        let bobEnvelope = sentEnvelopes[1]
+        let carolEnvelope = sentEnvelopes[2]
+        
+        // At some future point, Dan retrieves two of the three envelopes so he can recover his seed.
+        let recoveredEnvelopes = [bobEnvelope, carolEnvelope]
+        let recoveredSeed = try Seed(taggedCBOR: Envelope.plaintext(from: recoveredEnvelopes)!)
+
+        // The recovered seed is correct.
+        XCTAssertEqual(danSeed.data, recoveredSeed.data)
+        XCTAssertEqual(danSeed.creationDate, recoveredSeed.creationDate)
+        XCTAssertEqual(danSeed.name, recoveredSeed.name)
+        XCTAssertEqual(danSeed.note, recoveredSeed.note)
+        
+        // Attempting to recover with only one of the envelopes won't work.
+        XCTAssertNil(Envelope.plaintext(from: [bobEnvelope]))
+    }
 }
