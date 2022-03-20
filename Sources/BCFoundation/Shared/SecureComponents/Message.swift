@@ -3,26 +3,34 @@ import CryptoSwift
 import URKit
 import CryptoKit
 
-/// Implements IETF ChaCha20-Poly1305 encryption
+/// A secure encrypted message.
+///
+/// Implemented using the IETF ChaCha20-Poly1305 encryption.
 ///
 /// https://datatracker.ietf.org/doc/html/rfc8439
+///
+/// To facilitate decoding, it is recommended that the plaintext of a `Message` be
+/// well-formed tagged CBOR.
 public struct Message: CustomStringConvertible, Equatable {
     public let ciphertext: Data
     public let aad: Data // Additional authenticated data (AAD) per RFC8439
     public let nonce: Nonce
     public let auth: Auth
-
-    /// Encrypt.
-    public init(plaintext: DataProvider, key: Key, aad: Data? = nil, nonce: Nonce? = nil) {
-        let plaintext = plaintext.providedData
-        let aad = aad ?? Data()
-        self.aad = aad
-        let nonce = nonce ?? Nonce()
-        self.nonce = nonce
-        let (ciphertext, auth) = try! AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: key.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes)
-        self.ciphertext = Data(ciphertext)
-        self.auth = Auth(auth)!
-    }
+//
+//    /// Encrypt.
+//    public init(plaintext: DataProvider, key: Key, aad: Data? = nil, nonce: Nonce? = nil) {
+//        let (ciphertext, auth) = key.encrypt(plaintext: plaintext, aad: aad, nonce: nonce)
+//        self.ciphertext = ciphertext
+//        self.auth = auth
+////        let plaintext = plaintext.providedData
+////        let aad = aad ?? Data()
+////        self.aad = aad
+////        let nonce = nonce ?? Nonce()
+////        self.nonce = nonce
+////        let (ciphertext, auth) = try! AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: key.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes)
+//        self.ciphertext = Data(ciphertext)
+//        self.auth = Auth(auth)!
+//    }
     
     public init?(ciphertext: Data, aad: Data, nonce: Nonce, auth: Auth) {
         self.ciphertext = ciphertext
@@ -57,12 +65,12 @@ public struct Message: CustomStringConvertible, Equatable {
             rawValue.description.flanked("Key(", ")")
         }
         
-        public func encrypt(plaintext: DataProvider, aad: Data? = nil, nonce: Nonce? = nil) -> (ciphertext: Data, auth: Auth) {
+        public func encrypt(plaintext: DataProvider, aad: Data? = nil, nonce: Nonce? = nil) -> Message {
             let plaintext = plaintext.providedData
             let aad = aad ?? Data()
             let nonce = nonce ?? Nonce()
             let (ciphertext, auth) = try! AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: self.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes)
-            return (ciphertext: Data(ciphertext), auth: Auth(auth)!)
+            return Message(ciphertext: Data(ciphertext), aad: aad, nonce: nonce, auth: Auth(rawValue: Data(auth))!)!
         }
         
         public func decrypt(message: Message) -> Data? {

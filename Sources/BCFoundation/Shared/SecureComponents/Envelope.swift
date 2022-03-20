@@ -3,12 +3,46 @@ import URKit
 import SSKR
 import CryptoKit
 
-/// An `Envelope` (serialized as `ur:crypto-envelope`) allows for flexible signing, encryption, and sharding of messages.
+/// An `Envelope` (serialized as `ur:crypto-envelope`) allows for flexible signing,
+/// encryption, and sharding of messages.
+///
+/// It is an enumerated type with two options: `.plaintext` and `.encrypted`. If
+/// `.plaintext` is used, it may also carry one or more signatures. If `.encrypted`
+/// is used, the encrypted `Message` is accompanied by a `Permit` that defines the
+/// conditions under which the `Message` may be decrypted.
+///
+/// To facilitate further decoding, it is recommended that the payload of an
+/// `Envelope` should itself be well-formed tagged CBOR.
+///
+/// `Envelope` can contain as its payload another CBOR-encoded `Envelope`. This
+/// facilitates both sign-then-encrypt and encrypt-then sign constructions. The
+/// reason why `.plaintext` messages may be signed and `.encrypted` messages may not
+/// is that generally a signer should have access to the content of what they are
+/// signing, and encourages the sign-then-encrypt order of operations. If
+/// encrypt-then-sign is preferred, then this is easily accomplished by creating an
+/// `.encrypted` and then enclosing that envelope in an `.plaintext` with the
+/// appropriate signatures.
 public enum Envelope {
     case plaintext(Data, [Signature])
     case encrypted(Message, Permit)
 }
 
+/// A `Permit` specifies the conditions under which a `Message` may be decrypted.
+///
+/// `.symmetric` means that the `Message` was encrypted with a symmetric
+/// `Message.Key` that the receiver is already expected to have.
+///
+/// `.recipients` facilitates multi-recipient public key cryptography by including
+/// an array of `SealedMessage`, each of which is encrypted to a particular
+/// recipient's public key, and which contains an ephemeral key that can be used by
+/// the recipient to decrypt the main message.
+///
+/// `.share` facilitates social recovery by pairing a `Message` encrypted with an
+/// ephemeral key with an `SSKRShare`, and providing for the production of a set of
+/// envelopes each with a different share. Only a threshold of shares will allow the
+/// recovery of the ephemeral key and hence the decryption of the original message.
+/// Each recipient of one of these envelopes will have a backup of the entire original
+/// `Message`, but only a single `SSKRShare`.
 public enum Permit {
     case symmetric
     case recipients([SealedMessage])
@@ -21,7 +55,7 @@ extension Envelope {
     }
     
     public init(plaintext: DataProvider, key: Message.Key) {
-        self.init(message: Message(plaintext: plaintext, key: key))
+        self.init(message: key.encrypt(plaintext: plaintext))
     }
     
     public func plaintext(with key: Message.Key) -> Data? {
@@ -49,7 +83,7 @@ extension Envelope {
     public func plaintext(for identity: Identity) -> Data? {
         guard
             case let(.encrypted(message, .recipients(sealedMessages))) = self,
-            let sealedMessage = sealedMessages.first(where: { $0.receiverPublicKey == identity.agreementPublicKey }),
+            let sealedMessage = sealedMessages.first(where: { $0.receiverPublicKey == identity.publicAgreementKey }),
             let contentKeyData = sealedMessage.plaintext(with: identity),
             let contentKey = Message.Key(rawValue: contentKeyData),
             let plaintext = contentKey.decrypt(message: message)
@@ -90,7 +124,7 @@ extension Envelope {
 
     public init(plaintext: DataProvider, signers: [Identity]) {
         let signatures = signers.map {
-            $0.signingPrivateKey.sign(data: plaintext)
+            $0.privateSigningKey.sign(data: plaintext)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
@@ -109,7 +143,7 @@ extension Envelope {
     
     public init(plaintext: DataProvider, recipients: [Peer]) {
         let contentKey = Message.Key()
-        let message = Message(plaintext: plaintext, key: contentKey)
+        let message = contentKey.encrypt(plaintext: plaintext)
         let sealedMessages = recipients.map { peer in
             SealedMessage(plaintext: contentKey, receiver: peer)
         }
@@ -149,7 +183,7 @@ extension Envelope {
     }
     
     public func isValidSignature(_ signature: Signature, peer: Peer) -> Bool {
-        isValidSignature(signature, key: peer.signingPublicKey)
+        isValidSignature(signature, key: peer.publicSigningKey)
     }
     
     public func hasValidSignature(with key: PublicSigningKey) -> Bool {
@@ -157,7 +191,7 @@ extension Envelope {
     }
     
     public func hasValidSignature(from peer: Peer) -> Bool {
-        hasValidSignature(with: peer.signingPublicKey)
+        hasValidSignature(with: peer.publicSigningKey)
     }
     
     public func hasValidSignatures(with keys: [PublicSigningKey], threshold: Int? = nil) -> Bool {
@@ -165,14 +199,14 @@ extension Envelope {
     }
     
     public func hasValidSignatures(from peers: [Peer], threshold: Int? = nil) -> Bool {
-        hasValidSignatures(with: peers.map { $0.signingPublicKey }, threshold: threshold)
+        hasValidSignatures(with: peers.map { $0.publicSigningKey }, threshold: threshold)
     }
 }
 
 extension Envelope {
     public static func split(plaintext: DataProvider, groupThreshold: Int, groups: [(Int, Int)]) -> [[Envelope]] {
         let ephemeralKey = Message.Key()
-        let message = Message(plaintext: plaintext, key: ephemeralKey)
+        let message = ephemeralKey.encrypt(plaintext: plaintext)
         let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: ephemeralKey)
         return shares.map { groupShares in
             groupShares.map { share in .encrypted(message, .share(share)) }

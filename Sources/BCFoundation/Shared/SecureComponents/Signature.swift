@@ -2,6 +2,9 @@ import Foundation
 import CryptoKit
 import URKit
 
+/// A cryptographic signature created by EdDSA over Curve25519.
+///
+/// https://datatracker.ietf.org/doc/html/rfc8032
 public struct Signature: Equatable {
     public let rawValue: Data
     

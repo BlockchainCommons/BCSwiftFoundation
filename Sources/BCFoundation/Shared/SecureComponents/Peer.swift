@@ -1,33 +1,38 @@
 import Foundation
 import CryptoKit
 
+/// Holds information used to communicate cryptographically with a remote peer.
+///
+/// Includes the peer's public signing key for verifying signatures created by the
+/// peer via EdDSA over Curve25519, and the peer's public public agreement key
+/// and salt used for X25519 key agreement.
 public struct Peer: CustomStringConvertible, Hashable {
-    public let signingPublicKey: PublicSigningKey
-    public let agreementPublicKey: PublicAgreementKey
+    public let publicSigningKey: PublicSigningKey
+    public let publicAgreementKey: PublicAgreementKey
     public let salt: Data
     
-    public init(signingPublicKey: PublicSigningKey, agreementPublicKey: PublicAgreementKey, salt: DataProvider? = nil) {
-        self.signingPublicKey = signingPublicKey
-        self.agreementPublicKey = agreementPublicKey
+    public init(publicSigningKey: PublicSigningKey, publicAgreementKey: PublicAgreementKey, salt: DataProvider? = nil) {
+        self.publicSigningKey = publicSigningKey
+        self.publicAgreementKey = publicAgreementKey
         self.salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
     }
     
     public var description: String {
-        "Peer(signingKey: \(signingPublicKey), agreementKey: \(agreementPublicKey), salt: \(salt.hex)"
+        "Peer(signingKey: \(publicSigningKey), agreementKey: \(publicAgreementKey), salt: \(salt.hex)"
     }
 }
 
 extension Peer {
     public init(identity: Identity) {
-        self.init(signingPublicKey: identity.signingPublicKey, agreementPublicKey: identity.agreementPublicKey, salt: identity.salt)
+        self.init(publicSigningKey: identity.publicSigningKey, publicAgreementKey: identity.publicAgreementKey, salt: identity.salt)
     }
 }
 
 extension Peer {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
-        let signingKey = signingPublicKey.taggedCBOR
-        let agreementKey = agreementPublicKey.taggedCBOR
+        let signingKey = publicSigningKey.taggedCBOR
+        let agreementKey = publicAgreementKey.taggedCBOR
         let salt = CBOR.data(salt)
         
         return CBOR.array([type, signingKey, agreementKey, salt])
@@ -52,7 +57,7 @@ extension Peer {
             throw CBORError.invalidFormat
         }
         
-        self.init(signingPublicKey: signingKey, agreementPublicKey: agreementKey, salt: salt)
+        self.init(publicSigningKey: signingKey, publicAgreementKey: agreementKey, salt: salt)
     }
     
     public init(taggedCBOR: CBOR) throws {

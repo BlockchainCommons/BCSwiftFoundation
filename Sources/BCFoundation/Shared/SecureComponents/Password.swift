@@ -2,6 +2,11 @@ import Foundation
 import WolfBase
 import class CryptoSwift.Scrypt
 
+/// A secure derivation scheme from a user-defined password to identity data.
+///
+/// Implemented using Scrypt.
+///
+/// https://datatracker.ietf.org/doc/html/rfc7914
 public class Password: IdentityDataProvider {
     public let identityData: Data
     public let salt: Data

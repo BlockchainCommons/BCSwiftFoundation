@@ -1,5 +1,9 @@
 import Foundation
 
+/// An encrypted message that can only be opened by its intended recipient.
+///
+/// It is encrypted using an ephemeral private key that is thrown away, and encapsulates
+/// the ephemeral public key and the receiver's public key needed for decryption.
 public struct SealedMessage {
     public let message: Message
     public let ephemeralPublicKey: PublicAgreementKey
@@ -7,10 +11,10 @@ public struct SealedMessage {
     
     public init(plaintext: DataProvider, receiver: Peer, aad: Data? = nil) {
         let ephemeralSender = Identity()
-        let receiverPublicKey = receiver.agreementPublicKey
-        let key = Message.sharedKey(identityPrivateKey: ephemeralSender.agreementPrivateKey, peerPublicKey: receiverPublicKey)
-        self.message = Message(plaintext: plaintext.providedData, key: key, aad: aad)
-        self.ephemeralPublicKey = ephemeralSender.agreementPublicKey
+        let receiverPublicKey = receiver.publicAgreementKey
+        let key = Message.sharedKey(identityPrivateKey: ephemeralSender.privateAgreementKey, peerPublicKey: receiverPublicKey)
+        self.message = key.encrypt(plaintext: plaintext, aad: aad)
+        self.ephemeralPublicKey = ephemeralSender.publicAgreementKey
         self.receiverPublicKey = receiverPublicKey
     }
     
@@ -21,7 +25,7 @@ public struct SealedMessage {
     }
     
     public func plaintext(with identity: Identity) -> Data? {
-        let key = Message.sharedKey(identityPrivateKey: identity.agreementPrivateKey, peerPublicKey: ephemeralPublicKey)
+        let key = Message.sharedKey(identityPrivateKey: identity.privateAgreementKey, peerPublicKey: ephemeralPublicKey)
         return key.decrypt(message: message)
     }
 }

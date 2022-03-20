@@ -2,7 +2,9 @@ import Foundation
 import Blake2
 import URKit
 
-/// Implements Blake2b hashing.
+/// A cryptographically secure digest.
+///
+/// Implemented with Blake2b hashing.
 ///
 /// https://datatracker.ietf.org/doc/rfc7693
 public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
