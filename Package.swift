@@ -20,7 +20,8 @@ let package = Package(
         .package(url: "https://github.com/WolfMcNally/WolfBase", from: "3.0.0"),
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.4.1"),
-        .package(url: "https://github.com/BlockchainCommons/URKit.git", from: "3.0.0")
+        .package(url: "https://github.com/BlockchainCommons/URKit.git", from: "3.0.0"),
+        .package(url: "https://github.com/tesseract-one/Blake2.swift.git", from: "0.1.0")
 //        .package(url: "https://github.com/BlockchainCommons/URKit.git", .branch("master"))
     ],
     targets: [
@@ -28,7 +29,13 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "BCFoundation",
-            dependencies: ["WolfBase", "Flexer", "CryptoSwift", "URKit"]
+            dependencies: [
+                "WolfBase",
+                "Flexer",
+                "CryptoSwift",
+                "URKit",
+                .product(name: "Blake2", package: "Blake2.swift")
+            ]
         ),
         .binaryTarget(
             name: "BCWally",

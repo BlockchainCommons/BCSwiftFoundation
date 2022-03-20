@@ -9,7 +9,7 @@ import Foundation
 @_exported import SSKR
 @_exported import URKit
 
-extension SSKRShare: Hashable {
+extension SSKRShare {
     public var identifier: UInt16 {
         (UInt16(data[0]) << 8) | UInt16(data[1])
     }
@@ -41,73 +41,78 @@ extension SSKRShare: Hashable {
     public static func ==(lhs: SSKRShare, rhs: SSKRShare) -> Bool {
         lhs.data == rhs.data
     }
-    
+}
+
+extension SSKRShare: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(data)
     }
+}
+
+extension SSKRShare {
+    public var cbor: CBOR {
+        CBOR.data(Data(data))
+    }
     
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(URType.sskrShare.tag, cbor)
+    }
+    
+    public init(cbor: CBOR) throws {
+        guard case let CBOR.data(data) = cbor else {
+            throw CBORError.invalidFormat
+        }
+        self = SSKRShare(data: data.bytes)
+    }
+    
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(URType.sskrShare.tag, cbor) = taggedCBOR else {
+            throw CBORError.invalidTag
+        }
+        try self.init(cbor: cbor)
+    }
+}
+
+extension SSKRShare {
+    public func bytewords(style: Bytewords.Style) -> String {
+        return Bytewords.encode(taggedCBOR.encoded, style: style)
+    }
+
     public init?(bytewords: String) throws {
         guard let share = try? Bytewords.decode(bytewords) else {
             return nil
         }
-        self = try SSKRShare(data: share.decodeCBOR(isTagged: true).bytes)
+        self = try SSKRShare(taggedCBOR: CBOR(share))
     }
-    
-    public init?(urString: String) throws {
-        guard let ur = try? URDecoder.decode(urString) else {
-            return nil
-        }
-        try self.init(ur: ur)
+}
+
+extension SSKRShare {
+    public var ur: UR {
+        return try! UR(type: URType.sskrShare.type, cbor: cbor)
     }
     
     public init(ur: UR) throws {
         guard ur.type == URType.sskrShare.type else {
             throw URError.unexpectedType
         }
-
-        self = try SSKRShare(data: ur.cbor.decodeCBOR(isTagged: false).bytes)
-    }
-
-    public var ur: UR {
-        let cbor = CBOR.encode(Data(data))
-        return try! UR(type: URType.sskrShare.type, cbor: cbor)
+        let cbor = try CBOR(ur.cbor)
+        self = try SSKRShare(cbor: cbor)
     }
     
     public var urString: String {
         return UREncoder.encode(ur)
     }
 
-    public func bytewords(style: Bytewords.Style) -> String {
-        let cbor = CBOR.encodeTagged(tag: URType.sskrShare.tag, value: Data(data))
-        return Bytewords.encode(Data(cbor), style: style)
+    public init?(urString: String) throws {
+        guard let ur = try? URDecoder.decode(urString) else {
+            return nil
+        }
+        try self.init(ur: ur)
     }
 }
 
 extension SSKRShare: CustomStringConvertible {
     public var description: String {
         "SSKRShare(\(identifierHex) \(groupIndex + 1)-\(memberIndex + 1))"
-    }
-}
-
-extension Data {
-    fileprivate func decodeCBOR(isTagged: Bool) throws -> Data {
-        let cbor = try CBOR(self)
-        let content: CBOR
-        if isTagged {
-            guard
-                case let CBOR.tagged(tag, _content) = cbor,
-                tag == URType.sskrShare.tag
-            else
-            {
-                throw CBORError.invalidTag
-            }
-            content = _content
-        } else {
-            content = cbor
-        }
-        guard case let CBOR.data(bytes) = content else {
-            throw CBORError.invalidFormat
-        }
-        return bytes.data
     }
 }
