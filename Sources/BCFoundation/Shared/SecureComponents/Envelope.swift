@@ -4,28 +4,20 @@ import SSKR
 import CryptoKit
 
 /// An `Envelope` (serialized as `ur:crypto-envelope`) allows for flexible signing, encryption, and sharding of messages.
-public struct Envelope {
-    public let content: Content
+public enum Envelope {
+    case plaintext(Data, [Signature])
+    case encrypted(Message, Permit)
+}
 
-    public enum Content {
-        case plaintext(Data, [Signature])
-        case encrypted(Message, Permit)
-    }
-
-    public enum Permit {
-        case symmetric
-        case recipients([SealedMessage])
-        case share(SSKRShare)
-    }
-    
-    public init(content: Content) {
-        self.content = content
-    }
+public enum Permit {
+    case symmetric
+    case recipients([SealedMessage])
+    case share(SSKRShare)
 }
 
 extension Envelope {
     public init(message: Message) {
-        self.init(content: .encrypted(message, .symmetric))
+        self = .encrypted(message, .symmetric)
     }
     
     public init(plaintext: DataProvider, key: Message.Key) {
@@ -33,7 +25,7 @@ extension Envelope {
     }
     
     public func plaintext(with key: Message.Key) -> Data? {
-        guard case let(.encrypted(message, .symmetric)) = content else {
+        guard case let(.encrypted(message, .symmetric)) = self else {
             return nil
         }
         return key.decrypt(message: message)
@@ -56,7 +48,7 @@ extension Envelope {
     
     public func plaintext(for identity: Identity) -> Data? {
         guard
-            case let(.encrypted(message, .recipients(sealedMessages))) = content,
+            case let(.encrypted(message, .recipients(sealedMessages))) = self,
             let sealedMessage = sealedMessages.first(where: { $0.receiverPublicKey == identity.agreementPublicKey }),
             let contentKeyData = sealedMessage.plaintext(with: identity),
             let contentKey = Message.Key(rawValue: contentKeyData),
@@ -81,7 +73,7 @@ extension Envelope {
 
 extension Envelope {
     public init(plaintext: DataProvider) {
-        self.init(content: .plaintext(plaintext.providedData, []))
+        self = .plaintext(plaintext.providedData, [])
     }
     
     public init(inner: Envelope) {
@@ -89,7 +81,7 @@ extension Envelope {
     }
     
     public init(plaintext: DataProvider, signatures: [Signature]) {
-        self.init(content: .plaintext(plaintext.providedData, signatures))
+        self = .plaintext(plaintext.providedData, signatures)
     }
     
     public init(inner: Envelope, signatures: [Signature]) {
@@ -121,7 +113,7 @@ extension Envelope {
         let sealedMessages = recipients.map { peer in
             SealedMessage(plaintext: contentKey, receiver: peer)
         }
-        self.init(content: .encrypted(message, .recipients(sealedMessages)))
+        self = .encrypted(message, .recipients(sealedMessages))
     }
     
     public init(inner: Envelope, recipients: [Peer]) {
@@ -129,7 +121,7 @@ extension Envelope {
     }
     
     public var plaintext: Data? {
-        guard case let(.plaintext(data, _)) = content else {
+        guard case let(.plaintext(data, _)) = self else {
             return nil
         }
         return data
@@ -143,7 +135,7 @@ extension Envelope {
     }
     
     public var signatures: [Signature] {
-        guard case let(.plaintext(_, signatures)) = content else {
+        guard case let(.plaintext(_, signatures)) = self else {
             return []
         }
         return signatures
@@ -183,20 +175,20 @@ extension Envelope {
         let message = Message(plaintext: plaintext, key: ephemeralKey)
         let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: ephemeralKey)
         return shares.map { groupShares in
-            groupShares.map { share in Envelope(content: .encrypted(message, .share(share))) }
+            groupShares.map { share in .encrypted(message, .share(share)) }
         }
     }
     
     public static func plaintext(from envelopes: [Envelope]) -> Data? {
         let shares = envelopes.map { (envelope: Envelope) -> SSKRShare in
-            guard case let .encrypted(_, .share(share)) = envelope.content else {
+            guard case let .encrypted(_, .share(share)) = envelope else {
                 fatalError()
             }
             return share
         }
         guard
             let ephemeralKey = try? Message.Key(rawValue: SSKRCombine(shares: shares)),
-            case let .encrypted(message, .share(_)) = envelopes.first?.content,
+            case let .encrypted(message, .share(_)) = envelopes.first,
             let plaintext = ephemeralKey.decrypt(message: message)
         else {
             return nil
@@ -209,7 +201,7 @@ extension Envelope {
     public var cbor: CBOR {
         var array: [CBOR] = []
         
-        switch content {
+        switch self {
         case .plaintext(let data, let signatures):
             array.append(contentsOf: [
                 CBOR.unsignedInt(1),
@@ -251,11 +243,11 @@ extension Envelope {
             let signatures = try signatureItems.map {
                 try Signature(taggedCBOR: $0)
             }
-            self.content = .plaintext(plaintext, signatures)
+            self = .plaintext(plaintext, signatures)
         case 2:
             let message = try Message(taggedCBOR: elements[1])
             let permit = try Permit(taggedCBOR: elements[2])
-            self.content = .encrypted(message, permit)
+            self = .encrypted(message, permit)
         default:
             throw CBORError.invalidFormat
         }
@@ -269,7 +261,7 @@ extension Envelope {
     }
 }
 
-extension Envelope.Permit {
+extension Permit {
     public var cbor: CBOR {
         var array: [CBOR] = []
         
