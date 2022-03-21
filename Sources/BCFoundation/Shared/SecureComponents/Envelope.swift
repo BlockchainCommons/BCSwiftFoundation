@@ -55,22 +55,22 @@ extension Envelope {
         self = .encrypted(message, .symmetric)
     }
     
-    public init(plaintext: DataProvider, key: Message.Key) {
+    public init(plaintext: DataProvider, key: SymmetricKey) {
         self.init(message: key.encrypt(plaintext: plaintext))
     }
     
-    public func plaintext(with key: Message.Key) -> Data? {
+    public func plaintext(with key: SymmetricKey) -> Data? {
         guard case let(.encrypted(message, .symmetric)) = self else {
             return nil
         }
         return key.decrypt(message: message)
     }
     
-    public init(inner: Envelope, key: Message.Key) {
+    public init(inner: Envelope, key: SymmetricKey) {
         self.init(plaintext: inner.taggedCBOR, key: key)
     }
     
-    public func inner(with key: Message.Key) -> Envelope? {
+    public func inner(with key: SymmetricKey) -> Envelope? {
         guard
             let innerCBOR = plaintext(with: key),
             let inner = Envelope(taggedCBOR: innerCBOR)
@@ -86,7 +86,7 @@ extension Envelope {
             case let(.encrypted(message, .recipients(sealedMessages))) = self,
             let sealedMessage = sealedMessages.first(where: { $0.receiverPublicKey == identity.publicAgreementKey }),
             let contentKeyData = sealedMessage.plaintext(with: identity),
-            let contentKey = Message.Key(rawValue: contentKeyData),
+            let contentKey = SymmetricKey(rawValue: contentKeyData),
             let plaintext = contentKey.decrypt(message: message)
         else {
             return nil
@@ -143,7 +143,7 @@ extension Envelope {
     }
     
     public init(plaintext: DataProvider, recipients: [Peer]) {
-        let contentKey = Message.Key()
+        let contentKey = SymmetricKey()
         let message = contentKey.encrypt(plaintext: plaintext)
         let sealedMessages = recipients.map { peer in
             SealedMessage(plaintext: contentKey, receiver: peer)
@@ -206,7 +206,7 @@ extension Envelope {
 
 extension Envelope {
     public static func split(plaintext: DataProvider, groupThreshold: Int, groups: [(Int, Int)]) -> [[Envelope]] {
-        let ephemeralKey = Message.Key()
+        let ephemeralKey = SymmetricKey()
         let message = ephemeralKey.encrypt(plaintext: plaintext)
         let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: ephemeralKey)
         return shares.map { groupShares in
@@ -222,7 +222,7 @@ extension Envelope {
             return share
         }
         guard
-            let ephemeralKey = try? Message.Key(rawValue: SSKRCombine(shares: shares)),
+            let ephemeralKey = try? SymmetricKey(rawValue: SSKRCombine(shares: shares)),
             case let .encrypted(message, .share(_)) = envelopes.first,
             let plaintext = ephemeralKey.decrypt(message: message)
         else {

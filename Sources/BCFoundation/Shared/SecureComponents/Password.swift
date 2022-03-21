@@ -8,7 +8,7 @@ import class CryptoSwift.Scrypt
 ///
 /// https://datatracker.ietf.org/doc/html/rfc7914
 public class Password: IdentityDataProvider {
-    public let identityData: Data
+    public let data: Data
     public let salt: Data
     
     public static let defaulDKLen = 32
@@ -22,7 +22,7 @@ public class Password: IdentityDataProvider {
             return nil
         }
         let salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
-        self.identityData = try! Data(Scrypt(password: password.bytes, salt: salt.bytes, dkLen: dkLen, N: N, r: r, p: p).calculate())
+        self.data = try! Data(Scrypt(password: password.bytes, salt: salt.bytes, dkLen: dkLen, N: N, r: r, p: p).calculate())
         self.salt = salt
     }
     
@@ -31,6 +31,10 @@ public class Password: IdentityDataProvider {
             return false
         }
         let d = try! Data(Scrypt(password: password.utf8Data.bytes, salt: salt.bytes, dkLen: dkLen, N: N, r: r, p: p).calculate())
-        return identityData == d
+        return data == d
+    }
+    
+    public var identityData: Data {
+        data
     }
 }

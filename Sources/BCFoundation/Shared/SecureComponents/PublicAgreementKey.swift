@@ -2,6 +2,8 @@ import Foundation
 import CryptoKit
 
 /// A Curve25519 public key used for X25519 key agreement.
+///
+/// https://datatracker.ietf.org/doc/html/rfc7748
 public struct PublicAgreementKey: RawRepresentable, CustomStringConvertible, Hashable {
     public let rawValue: Data
     

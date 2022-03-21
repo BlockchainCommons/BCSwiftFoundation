@@ -64,7 +64,7 @@ class EnvelopeTests: XCTestCase {
     
     func testSymmetricEncryption() {
         // Alice and Bob have agreed to use this key.
-        let key = Message.Key()
+        let key = SymmetricKey()
 
         // Alice sends a message encrypted with a symmetric key to Bob.
         let envelope = Envelope(plaintext: Self.plaintext, key: key)
@@ -76,12 +76,12 @@ class EnvelopeTests: XCTestCase {
         XCTAssertNil(envelope.plaintext)
         
         // Can't read with incorrect key
-        XCTAssertNil(envelope.plaintext(with: Message.Key()))
+        XCTAssertNil(envelope.plaintext(with: SymmetricKey()))
     }
     
     func testSignThenEncrypt() {
         // Alice and Bob have agreed to use this key.
-        let key = Message.Key()
+        let key = SymmetricKey()
 
         // Alice signs a plaintext message, then encrypts it.
         let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
@@ -102,7 +102,7 @@ class EnvelopeTests: XCTestCase {
     
     func testEncryptThenSign() {
         // Alice and Bob have agreed to use this key.
-        let key = Message.Key()
+        let key = SymmetricKey()
         
         // Alice encrypts a message, then signs it.
         let innerEncryptedEnvelope = Envelope(plaintext: Self.plaintext, key: key)
