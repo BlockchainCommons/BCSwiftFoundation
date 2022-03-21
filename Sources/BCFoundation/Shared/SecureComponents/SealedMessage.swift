@@ -1,4 +1,5 @@
 import Foundation
+import WolfBase
 
 /// An encrypted message that can only be opened by its intended recipient.
 ///

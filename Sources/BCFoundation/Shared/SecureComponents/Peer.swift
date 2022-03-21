@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import WolfBase
 
 /// Holds information used to communicate cryptographically with a remote peer.
 ///

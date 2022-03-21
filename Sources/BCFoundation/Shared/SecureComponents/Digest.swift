@@ -1,6 +1,7 @@
 import Foundation
 import Blake2
 import URKit
+import WolfBase
 
 /// A cryptographically secure digest.
 ///

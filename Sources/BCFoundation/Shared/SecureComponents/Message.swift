@@ -2,6 +2,7 @@ import Foundation
 import CryptoSwift
 import URKit
 import CryptoKit
+import protocol WolfBase.DataProvider
 
 /// A secure encrypted message.
 ///
@@ -16,21 +17,6 @@ public struct Message: CustomStringConvertible, Equatable {
     public let aad: Data // Additional authenticated data (AAD) per RFC8439
     public let nonce: Nonce
     public let auth: Auth
-//
-//    /// Encrypt.
-//    public init(plaintext: DataProvider, key: Key, aad: Data? = nil, nonce: Nonce? = nil) {
-//        let (ciphertext, auth) = key.encrypt(plaintext: plaintext, aad: aad, nonce: nonce)
-//        self.ciphertext = ciphertext
-//        self.auth = auth
-////        let plaintext = plaintext.providedData
-////        let aad = aad ?? Data()
-////        self.aad = aad
-////        let nonce = nonce ?? Nonce()
-////        self.nonce = nonce
-////        let (ciphertext, auth) = try! AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: key.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes)
-//        self.ciphertext = Data(ciphertext)
-//        self.auth = Auth(auth)!
-//    }
     
     public init?(ciphertext: Data, aad: Data, nonce: Nonce, auth: Auth) {
         self.ciphertext = ciphertext

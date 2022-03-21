@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import WolfBase
 
 /// A Curve25519 private key used to create cryptographic signatures.
 ///

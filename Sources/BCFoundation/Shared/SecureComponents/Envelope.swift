@@ -2,6 +2,7 @@ import Foundation
 import URKit
 import SSKR
 import CryptoKit
+import WolfBase
 
 /// An `Envelope` (serialized as `ur:crypto-envelope`) allows for flexible signing,
 /// encryption, and sharding of messages.

@@ -1,20 +1,5 @@
 import Foundation
-
-public protocol DataProvider {
-    var providedData: Data { get }
-}
-
-extension Data: DataProvider {
-    public var providedData: Data {
-        self
-    }
-}
-
-extension String: DataProvider {
-    public var providedData: Data {
-        utf8Data
-    }
-}
+import WolfBase
 
 extension CBOR: DataProvider {
     public var providedData: Data {

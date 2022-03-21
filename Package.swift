@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/WolfMcNally/WolfBase", from: "3.0.0"),
+        .package(url: "https://github.com/WolfMcNally/WolfBase", from: "3.23.0"),
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.4.1"),
         .package(url: "https://github.com/BlockchainCommons/URKit.git", from: "3.0.0"),

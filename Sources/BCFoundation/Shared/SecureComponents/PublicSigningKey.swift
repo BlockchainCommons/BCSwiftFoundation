@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import WolfBase
 
 /// A Curve25519 public key used to verify cryptographic signatures.
 public struct PublicSigningKey: RawRepresentable, CustomStringConvertible, Hashable {
