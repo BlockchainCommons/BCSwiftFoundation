@@ -4,8 +4,7 @@ import SSKR
 import CryptoKit
 import WolfBase
 
-/// An `Envelope` (serialized as `ur:crypto-envelope`) allows for flexible signing,
-/// encryption, and sharding of messages.
+/// An `Envelope` allows for flexible signing, encryption, and sharding of messages.
 ///
 /// It is an enumerated type with two options: `.plaintext` and `.encrypted`. If
 /// `.plaintext` is used, it may also carry one or more signatures. If `.encrypted`
@@ -13,16 +12,16 @@ import WolfBase
 /// conditions under which the `Message` may be decrypted.
 ///
 /// To facilitate further decoding, it is recommended that the payload of an
-/// `Envelope` should itself be well-formed tagged CBOR.
+/// `Envelope` should itself be tagged CBOR.
 ///
 /// `Envelope` can contain as its payload another CBOR-encoded `Envelope`. This
 /// facilitates both sign-then-encrypt and encrypt-then sign constructions. The
 /// reason why `.plaintext` messages may be signed and `.encrypted` messages may not
 /// is that generally a signer should have access to the content of what they are
-/// signing, and encourages the sign-then-encrypt order of operations. If
-/// encrypt-then-sign is preferred, then this is easily accomplished by creating an
-/// `.encrypted` and then enclosing that envelope in an `.plaintext` with the
-/// appropriate signatures.
+/// signing, therefore this design encourages the sign-then-encrypt order of
+/// operations. If encrypt-then-sign is preferred, then this is easily accomplished
+/// by creating an `.encrypted` and then enclosing that envelope in an `.plaintext`
+/// with the appropriate signatures.
 public enum Envelope {
     case plaintext(Data, [Signature])
     case encrypted(Message, Permit)
@@ -30,20 +29,22 @@ public enum Envelope {
 
 /// A `Permit` specifies the conditions under which a `Message` may be decrypted.
 ///
-/// `.symmetric` means that the `Message` was encrypted with a symmetric
-/// `Message.Key` that the receiver is already expected to have.
+/// `.symmetric` means that the `Message` was encrypted with a `SymmetricKey` that
+/// the receiver is already expected to have.
 ///
 /// `.recipients` facilitates multi-recipient public key cryptography by including
 /// an array of `SealedMessage`, each of which is encrypted to a particular
 /// recipient's public key, and which contains an ephemeral key that can be used by
-/// the recipient to decrypt the main message.
+/// a recipient to decrypt the main message.
 ///
 /// `.share` facilitates social recovery by pairing a `Message` encrypted with an
 /// ephemeral key with an `SSKRShare`, and providing for the production of a set of
-/// envelopes each with a different share. Only a threshold of shares will allow the
-/// recovery of the ephemeral key and hence the decryption of the original message.
-/// Each recipient of one of these envelopes will have a backup of the entire original
-/// `Message`, but only a single `SSKRShare`.
+/// `Envelope`s, each one including a different share. Only a threshold of shares will
+/// allow the recovery of the ephemeral key and hence the decryption of the original
+/// message. Each recipient of one of these `Envelope`s will have an encrypted
+/// backup of the entire original `Message`, but only a single `SSKRShare`. A N-of-M
+/// threshold of such shares will be necessary for the owner to recover the original
+/// message.
 public enum Permit {
     case symmetric
     case recipients([SealedMessage])

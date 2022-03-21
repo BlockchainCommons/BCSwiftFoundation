@@ -11,7 +11,7 @@ import protocol WolfBase.DataProvider
 /// https://datatracker.ietf.org/doc/html/rfc8439
 ///
 /// To facilitate decoding, it is recommended that the plaintext of a `Message` be
-/// well-formed tagged CBOR.
+/// tagged CBOR.
 public struct Message: CustomStringConvertible, Equatable {
     public let ciphertext: Data
     public let aad: Data // Additional authenticated data (AAD) per RFC8439
