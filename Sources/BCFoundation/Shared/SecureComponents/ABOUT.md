@@ -140,7 +140,7 @@ An `Identity` is derived from a source of key material such as a `Seed`, an `HDK
 
 An `Identity` is kept secret, and can produce both private and public keys for signing and encryption. A `Peer` is just the public keys and `Salt` extracted from an `Identity` and can be made public. Signing and public key encryption is performed using the `Identity` of one party and the `Peer` from another.
 
-**Note:** Due to the use of randomness in the cryptographic constructions, separate runs of the code are extremly unlike to replicate the exact CBOR and URs (forthcoming) below.
+**Note:** Due to the use of randomness in the cryptographic constructions, separate runs of the code are extremly unlikely to replicate the exact CBOR and URs (forthcoming) below.
 
 ### Example 1: Plaintext
 
