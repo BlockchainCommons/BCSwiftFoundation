@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WolfBase
 @_exported import URKit
 
 public protocol SeedProtocol: IdentityDigestable {
@@ -14,8 +15,8 @@ public protocol SeedProtocol: IdentityDigestable {
     var note: String { get set }
     var creationDate: Date? { get set }
     
-    init?(data: Data, name: String, note: String, creationDate: Date?)
-    init?(data: Data)
+    init?(data: DataProvider, name: String, note: String, creationDate: Date?)
+    init?(data: DataProvider)
     /// Copy constructor
     init(_ seed: SeedProtocol)
     init()
@@ -27,7 +28,8 @@ public struct Seed: SeedProtocol {
     public var note: String
     public var creationDate: Date?
     
-    public init?(data: Data, name: String = "", note: String = "", creationDate: Date? = nil) {
+    public init?(data: DataProvider, name: String = "", note: String = "", creationDate: Date? = nil) {
+        let data = data.providedData
         guard data.count <= 32 else {
             return nil
         }
@@ -37,7 +39,7 @@ public struct Seed: SeedProtocol {
         self.creationDate = creationDate
     }
     
-    public init?(data: Data) {
+    public init?(data: DataProvider) {
         self.init(data: data, name: "", note: "", creationDate: nil)
     }
 

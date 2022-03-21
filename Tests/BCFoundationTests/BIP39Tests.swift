@@ -53,14 +53,14 @@ class BIP39Tests: XCTestCase {
     
     func testMnemonicToEntropy() {
         let mnemonic = BIP39(mnemonic: validMnemonic)!
-        XCTAssertEqual(mnemonic.data.hex, "00000000000000000000000000000000")
+        XCTAssertEqual(mnemonic.data, ‡"00000000000000000000000000000000")
         let mnemonic2 = BIP39(mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow")!
-        XCTAssertEqual(mnemonic2.data.hex, "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f")
+        XCTAssertEqual(mnemonic2.data, ‡"7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f")
     }
     
     func testEntropyToMnemonic() {
         let expectedMnemonic = BIP39(mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow")!
-        let entropy = Data(hex: "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f")!
+        let entropy = ‡"7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f"
         let mnemonic = BIP39(data: entropy)
         XCTAssertEqual(mnemonic, expectedMnemonic)
     }

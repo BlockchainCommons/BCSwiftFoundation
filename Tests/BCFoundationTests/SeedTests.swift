@@ -7,13 +7,14 @@
 
 import XCTest
 import BCFoundation
+import WolfBase
 
 class SeedTests: XCTestCase {
     func testBIP39() throws {
         let mnemonic = "surge mind remove galaxy define nephew surge helmet shine hurry voyage dawn"
         let bip39 = BIP39(mnemonic: mnemonic)!
         let seed = Seed(bip39: bip39)
-        XCTAssertEqual(seed.data.hex, "da519ed7af739928b69357c5edf7d81b")
+        XCTAssertEqual(seed.data, ‡"da519ed7af739928b69357c5edf7d81b")
         XCTAssertEqual(seed.bip39.mnemonic, mnemonic)
         
         let key = try? HDKey(seed: seed)

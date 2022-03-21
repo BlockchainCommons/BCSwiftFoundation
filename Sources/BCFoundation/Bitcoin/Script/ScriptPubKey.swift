@@ -35,6 +35,10 @@ public struct ScriptPubKey : Equatable {
         }
         return nil
     }
+    
+    public init(_ data: Data) {
+        self.script = Script(data)
+    }
 
     public init?(hex: String) {
         guard let data = Data(hex: hex) else {

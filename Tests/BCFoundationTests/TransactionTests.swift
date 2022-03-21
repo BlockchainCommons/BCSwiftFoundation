@@ -15,9 +15,9 @@ class TransactionTests: XCTestCase {
     let pubKey = ECCompressedPublicKey(hex: "03501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c")!
 
     func testFromHash() {
-        let hash = "0000000000000000000000000000000000000000000000000000000000000000"
-        let txHash = TxHash(hex: hash)!
-        XCTAssertEqual(txHash.hex, hash)
+        let hash = ‡"0000000000000000000000000000000000000000000000000000000000000000"
+        let txHash = TxHash(hash)!
+        XCTAssertEqual(txHash.data, hash)
 
         XCTAssertNil(Transaction(hex: "00")) // Wrong length
     }
@@ -30,7 +30,7 @@ class TransactionTests: XCTestCase {
     }
 
     func testInput() {
-        let prevTx = TxHash(hex: "0000000000000000000000000000000000000000000000000000000000000000")!
+        let prevTx = TxHash(‡"0000000000000000000000000000000000000000000000000000000000000000")!
         let vout: UInt32 = 0
         let amount: Satoshi = 1000
         let scriptSig = ScriptSig(type: .payToPubKeyHash(pubKey))
@@ -48,7 +48,7 @@ class TransactionTests: XCTestCase {
 
     func testComposeTransaction() {
         // Input
-        let prevTx = TxHash(hex: "0000000000000000000000000000000000000000000000000000000000000000")!
+        let prevTx = TxHash(‡"0000000000000000000000000000000000000000000000000000000000000000")!
         let vout: UInt32 = 0
         let amount: Satoshi = 1000
         let scriptSig = ScriptSig(type: .payToPubKeyHash(pubKey))
@@ -80,8 +80,8 @@ class TransactionInstanceTests: XCTestCase {
 
     // From: legacy P2PKH address 1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj
     // To: legacy P2PKH address 1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj
-    let scriptPubKey1 = ScriptPubKey(hex: "76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac")!
-    let pubKey = ECCompressedPublicKey(hex: "03501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c")!
+    let scriptPubKey1 = ScriptPubKey(‡"76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac")
+    let pubKey = ECCompressedPublicKey(‡"03501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c")!
     var tx1: Transaction! = nil
     var tx2: Transaction! = nil
     var tx3: Transaction! = nil
@@ -89,7 +89,7 @@ class TransactionInstanceTests: XCTestCase {
     
     override func setUp() {
         // Input (legacy P2PKH)
-        let prevTx = TxHash(hex: "0000000000000000000000000000000000000000000000000000000000000000")!
+        let prevTx = TxHash(‡"0000000000000000000000000000000000000000000000000000000000000000")!
         let vout: UInt32 = 0
         let amount1: Satoshi = 1000 + Satoshi(legacyInputBytes)
         let scriptSig = ScriptSig(type: .payToPubKeyHash(pubKey))
@@ -98,13 +98,13 @@ class TransactionInstanceTests: XCTestCase {
         // Input (native SegWit)
         let witness = Witness(type: .payToWitnessPubKeyHash, pubKey: pubKey)
         let amount2: Satoshi = 1000 + Satoshi(nativeSegWitInputBytes)
-        let scriptPubKey2 = ScriptPubKey(hex: "0014bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")!
+        let scriptPubKey2 = ScriptPubKey(‡"0014bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
         let txInput2 = TxInput(prevTx: prevTx, vout: vout, amount: amount2, sig: .witness(witness), scriptPubKey: scriptPubKey2)
 
         // Input (wrapped SegWit)
         let witness3 = Witness(type: .payToScriptHashPayToWitnessPubKeyHash, pubKey: pubKey)
         let amount3: Satoshi = 1000 + Satoshi(wrappedSegWitInputBytes)
-        let scriptPubKey3 = ScriptPubKey(hex: "a91486cc442a97817c245ce90ed0d31d6dbcde3841f987")!
+        let scriptPubKey3 = ScriptPubKey(‡"a91486cc442a97817c245ce90ed0d31d6dbcde3841f987")
         let txInput3 = TxInput(prevTx: prevTx, vout: vout, amount: amount3, sig: .witness(witness3), scriptPubKey: scriptPubKey3)
         
         // Output:

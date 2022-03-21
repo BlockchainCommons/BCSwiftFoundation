@@ -5,15 +5,15 @@ import WolfBase
 class EnvelopeTests: XCTestCase {
     static let plaintext = "Some mysteries aren't meant to be solved.".utf8Data
 
-    static let aliceSeed = Seed(data: "82f32c855d3d542256180810797e0073".hexData!)!
+    static let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
     static let aliceIdentity = Identity(aliceSeed, salt: "Salt")
     static let alicePeer = Peer(identity: aliceIdentity)
     
-    static let bobSeed = Seed(data: "187a5973c64d359c836eba466a44db7b".hexData!)!
+    static let bobSeed = Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!
     static let bobIdentity = Identity(bobSeed, salt: "Salt")
     static let bobPeer = Peer(identity: bobIdentity)
     
-    static let carolSeed = Seed(data: "8574afab18e229651c1be8f76ffee523".hexData!)!
+    static let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
     static let carolIdentity = Identity(carolSeed, salt: "Salt")
     static let carolPeer = Peer(identity: carolIdentity)
 
@@ -157,7 +157,7 @@ class EnvelopeTests: XCTestCase {
         // Dan has a cryptographic seed he wants to backup using a social recovery scheme.
         // The seed includes metadata he wants to back up with the key, making it too large
         // to fit into a basic SSKR share.
-        var danSeed = Seed(data: "59f2293a5bce7d4de59e71b4207ac5d2".hexData!)!
+        var danSeed = Seed(data: ‡"59f2293a5bce7d4de59e71b4207ac5d2")!
         danSeed.name = "Dark Purple Aqua Love"
         danSeed.creationDate = try! Date("2021-02-24T00:00:00Z", strategy: .iso8601)
         danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."

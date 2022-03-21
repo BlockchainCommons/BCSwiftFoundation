@@ -51,16 +51,19 @@ public struct Transaction {
         storage = Storage(tx: Self.clone(tx: tx))
     }
 
-    public init?(hex: String) {
+    public init?(_ data: Data) {
         inputs = nil
         outputs = nil
         guard
-            let data = Data(hex: hex),
             let newTx = Wally.txFromBytes(data)
         else {
             return nil
         }
         storage = Storage(tx: newTx)
+    }
+
+    public init?(hex: String) {
+        self.init(Data(hex: hex))
     }
 
     public init(inputs: [TxInput], outputs: [TxOutput]) {
