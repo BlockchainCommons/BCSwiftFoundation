@@ -155,8 +155,8 @@ class EnvelopeTests: XCTestCase {
     
     func testSSKR() throws {
         // Dan has a cryptographic seed he wants to backup using a social recovery scheme.
-        // The seed includes metadata he wants to back up with the key, making it too large
-        // to fit into a basic SSKR share.
+        // The seed includes metadata he wants to back up also, making it too large to fit
+        // into a basic SSKR share.
         var danSeed = Seed(data: ‡"59f2293a5bce7d4de59e71b4207ac5d2")!
         danSeed.name = "Dark Purple Aqua Love"
         danSeed.creationDate = try! Date("2021-02-24T00:00:00Z", strategy: .iso8601)
