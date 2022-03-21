@@ -2,7 +2,7 @@ import Foundation
 import WolfBase
 import class CryptoSwift.Scrypt
 
-/// A secure derivation scheme from a user-defined password to identity data.
+/// A secure derivation scheme from a user-provided password to identity data.
 ///
 /// Implemented using Scrypt.
 ///

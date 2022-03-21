@@ -33,12 +33,7 @@ class DigestTests: XCTestCase {
     func testCBOR() {
         XCTAssertEqual(
             Self.secureDigest.taggedCBOR.encoded,
-            ‡"d831820158204d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b"
+            ‡"d902bc820158204d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b"
         )
-    }
-    
-    func testUR() {
-        let expectedUR = try! UR(urString: "ur:crypto-digest/lfadhdcxgtbncymngtdnryyliyspwpfgsoyndafpzovadehhpsspzcosfxwytabgbdimmdlugebsiepy")
-        XCTAssertEqual(Self.secureDigest.ur, expectedUR)
     }
 }

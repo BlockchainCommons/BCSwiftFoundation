@@ -1,6 +1,19 @@
-# Secure Components
+# DRAFT: Secure Components
 
-The Secure Components suite provide mechanisms to easily implement encryption (symmetric or public key), signing, and sharding of messages. They also provide for easy serialization to and from [CBOR](https://cbor.io/), and [UR](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md).
+**Authors:** Wolf McNally, Christopher Allen, Blockchain Commons</br>
+**Revised:** March 20, 2022
+
+---
+
+## Introduction
+
+The Secure Components suite provide mechanisms to easily implement encryption (symmetric or public key), signing, and sharding of messages, including serialization to and from [CBOR](https://cbor.io/), and [UR](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md).
+
+## Status
+
+**DRAFT.** There is a reference implementation, but everything is still fluid and subject to change.
+
+**⚠️ WARNING:** As of the date of this publication the CBOR tags in the range `48` through `51` and `55` are currently unallocated in the [IANA Registry of CBOR Tags](https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml). Blockchain Commons is applying for these number to be assigned to the CBOR specification herein, but because these numbers are in a range that is open to other applications, it may change. So for now, these low-numbered tags MUST be understood as provisional and subject to change by all implementors.
 
 ## Goals
 
@@ -18,32 +31,33 @@ The types defined in the Secure Components suite are designed to be minimal, sim
 
 Many of the types defined herein are assigned CBOR tags for use when encoding these structures. The following types may be used embedded within larger structures as tagged CBOR, or as top-level objects in URs. Note that when encoding URs, a top-level CBOR tag is not used, as the UR type provides that information.
 
-|Type|CBOR Tag|UR Type|
+|CBOR Tag|UR Type|Type|
 |---|---|---|
-|`Envelope`||`crypto-envelope`|
-|`Identity`||`crypto-identity`|
-|`Message`||`crypto-msg`|
-|`Peer`||`crypto-peer`|
-|`SealedMessage`||`crypto-sealed`|
+|48|`crypto-msg`|`Message`|
+|49|`crypto-envelope`|`Envelope`|
+|50|`crypto-identity`|`Identity`|
+|51|`crypto-peer`|`Peer`|
+|55|`crypto-sealed`|`SealedMessage`|
 
 ## Tagged Types
 
 Types that do not define a UR type generally would never be serialized as a top-level object, but are usually serialized as part of a larger structure.
 
-|Type|CBOR Tag|
+|CBOR Tag|Type|
 |---|---|
-|`Digest`|
-|`Password`|
-|`PrivateAgreementKey`|
-|`PublicAgreementKey`|
-|`PrivateSigningKey`|
-|`PublicSigningKey`|
-|`Signature`|
-|`SymmetricKey`|
+|700|`Digest`|
+|701|`Password`|
+|702|`Permit`|
+|703|`PrivateAgreementKey`|
+|704|`PrivateSigningKey`|
+|705|`PublicAgreementKey`|
+|706|`PublicSigningKey`|
+|707|`Signature`|
+|708|`SymmetricKey`|
 
 ## Untagged Types
 
-A number of types that participate in serialization are simply serialized a CBOR byte strings. They do not need tags because they are used in contexts where their meaning is fixed and unlikely to change over time. These include:
+A number of types that participate in serialization are simply serialized as untagged CBOR byte strings. They do not need tags because they are used in contexts where their meaning is fixed and unlikely to change over time. These include:
 
 * `AAD`
 * `Auth`
@@ -54,7 +68,7 @@ A number of types that participate in serialization are simply serialized a CBOR
 
 ## Algorithms
 
-The algorithms Secure Components currently incorporate are listed here. The components include mechanisms that allow for the future addition of additional algorithms and methods.
+The algorithms Secure Components currently incorporate are listed below. The components include provisions for the future inclusion of additional algorithms and methods.
 
 * **Hashing:** [Blake2b](https://datatracker.ietf.org/doc/rfc7693)
 * **Signing:** [EdDSA-25519](https://datatracker.ietf.org/doc/html/rfc8032)

@@ -255,7 +255,7 @@ extension Envelope {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.secureEnvelope.tag, cbor)
+        CBOR.tagged(URType.envelope.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -289,7 +289,7 @@ extension Envelope {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.secureEnvelope.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.envelope.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
@@ -367,11 +367,11 @@ extension Permit {
 
 extension Envelope {
     public var ur: UR {
-        return try! UR(type: URType.secureEnvelope.type, cbor: cbor)
+        return try! UR(type: URType.envelope.type, cbor: cbor)
     }
     
     public init(ur: UR) throws {
-        guard ur.type == URType.secureEnvelope.type else {
+        guard ur.type == URType.envelope.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)

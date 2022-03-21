@@ -29,11 +29,12 @@ extension URType {
     public static let account = URType(type: "crypto-account", tag: 311)
     public static let transactionRequest = URType(type: "crypto-request", tag: 312)
     public static let transactionResponse = URType(type: "crypto-response", tag: 313)
-    public static let secureMessage = URType(type: "crypto-msg", tag: 48)
-    public static let secureDigest = URType(type: "crypto-digest", tag: 49)
-    public static let secureSignature = URType(type: "crypto-sig", tag: 50)
-    public static let securePeer = URType(type: "crypto-peer", tag: 51)
-    public static let secureEnvelope = URType(type: "crypto-envelope", tag: 52)
+
+    public static let message = URType(type: "crypto-msg", tag: 48)
+    public static let envelope = URType(type: "crypto-envelope", tag: 49)
+    public static let identity = URType(type: "crypto-identity", tag: 50)
+    public static let peer = URType(type: "crypto-peer", tag: 51)
+    public static let sealedMessage = URType(type: "crypto-sealed", tag: 55)
 }
 
 /// Tags for subtypes specific to AccountBundle (crypto-output)
@@ -63,10 +64,13 @@ extension CBOR.Tag {
 }
 
 extension CBOR.Tag {
-    public static let privateSigningKey = CBOR.Tag(700)
-    public static let publicSigningKey = CBOR.Tag(701)
-    public static let privateAgreementKey = CBOR.Tag(702)
-    public static let publicAgreementKey = CBOR.Tag(703)
-    public static let sealedMessage = CBOR.Tag(704)
-    public static let permit = CBOR.Tag(705)
+    public static let digest = CBOR.Tag(700)
+    public static let password = CBOR.Tag(701)
+    public static let permit = CBOR.Tag(702)
+    public static let privateAgreementKey = CBOR.Tag(703)
+    public static let privateSigningKey = CBOR.Tag(704)
+    public static let publicAgreementKey = CBOR.Tag(705)
+    public static let publicSigningKey = CBOR.Tag(706)
+    public static let signature = CBOR.Tag(707)
+    public static let symmetricKey = CBOR.Tag(708)
 }

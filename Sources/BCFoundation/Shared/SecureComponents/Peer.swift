@@ -40,7 +40,7 @@ extension Peer {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.securePeer.tag, cbor)
+        CBOR.tagged(URType.peer.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -62,7 +62,7 @@ extension Peer {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.securePeer.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.peer.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

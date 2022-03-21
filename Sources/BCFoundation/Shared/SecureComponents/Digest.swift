@@ -41,7 +41,7 @@ extension Digest {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.secureDigest.tag, cbor)
+        CBOR.tagged(.digest, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -71,23 +71,9 @@ extension Digest {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.secureDigest.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.digest, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
-    }
-}
-
-extension Digest {
-    public var ur: UR {
-        return try! UR(type: URType.secureDigest.type, cbor: cbor)
-    }
-    
-    public init(ur: UR) throws {
-        guard ur.type == URType.secureDigest.type else {
-            throw URError.unexpectedType
-        }
-        let cbor = try CBOR(ur.cbor)
         try self.init(cbor: cbor)
     }
 }

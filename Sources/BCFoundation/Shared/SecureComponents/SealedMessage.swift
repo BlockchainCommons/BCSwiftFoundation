@@ -42,7 +42,7 @@ extension SealedMessage {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.sealedMessage, cbor)
+        CBOR.tagged(URType.sealedMessage.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -65,7 +65,7 @@ extension SealedMessage {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.sealedMessage, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.sealedMessage.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
@@ -75,3 +75,5 @@ extension SealedMessage {
         try? self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
+
+// TODO: UR Encoding

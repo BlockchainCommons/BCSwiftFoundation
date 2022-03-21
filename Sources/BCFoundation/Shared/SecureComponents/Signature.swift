@@ -29,7 +29,7 @@ extension Signature {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.secureSignature.tag, cbor)
+        CBOR.tagged(.signature, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -59,7 +59,7 @@ extension Signature {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.secureSignature.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.signature, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
@@ -67,19 +67,5 @@ extension Signature {
     
     public init(taggedCBOR: Data) throws {
         try self.init(taggedCBOR: CBOR(taggedCBOR))
-    }
-}
-
-extension Signature {
-    public var ur: UR {
-        return try! UR(type: URType.secureSignature.type, cbor: cbor)
-    }
-    
-    public init(ur: UR) throws {
-        guard ur.type == URType.secureSignature.type else {
-            throw URError.unexpectedType
-        }
-        let cbor = try CBOR(ur.cbor)
-        try self.init(cbor: cbor)
     }
 }

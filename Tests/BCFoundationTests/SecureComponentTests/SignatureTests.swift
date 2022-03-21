@@ -29,10 +29,4 @@ class SignatureTests: XCTestCase {
         let receivedSignature = try Signature(taggedCBOR: taggedCBOR)
         XCTAssertEqual(Self.signature, receivedSignature)
     }
-    
-    func testUR() throws {
-        let ur = Self.signature.ur
-        let receivedSignature = try Signature(ur: ur)
-        XCTAssertEqual(Self.signature, receivedSignature)
-    }
 }

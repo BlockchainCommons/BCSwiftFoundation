@@ -95,7 +95,7 @@ extension Message {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.secureMessage.tag, cbor)
+        CBOR.tagged(URType.message.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -104,7 +104,7 @@ extension Message {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.secureMessage.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.message.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
@@ -135,7 +135,7 @@ extension Message {
     }
     
     public static func decode(taggedCBOR: CBOR) throws -> (ciphertext: Data, aad: Data, nonce: Nonce, auth: Auth) {
-        guard case let CBOR.tagged(URType.secureMessage.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.message.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         return try decode(cbor: cbor)
@@ -144,11 +144,11 @@ extension Message {
 
 extension Message {
     public var ur: UR {
-        return try! UR(type: URType.secureMessage.type, cbor: cbor)
+        return try! UR(type: URType.message.type, cbor: cbor)
     }
     
     public init(ur: UR) throws {
-        guard ur.type == URType.secureMessage.type else {
+        guard ur.type == URType.message.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
@@ -156,7 +156,7 @@ extension Message {
     }
     
     public static func decode(ur: UR) throws -> (ciphertext: Data, aad: Data, nonce: Nonce, auth: Auth) {
-        guard ur.type == URType.secureMessage.type else {
+        guard ur.type == URType.message.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
