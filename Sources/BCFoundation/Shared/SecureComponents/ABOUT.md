@@ -136,7 +136,7 @@ The unit tests define a common plaintext, and three separate `Identity` objects 
   static let carolPeer = Peer(identity: carolIdentity)
 ```
 
-An `Identity` is derived from source of key material such as a `Seed`, an `HDKey`, or a `Password` that produces key material using the Scrypt algorithm, and also includes a random `Salt`.
+An `Identity` is derived from a source of key material such as a `Seed`, an `HDKey`, or a `Password` that produces key material using the Scrypt algorithm, and also includes a random `Salt`.
 
 An `Identity` is kept secret, and can produce both private and public keys for signing and encryption. A `Peer` is just the public keys and `Salt` extracted from an `Identity` and can be made public. Signing and public key encryption is performed using the `Identity` of one party and the `Peer` from another.
 
