@@ -98,7 +98,7 @@ class EnvelopeTests: XCTestCase {
         // Alice encrypts a message, then signs it.
         let innerEncryptedEnvelope = Envelope(plaintext: Self.plaintext, key: key)
         let envelope = Envelope(inner: innerEncryptedEnvelope, signer: Self.aliceIdentity)
-        
+
         // Bob checks the signature of the outer envelope, then decrypts the inner envelope.
         guard
             envelope.hasValidSignature(from: Self.alicePeer),
@@ -115,7 +115,7 @@ class EnvelopeTests: XCTestCase {
     func testMultiRecipient() {
         // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
         let envelope = Envelope(plaintext: Self.plaintext, recipients: [Self.bobPeer, Self.carolPeer])
-        
+
         // Bob decrypts and reads the message.
         XCTAssertEqual(envelope.plaintext(for: Self.bobIdentity), Self.plaintext)
 
@@ -153,8 +153,6 @@ class EnvelopeTests: XCTestCase {
         danSeed.creationDate = try! Date("2021-02-24T00:00:00Z", strategy: .iso8601)
         danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
-        print(danSeed.taggedCBOR.hex)
-
         // Dan splits the seed into a single group 2-of-3. This returns an array of arrays
         // of Envelope, the outer arrays representing SSKR groups and the inner array
         // elements each holding the encrypted seed and a single share.
@@ -168,7 +166,7 @@ class EnvelopeTests: XCTestCase {
         // let aliceEnvelope = sentEnvelopes[0] // UNRECOVERED
         let bobEnvelope = sentEnvelopes[1]
         let carolEnvelope = sentEnvelopes[2]
-        
+
         // At some future point, Dan retrieves two of the three envelopes so he can recover his seed.
         let recoveredEnvelopes = [bobEnvelope, carolEnvelope]
         let recoveredSeed = try Seed(taggedCBOR: Envelope.plaintext(from: recoveredEnvelopes)!)
