@@ -30,21 +30,19 @@ public struct TransactionRequest {
     }
     
     public func cbor(noteLimit: Int = .max) -> CBOR {
-        var a: [OrderedMapEntry] = [
-            .init(key: 1, value: id.taggedCBOR)
-        ]
+        var a: OrderedMap = [1: id.taggedCBOR]
         
         switch body {
         case .seed(let body):
-            a.append(.init(key: 2, value: body.taggedCBOR))
+            a.append(2, body.taggedCBOR)
         case .key(let body):
-            a.append(.init(key: 2, value: body.taggedCBOR))
+            a.append(2, body.taggedCBOR)
         case .psbtSignature(let body):
-            a.append(.init(key: 2, value: body.taggedCBOR))
+            a.append(2, body.taggedCBOR)
         }
         
         if let note = note {
-            a.append(.init(key: 3, value: CBOR.utf8String(note.prefix(count: noteLimit))))
+            a.append(3, CBOR.utf8String(note.prefix(count: noteLimit)))
         }
         
         return CBOR.orderedMap(a)

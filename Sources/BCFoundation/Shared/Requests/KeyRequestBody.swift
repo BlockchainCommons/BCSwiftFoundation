@@ -15,17 +15,17 @@ public struct KeyRequestBody {
     public let isDerivable: Bool
     
     public var cbor: CBOR {
-        var a: [OrderedMapEntry] = [
-            .init(key: 1, value: .boolean(keyType.isPrivate)),
-            .init(key: 2, value: path.taggedCBOR)
+        var a: OrderedMap = [
+            1: .boolean(keyType.isPrivate),
+            2: path.taggedCBOR
         ]
         
         if !useInfo.isDefault {
-            a.append(.init(key: 3, value: useInfo.taggedCBOR))
+            a.append(3, useInfo.taggedCBOR)
         }
         
         if !isDerivable {
-            a.append(.init(key: 4, value: .boolean(isDerivable)))
+            a.append(4, .boolean(isDerivable))
         }
         
         return CBOR.orderedMap(a)

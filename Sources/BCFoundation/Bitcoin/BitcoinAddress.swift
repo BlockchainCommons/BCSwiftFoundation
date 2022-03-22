@@ -192,9 +192,9 @@ extension Bitcoin.Address {
     public var cbor: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
         CBOR.orderedMap([
-            .init(key: 1, value: useInfo.taggedCBOR),
-            .init(key: 2, value: .unsignedInt(UInt64(type.cborType.rawValue))),
-            .init(key: 3, value: .data(data))
+            1: useInfo.taggedCBOR,
+            2: .unsignedInt(UInt64(type.cborType.rawValue)),
+            3: .data(data)
         ])
     }
 

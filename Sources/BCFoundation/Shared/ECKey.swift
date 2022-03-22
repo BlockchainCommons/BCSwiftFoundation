@@ -72,8 +72,8 @@ public struct ECPrivateKey: ECKey {
     public var cbor: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
         CBOR.orderedMap([
-            .init(key: 2, value: .boolean(true)),
-            .init(key: 3, value: .data(data))
+            2: .boolean(true),
+            3: .data(data)
         ])
     }
 }
@@ -146,9 +146,7 @@ public struct ECCompressedPublicKey: ECPublicKey, Hashable {
 
     public var cbor: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
-        CBOR.orderedMap([
-            .init(key: 3, value: .data(data))
-        ])
+        CBOR.orderedMap([3: .data(data)])
     }
 }
 
@@ -187,9 +185,7 @@ public struct ECUncompressedPublicKey: ECPublicKey {
 
     public var cbor: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
-        CBOR.orderedMap([
-            .init(key: 3, value: .data(data))
-        ])
+        CBOR.orderedMap([3: .data(data)])
     }
 }
 

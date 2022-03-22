@@ -444,49 +444,49 @@ extension HDKeyProtocol {
 
 extension HDKeyProtocol {
     public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
-        var a: [OrderedMapEntry] = []
+        var a: OrderedMap = [:]
         var didLimit: Bool = false
 
         if isMaster {
-            a.append(.init(key: 1, value: true))
+            a.append(1, true)
         }
 
         if keyType == .private {
-            a.append(.init(key: 2, value: true))
+            a.append(2, true)
         }
 
-        a.append(.init(key: 3, value: .data(keyData)))
+        a.append(3, .data(keyData))
 
         if let chainCode = chainCode {
-            a.append(.init(key: 4, value: .data(chainCode)))
+            a.append(4, .data(chainCode))
         }
 
         if !useInfo.isDefault {
-            a.append(.init(key: 5, value: useInfo.taggedCBOR))
+            a.append(5, useInfo.taggedCBOR)
         }
 
         if !parent.isEmpty {
-            a.append(.init(key: 6, value: parent.taggedCBOR))
+            a.append(6, parent.taggedCBOR)
         }
 
         if !children.isEmpty {
-            a.append(.init(key: 7, value: children.taggedCBOR))
+            a.append(7, children.taggedCBOR)
         }
 
         if let parentFingerprint = parentFingerprint {
-            a.append(.init(key: 8, value: .unsignedInt(UInt64(parentFingerprint))))
+            a.append(8, .unsignedInt(UInt64(parentFingerprint)))
         }
         
         if !name.isEmpty {
             let limitedName = name.prefix(count: nameLimit)
             didLimit = didLimit || limitedName.count < name.count
-            a.append(.init(key: 9, value: .utf8String(limitedName)))
+            a.append(9, .utf8String(limitedName))
         }
 
         if !note.isEmpty {
             let limitedNote = note.prefix(count: noteLimit)
             didLimit = didLimit || limitedNote.count < note.count
-            a.append(.init(key: 10, value: .utf8String(limitedNote)))
+            a.append(10, .utf8String(limitedNote))
         }
 
         return (CBOR.orderedMap(a), didLimit)

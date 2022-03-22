@@ -249,16 +249,14 @@ extension DerivationPath {
 
 extension DerivationPath {
     public var cbor: CBOR {
-        var a: [OrderedMapEntry] = [
-            .init(key: 1, value: .array(steps.flatMap { $0.array } ))
-        ]
+        var a: OrderedMap = [1: .array(steps.flatMap { $0.array } )]
         
         if case let .fingerprint(sourceFingerprint) = origin {
-            a.append(.init(key: 2, value: .unsignedInt(UInt64(sourceFingerprint))))
+            a.append(2, .unsignedInt(UInt64(sourceFingerprint)))
         }
         
         if let depth = depth {
-            a.append(.init(key: 3, value: .unsignedInt(UInt64(depth))))
+            a.append(3, .unsignedInt(UInt64(depth)))
         }
         
         return CBOR.orderedMap(a)

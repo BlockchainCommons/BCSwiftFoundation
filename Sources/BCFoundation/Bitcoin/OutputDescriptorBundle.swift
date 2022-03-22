@@ -42,8 +42,8 @@ public struct OutputDescriptorBundle {
     public var cbor: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md#cddl
         CBOR.orderedMap([
-            .init(key: 1, value: .unsignedInt(UInt64(masterKey.keyFingerprint))),
-            .init(key: 2, value: .array(descriptors.map({$0.taggedCBOR})))
+            1: .unsignedInt(UInt64(masterKey.keyFingerprint)),
+            2: .array(descriptors.map{ $0.taggedCBOR })
         ])
     }
     

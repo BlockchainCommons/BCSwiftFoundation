@@ -24,17 +24,17 @@ public struct TransactionResponse {
     }
 
     public var cbor: CBOR {
-        var a: [OrderedMapEntry] = [
-            .init(key: 1, value: id.taggedCBOR)
+        var a: OrderedMap = [
+            1: id.taggedCBOR
         ]
 
         switch body {
         case .seed(let seed):
-            a.append(.init(key: 2, value: seed.taggedCBOR))
+            a.append(2, seed.taggedCBOR)
         case .key(let key):
-            a.append(.init(key: 2, value: key.taggedCBOR))
+            a.append(2, key.taggedCBOR)
         case .psbtSignature(let psbt):
-            a.append(.init(key: 2, value: psbt.taggedCBOR))
+            a.append(2, psbt.taggedCBOR)
         }
         
         return CBOR.orderedMap(a)

@@ -67,8 +67,8 @@ struct DescriptorMulti: DescriptorAST {
 
     var cbor: CBOR {
         CBOR.orderedMap([
-            .init(key: 1, value: .unsignedInt(UInt64(threshold))),
-            .init(key: 2, value: .array(keys.map({ $0.taggedCBOR })))
+            1: .unsignedInt(UInt64(threshold)),
+            2: .array(keys.map({ $0.taggedCBOR }))
         ])
     }
     

@@ -17,9 +17,7 @@ public struct SeedRequestBody {
     }
     
     public var cbor: CBOR {
-        CBOR.orderedMap([
-            .init(key: 1, value: seedDigest.taggedCBOR)
-        ])
+        CBOR.orderedMap([1: seedDigest.taggedCBOR])
     }
     
     public var taggedCBOR: CBOR {

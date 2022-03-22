@@ -85,25 +85,23 @@ extension SeedProtocol {
 
 extension SeedProtocol {
     public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
-        var a: [OrderedMapEntry] = [
-            .init(key: 1, value: .data(data))
-        ]
+        var a: OrderedMap = [1: .data(data)]
         var didLimit = false
 
         if let creationDate = creationDate {
-            a.append(.init(key: 2, value: .date(creationDate)))
+            a.append(2, .date(creationDate))
         }
 
         if !name.isEmpty {
             let limitedName = name.prefix(count: nameLimit)
             didLimit = didLimit || limitedName.count < name.count
-            a.append(.init(key: 3, value: .utf8String(limitedName)))
+            a.append(3, .utf8String(limitedName))
         }
 
         if !note.isEmpty {
             let limitedNote = note.prefix(count: noteLimit)
             didLimit = didLimit || limitedNote.count < note.count
-            a.append(.init(key: 4, value: .utf8String(limitedNote)))
+            a.append(4, .utf8String(limitedNote))
         }
 
         return (CBOR.orderedMap(a), didLimit)

@@ -162,6 +162,8 @@ class EnvelopeTests: XCTestCase {
         danSeed.creationDate = try! Date("2021-02-24T00:00:00Z", strategy: .iso8601)
         danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
+        print(danSeed.taggedCBOR.hex)
+
         // Dan splits the seed into a single group 2-of-3. This returns an array of arrays
         // of Envelope, the outer arrays representing SSKR groups and the inner array
         // elements each holding the encrypted seed and a single share.

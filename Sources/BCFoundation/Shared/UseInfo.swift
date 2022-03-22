@@ -70,14 +70,14 @@ extension UseInfo {
 
 extension UseInfo {
     public var cbor: CBOR {
-        var a: [OrderedMapEntry] = []
+        var a: OrderedMap = [:]
         
         if asset != .btc {
-            a.append(.init(key: 1, value: asset.cbor))
+            a.append(1, asset.cbor)
         }
         
         if network != .mainnet {
-            a.append(.init(key: 2, value: network.cbor))
+            a.append(2, network.cbor)
         }
         
         return CBOR.orderedMap(a)
