@@ -154,6 +154,43 @@ let envelope = Envelope(plaintext: Self.plaintext)
 XCTAssertEqual(envelope.plaintext, Self.plaintext)
 ```
 
+#### Schematic
+
+```
+Envelope {
+    plaintext
+}
+```
+
+#### CBOR Diagnostic Notation
+
+```
+49(                 # Envelope
+   [
+      1,            # type 1: plaintext
+      h'536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e', # payload
+      []            # signatures
+   ]
+)
+```
+
+#### Annotated CBOR
+
+```
+d8 31                                    # tag(49): Envelope
+   83                                    # array(3)
+      01                                 # unsigned(1): type 1: plaintext
+      5829                               # bytes(41): payload
+         536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e # "Some mysteries aren't meant to be solved."
+      80                                 # array(0): signatures
+```
+
+### UR
+
+```
+ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmladnvsrysa
+```
+
 ### Example 2: Signed Plaintext
 
 ```swift
@@ -164,9 +201,63 @@ let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
 XCTAssertTrue(envelope.hasValidSignature(from: Self.alicePeer))
 // Confirm that it wasn't signed by Carol.
 XCTAssertFalse(envelope.hasValidSignature(from: Self.carolPeer))
+// Confirm that it was signed by Alice OR Carol.
+XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 1))
+// Confirm that it was not signed by Alice AND Carol.
+XCTAssertFalse(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 2))
 
 // Bob reads the message.
 XCTAssertEqual(envelope.plaintext, Self.plaintext)
+```
+
+#### Schematic
+
+```
+Envelope {
+    Plaintext
+    Signature
+}
+```
+
+#### CBOR Diagnostic Notation
+
+```
+49(                 # Envelope
+   [
+      1,            # type 1: Plaintext
+      h'536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e', # payload
+      [             # signatures
+         707(       # Signature
+            [
+               1,   # type 1: EdDSA-25519
+               h'5d6dd8d3609a22c2d1107df3720c96a8bfa3ee7934b20e2ea24af01038674790335b7e042a885d16469b942cbfb86614f2d341ee25595931b653742e8f97f303'
+            ]
+         )
+      ]
+   ]
+)
+```
+
+#### Annotated CBOR
+
+```
+d8 31                                    # tag(49):         Envelope
+   83                                    # array(3)
+      01                                 # unsigned(1):     type 1: Plaintext
+      5829                               # bytes(41):       payload
+         536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e # "Some mysteries aren't meant to be solved."
+      81                                 # array(1):        signatures
+         d9 02c3                         # tag(707):        Signature
+            82                           # array(2)
+               01                        # unsigned(1):     type 1: EdDSA-25519
+               5840                      # bytes(64)
+                  5d6dd8d3609a22c2d1107df3720c96a8bfa3ee7934b20e2ea24af01038674790335b7e042a885d16469b942cbfb86614f2d341ee25595931b653742e8f97f303
+```
+
+### UR
+
+```
+ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmlytaaosrlfadhdfzluvtdwfsceftvtfxemptnlrozcgddkcwhkiymomomuglvlfrzcwegulpfddmhsmteshkotesbsbyjzkteezotlbnwturjldayamwashlglhydamedtpeaagamtkoskaoskjotncn
 ```
 
 ### Example 3: Multisigned Plaintext
@@ -182,22 +273,68 @@ XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer]
 XCTAssertEqual(envelope.plaintext, Self.plaintext)
 ```
 
-### Example 4: Threshold Multisigned Plaintext
+#### Schematic
 
-```swift
-// Alice sends a signed plaintext message to Bob.
-let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
-
-// Bob receives the message and verifies that it was signed by either Alice or Carol.
-XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 1))
-// Checking for both signatures fails.
-XCTAssertFalse(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 2))
-
-// Bob reads the message.
-XCTAssertEqual(envelope.plaintext, Self.plaintext)
+```
+Envelope {
+    Plaintext
+    [Signature, Signature]
+}
 ```
 
-### Example 5: Symmetric Encryption
+#### CBOR Diagnostic Notation
+
+```
+49(                     # Envelope
+   [
+      1,                # type 1: Plaintext
+      h'536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e',
+      [
+         707(           # Signature
+            [
+               1,       # type 1: EdDSA-25519
+               h'4aa5226cb01ec5be3c83ee6dd4463e3956d080064a496c4b75d3ce3deadb9378fbe5f8083c3e42d0ded2399c48474329d637186728bce0da08ca7f71703d240b'
+            ]
+         ),
+         707(           # Signature
+            [
+               1,       # type 1: EdDSA-25519
+               h'83872849a462bd2eaa847386cbe3efaa50f50815f4eee4745178110e24a5c7889ea2f4d015c15f5f19046bae00fc207291b1febf39751e17f88f590aab092602'
+            ]
+         )
+      ]
+   ]
+)
+```
+
+#### Annotated CBOR
+
+```
+d8 31                                    # tag(49):         Envelope
+   83                                    # array(3)
+      01                                 # unsigned(1):     type 1: Plaintext
+      5829                               # bytes(41):       payload
+         536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e # "Some mysteries aren't meant to be solved."
+      82                                 # array(2):        signatures
+         d9 02c3                         # tag(707):        Signature
+            82                           # array(2)
+               01                        # unsigned(1):     type 1: EdDSA-25519
+               5840                      # bytes(64)
+                  4aa5226cb01ec5be3c83ee6dd4463e3956d080064a496c4b75d3ce3deadb9378fbe5f8083c3e42d0ded2399c48474329d637186728bce0da08ca7f71703d240b
+         d9 02c3                         # tag(707):        Signature
+            82                           # array(2)
+               01                        # unsigned(1):     type 1: EdDSA-25519
+               5840                      # bytes(64)
+                  83872849a462bd2eaa847386cbe3efaa50f50815f4eee4745178110e24a5c7889ea2f4d015c15f5f19046bae00fc207291b1febf39751e17f88f590aab092602
+```
+
+#### UR
+
+```
+ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmlftaaosrlfadhdfzceuthpytidpeptnersynhefhgtlanebyemrspmcwkehyhssgesspfpjewzendydwfmwdctdiyndadanslelgcyztlgtnfwjoememtslypscnhtloktrsadhlpkaxrhbataaosrlfadhdfzectthtcwfnwngsgmhfdrcstdbtflfrcaknzcvtgededsredkzekgwztbjoytpypllrylckwpvobzrsdtwnvolktldndpvlsrjkvyrtpmgsssfzkoimsopfwmiyjlptamloahlglt
+```
+
+### Example 4: Symmetric Encryption
 
 ```swift
 // Alice and Bob have agreed to use this key.
@@ -216,7 +353,65 @@ XCTAssertNil(envelope.plaintext)
 XCTAssertNil(envelope.plaintext(with: SymmetricKey()))
 ```
 
-### Example 6: Sign-Then-Encrypt
+#### Schematic
+
+```
+Envelope {
+    Message
+    Permit: symmetric
+}
+```
+
+#### CBOR Diagnostic Notation
+
+```
+49(                                                 # Envelope
+   [
+      2,                                            # type 2: encrypted
+      48(                                           # Message
+         [
+            1,                                      # type: IETF-ChaCha20-Poly1305
+            h'ec9faf81af0c7c6e27f6625a1286f7d5be106b806d60f7148d7746a5a8047012797217dbec56d8a577', # ciphertext
+            h'',                                    # aad
+            h'f5c5440156a817178da89c9a',            # nonce
+            h'b8cff57f722dfa88dbde8e55e0647bac'     # auth
+         ]
+      ),
+      702(                                          # Permit
+         [1]                                        # type 1: symmetric
+      )
+   ]
+)
+```
+
+#### Annotated CBOR
+
+```
+d8 31                                    # tag(49):         Envelope
+   83                                    # array(3)
+      02                                 # unsigned(2):     type 2: encrypted
+      d8 30                              # tag(48):         Message
+         85                              # array(5)
+            01                           # unsigned(1):     type: IETF-ChaCha20-Poly1305
+            5829                         # bytes(41):       ciphertext
+               ec9faf81af0c7c6e27f6625a1286f7d5be106b806d60f7148d7746a5a8047012797217dbec56d8a577
+            40                           # bytes(0):        aad
+            4c                           # bytes(12):       nonce
+               f5c5440156a817178da89c9a
+            50                           # bytes(16):       auth
+               b8cff57f722dfa88dbde8e55e0647bac
+      d9 02be                            # tag(702):        Permit
+         81                              # array(1)
+            01                           # unsigned(1):     type 1: symmetric
+```
+
+#### UR
+
+```
+ur:crypto-envelope/lsaotpdylpadhddtwpnepelypebnkejtdiynidhtbglnyltlrnbejelajnhnylbblgktfgonpdaajobgkkjpchuywphftponktfzgsykskfyadhfpdchchlgpdnsnygdrotkyklbjpdpzslouyuemngovtiekgpstaaornlyadndmdpsfx
+```
+
+### Example 5: Sign-Then-Encrypt
 
 ```swift
 // Alice and Bob have agreed to use this key.
@@ -239,7 +434,70 @@ XCTAssertTrue(innerEnvelope.hasValidSignature(from: Self.alicePeer))
 XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
 ```
 
-### Example 7: Encrypt-Then-Sign
+#### Schematic
+
+```
+Envelope {
+    Message {
+        Envelope {
+            Plaintext
+            Signature
+        }
+    }
+    Permit: symmetric
+}
+```
+
+#### CBOR Diagnostic Notation
+
+```
+49(                                                 # Envelope
+   [
+      2,                                            # type 2: encrypted
+      48(                                           # Message
+         [
+            1,                                      # type: IETF-ChaCha20-Poly1305
+            h'197c18129a299a3cc9cb538aa343580a364d88181a69f48def8948521baad542fd463d5c2c3e192d1cb0f7abdb5a687b200934f73632278f6b73df93a9b4bdd5a6d982b180db1a48357c0fca1ceeebeb3183e13b7a674d354ab4bd13e1d66987505247d7e9bc838511898ec868513bd91292d0e2057820', # ciphertext
+            h'',                                    # aad
+            h'af7dbfee763600160cc21f4d',            # nonce
+            h'369e0a88152a1d172121f53e1353820f'     # auth
+         ]
+      ),
+      702(                                          # Permt
+         [1]                                        # type 1: symmetric
+      )
+   ]
+)
+```
+
+#### Annotated CBOR
+
+```
+d8 31                                    # tag(49):         Envelope
+   83                                    # array(3)
+      02                                 # unsigned(2):     type 2: encrypted
+      d8 30                              # tag(48):         Message
+         85                              # array(5)
+            01                           # unsigned(1):     type: IETF-ChaCha20-Poly1305
+            5877                         # bytes(119):      ciphertext
+               197c18129a299a3cc9cb538aa343580a364d88181a69f48def8948521baad542fd463d5c2c3e192d1cb0f7abdb5a687b200934f73632278f6b73df93a9b4bdd5a6d982b180db1a48357c0fca1ceeebeb3183e13b7a674d354ab4bd13e1d66987505247d7e9bc838511898ec868513bd91292d0e2057820
+            40                           # bytes(0):        aad
+            4c                           # bytes(12):       nonce
+               af7dbfee763600160cc21f4d
+            50                           # bytes(16):       auth
+               369e0a88152a1d172121f53e1353820f
+      d9 02be                            # tag(702):        Permit
+         81                              # array(1)
+            01                           # unsigned(1):     type 1: symmetric
+```
+
+#### UR
+
+```
+ur:crypto-envelope/lsaotpdylpadhdktcfkecsbgnydtnyfnsosbguleotfxhdbkengtlocscyinwklgwsldfdgmcwpktlfwzcfgfshhdwfmcfdpcepfylpyuyhtiskgcxaseeyleneydimyjejkurmuptqzrytloltalfpalauycyfdeckebssgcewywmwmehlsvyfrkniogtecgeqzrybwvytbinltgdgmfltswlrflslpbyldmnspisgyfrtabgmotivoahkscxfzgspekirswykoenaecmbnsactgtgdennnbklobzdrcachclclykfmbwgulfbstaaornlyaddpaxmyol
+```
+
+### Example 6: Encrypt-Then-Sign
 
 ```swift
 // Alice and Bob have agreed to use this key.
@@ -262,7 +520,7 @@ else {
 XCTAssertEqual(plaintext, Self.plaintext)
 ```
 
-### Example 8: Multi-Recipient Encryption
+### Example 7: Multi-Recipient Encryption
 
 ```swift
 // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
@@ -278,7 +536,7 @@ XCTAssertEqual(envelope.plaintext(for: Self.carolIdentity), Self.plaintext)
 XCTAssertNil(envelope.plaintext(for: Self.aliceIdentity))
 ```
 
-### Example 9: Signed Multi-Recipient Encryption
+### Example 8: Signed Multi-Recipient Encryption
 
 ```swift
 // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
@@ -298,7 +556,7 @@ XCTAssertTrue(innerEnvelope.hasValidSignature(from: Self.alicePeer))
 XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
 ```
 
-### Example 10: Sharding a Secret using SSKR
+### Example 9: Sharding a Secret using SSKR
 
 ```swift
 // Dan has a cryptographic seed he wants to backup using a social recovery scheme.

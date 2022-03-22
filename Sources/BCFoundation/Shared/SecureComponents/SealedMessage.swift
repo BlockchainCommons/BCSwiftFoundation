@@ -8,7 +8,6 @@ import WolfBase
 public struct SealedMessage {
     public let message: Message
     public let ephemeralPublicKey: PublicAgreementKey
-    public let receiverPublicKey: PublicAgreementKey
     
     public init(plaintext: DataProvider, receiver: Peer, aad: Data? = nil) {
         let ephemeralSender = Identity()
@@ -16,18 +15,25 @@ public struct SealedMessage {
         let key = Message.sharedKey(identityPrivateKey: ephemeralSender.privateAgreementKey, peerPublicKey: receiverPublicKey)
         self.message = key.encrypt(plaintext: plaintext, aad: aad)
         self.ephemeralPublicKey = ephemeralSender.publicAgreementKey
-        self.receiverPublicKey = receiverPublicKey
     }
     
-    public init(message: Message, ephemeralPublicKey: PublicAgreementKey, receiverPublicKey: PublicAgreementKey) {
+    public init(message: Message, ephemeralPublicKey: PublicAgreementKey) {
         self.message = message
         self.ephemeralPublicKey = ephemeralPublicKey
-        self.receiverPublicKey = receiverPublicKey
     }
     
     public func plaintext(with identity: Identity) -> Data? {
         let key = Message.sharedKey(identityPrivateKey: identity.privateAgreementKey, peerPublicKey: ephemeralPublicKey)
         return key.decrypt(message: message)
+    }
+    
+    public static func firstPlaintext(in sealedMessages: [SealedMessage], for identity: Identity) -> Data? {
+        for sealedMessage in sealedMessages {
+            if let plaintext = sealedMessage.plaintext(with: identity) {
+                return plaintext
+            }
+        }
+        return nil
     }
 }
 
@@ -36,9 +42,8 @@ extension SealedMessage {
         let type = CBOR.unsignedInt(1)
         let message = self.message.taggedCBOR
         let ephemeralPublicKey = self.ephemeralPublicKey.taggedCBOR
-        let receiverPublicKey = self.receiverPublicKey.taggedCBOR
         
-        return CBOR.array([type, message, ephemeralPublicKey, receiverPublicKey])
+        return CBOR.array([type, message, ephemeralPublicKey])
     }
     
     public var taggedCBOR: CBOR {
@@ -54,14 +59,12 @@ extension SealedMessage {
             case let CBOR.data(messageData) = elements[1],
             let message = Message(taggedCBOR: messageData),
             case let CBOR.data(ephemeralPublicKeyData) = elements[2],
-            let ephemeralPublicKey = PublicAgreementKey(taggedCBOR: ephemeralPublicKeyData),
-            case let CBOR.data(receiverPublicKeyData) = elements[3],
-            let receiverPublicKey = PublicAgreementKey(taggedCBOR: receiverPublicKeyData)
+            let ephemeralPublicKey = PublicAgreementKey(taggedCBOR: ephemeralPublicKeyData)
         else {
             throw CBORError.invalidFormat
         }
         
-        self.init(message: message, ephemeralPublicKey: ephemeralPublicKey, receiverPublicKey: receiverPublicKey)
+        self.init(message: message, ephemeralPublicKey: ephemeralPublicKey)
     }
     
     public init(taggedCBOR: CBOR) throws {

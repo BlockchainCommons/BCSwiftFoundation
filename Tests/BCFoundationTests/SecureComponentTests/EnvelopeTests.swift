@@ -28,11 +28,15 @@ class EnvelopeTests: XCTestCase {
     func testSignedPlaintext() {
         // Alice sends a signed plaintext message to Bob.
         let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
-        
+
         // Bob receives the message and verifies that it was signed by Alice.
         XCTAssertTrue(envelope.hasValidSignature(from: Self.alicePeer))
         // Confirm that it wasn't signed by Carol.
         XCTAssertFalse(envelope.hasValidSignature(from: Self.carolPeer))
+        // Confirm that it was signed by Alice OR Carol.
+        XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 1))
+        // Confirm that it was not signed by Alice AND Carol.
+        XCTAssertFalse(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 2))
 
         // Bob reads the message.
         XCTAssertEqual(envelope.plaintext, Self.plaintext)
@@ -41,22 +45,9 @@ class EnvelopeTests: XCTestCase {
     func testMultisignedPlaintext() {
         // Alice and Carol jointly send a signed plaintext message to Bob.
         let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.aliceIdentity, Self.carolIdentity])
-        
+
         // Bob receives the message and verifies that it was signed by both Alice and Carol.
         XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer]))
-
-        // Bob reads the message.
-        XCTAssertEqual(envelope.plaintext, Self.plaintext)
-    }
-    
-    func testThresholdMultisignedPlaintext() {
-        // Alice sends a signed plaintext message to Bob.
-        let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
-
-        // Bob receives the message and verifies that it was signed by either Alice or Carol.
-        XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 1))
-        // Checking for both signatures fails.
-        XCTAssertFalse(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 2))
 
         // Bob reads the message.
         XCTAssertEqual(envelope.plaintext, Self.plaintext)
@@ -86,7 +77,7 @@ class EnvelopeTests: XCTestCase {
         // Alice signs a plaintext message, then encrypts it.
         let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
         let envelope = Envelope(inner: innerSignedEnvelope, key: key)
-        
+
         // Bob decrypts the outer envelope using the shared key.
         guard
             let innerEnvelope = envelope.inner(with: key)

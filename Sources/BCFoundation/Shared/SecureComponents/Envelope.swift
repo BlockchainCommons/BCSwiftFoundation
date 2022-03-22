@@ -85,8 +85,7 @@ extension Envelope {
     public func plaintext(for identity: Identity) -> Data? {
         guard
             case let(.encrypted(message, .recipients(sealedMessages))) = self,
-            let sealedMessage = sealedMessages.first(where: { $0.receiverPublicKey == identity.publicAgreementKey }),
-            let contentKeyData = sealedMessage.plaintext(with: identity),
+            let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: identity),
             let contentKey = SymmetricKey(rawValue: contentKeyData),
             let plaintext = contentKey.decrypt(message: message)
         else {
