@@ -20,19 +20,29 @@ The Secure Components suite provides tools for easily implementing encryption (s
 
 * Provide a minimal set of datatypes for representing common encryption constructions.
 * Provide serialization of types to and from CBOR and UR.
-* Base these types on algorithm and constructs that are considered best practices.
+* Base these types on algorithms and constructs that are considered best practices.
 * Support innovative constructs like Sharded Secret Key Reconstruction (SSKR).
-* Interoperate with structures of particular interest to blockchain and cryptocurrency developers, such as seeds and HD keys.
+* Interoperate with structures of particular interest to blockchain and cryptocurrency developers, such as [seeds](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-006-urtypes.md#cryptographic-seed-crypto-seed) and [HD keys](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-007-hdkey.md).
 * Allow for the future extension of functionality to include additional cryptographic algorithms and methods.
 * Provide a reference API implementation in Swift that is easy to use and hard to abuse.
 
 ## Top-Level Types
 
-The types defined in the Secure Components suite are designed to be minimal, simple to use, and composable. The central "top level" type of Secure Components is `Envelope`, which is a general container for messages that provides for encryption, signing, and sharding. The other types can be used independently, but are often most useful when used in conjunction with `Envelope`.
+The types defined in the Secure Components suite are designed to be minimal, simple to use, and composable. They can all be used independently, but are designed to work together. Here is a quick summary of these types:
+
+* `Envelope` is the central "top level" type of Secure Components. It is a general container for messages that provides for encryption, signing, and sharding.
+
+* `Message` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
+
+* `Identity` holds key material such as a Seed belonging to an identifiable entity, and can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
+
+* `Peer` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption.
+
+* `SealedMessage` is a message that has been one-way encrypted to a specific `Peer`, and is used to implement multi-recipient public key encryption using `Envelope`.
 
 Many of the types defined herein are assigned CBOR tags for use when encoding these structures. The types in this section may be used embedded within larger structures as tagged CBOR, or as top-level objects in URs. Note that when encoding URs, a top-level CBOR tag is not used, as the UR type provides that information.
 
-|CBOR Tag|UR Type|Type|
+|CBOR Tag|UR Type|Swift Type|
 |---|---|---|
 |48|`crypto-msg`|`Message`|
 |49|`crypto-envelope`|`Envelope`|
@@ -44,7 +54,7 @@ Many of the types defined herein are assigned CBOR tags for use when encoding th
 
 Types that do not define a UR type generally would never be serialized as a top-level object, but are frequently serialized as part of a larger structure.
 
-|CBOR Tag|Type|
+|CBOR Tag|Swift Type|
 |---|---|
 |700|`Digest`|
 |701|`Password`|
@@ -95,7 +105,7 @@ It is an enumerated type with two cases: `.plaintext` and `.encrypted`.
 * If `.plaintext` is used, it may also carry one or more signatures.
 * If `.encrypted` is used, the encrypted `Message` is accompanied by a `Permit` that defines the conditions under which the `Message` may be decrypted.
 
-To facilitate further decoding, it is recommended that the payload of an `Envelope` should itself be tagged CBOR.
+To facilitate further decoding, it is RECOMMENDED that the payload of an `Envelope` should itself be tagged CBOR.
 
 `Envelope` can contain as its payload another CBOR-encoded `Envelope`. This facilitates both sign-then-encrypt and encrypt-then sign constructions. The reason why `.plaintext` messages may be signed and `.encrypted` messages may not is that generally a signer should have access to the content of what they are signing, therefore this design encourages the sign-then-encrypt order of operations. If encrypt-then-sign is preferred, then this is easily accomplished by creating an `.encrypted` and then enclosing that envelope in a `.plaintext` with the appropriate signatures.
 
@@ -112,3 +122,132 @@ public enum Permit {
 * `.symmetric` means that the `Message` was encrypted with a `SymmetricKey` that the receiver is already expected to have.
 * `.recipients` facilitates multi-recipient public key cryptography by including an array of `SealedMessage`, each of which is encrypted to a particular recipient's public key, and which contains an ephemeral key that can be used by a recipient to decrypt the main message.
 * `.share` facilitates social recovery by pairing a `Message` encrypted with an ephemeral key with an `SSKRShare`, and providing for the production of a set of `Envelope`s, each one including a different share. Only an M-of-N threshold of shares will allow the recovery of the ephemeral key and hence the decryption of the original message. Each recipient of one of these `Envelope`s will have an encrypted backup of the entire original `Message`, but only a single `SSKRShare`.
+
+This structure provides a flexible framework for constructing solutions to various applications. Here are some high-level schematics of such applications. See the EXAMPLES chapter for more detail.
+
+### "An envelope containing plaintext."
+
+```
+Envelope {
+    Plaintext
+}
+```
+
+### "An envelope containing signed plaintext."
+
+```
+Envelope {
+    Plaintext
+    Signature
+}
+```
+
+### "An envelope containing plaintext signed by several parties."
+
+```
+Envelope {
+    Plaintext
+    [Signature, Signature]
+}
+```
+
+### "An envelope containing a encrypted message."
+
+```
+Envelope {
+    Message {           |
+        Plaintext       | ENCRYPTED
+    }                   |
+    Permit: symmetric
+}
+```
+
+### "An encrypted envelope containing a signed envelope."
+
+```
+Envelope {
+    Message {           |
+        Envelope {      |
+            Plaintext   | ENCRYPTED
+            Signature   |
+        }               |
+    }                   |
+    Permit: symmetric
+}
+```
+
+### "A signed envelope containing an encrypted envelope."
+
+```
+Envelope {
+    Plaintext {
+        Envelope {
+            Message {           |
+                Plaintext       | ENCRYPTED
+            }                   |
+            Permit: symmetric
+        }
+    }
+    Signature
+}
+```
+
+### "An envelope that can only be opened by specific receivers."
+
+```
+Envelope {
+    Message {       |
+        Plaintext   | ENCRYPTED
+    }               |
+    Permit: recipients {
+        [SealedMessage, SealedMessage]
+    }
+}
+```
+
+### "A signed envelope that can only be opened by specific receivers."
+
+```
+Envelope {
+    Message {               |
+        Envelope {          |
+            Plaintext       | ENCRYPTED
+            Signature       |
+        }                   |
+    }                       |
+    Permit: recipients {
+        [SealedMessage, SealedMessage]
+    }
+}
+```
+
+### "Several envelopes containing a seed split into several SSKR shares."
+
+```
+Envelope 0 {
+    Message {       |
+        Seed        | ENCRYPTED
+    }               |
+    Permit: sskr {
+        SSKRShare 0
+    }
+}
+
+Envelope 1 {
+    Message {       |
+        Seed        | ENCRYPTED
+    }               |
+    Permit: sskr {
+        SSKRShare 1
+    }
+}
+
+Envelope 2 {
+    Message {       |
+        Seed        | ENCRYPTED
+    }               |
+    Permit: sskr {
+        SSKRShare 2
+    }
+}
+```

@@ -841,7 +841,7 @@ XCTAssertNil(Envelope.plaintext(from: [bobEnvelope]))
 
 #### Schematic
 
-> "Several envelopes containing a seed split into several shares."
+> "Several envelopes containing a seed split into several SSKR shares."
 
 ```
 Envelope 0 {
