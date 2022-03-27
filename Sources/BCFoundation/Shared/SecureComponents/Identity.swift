@@ -53,7 +53,7 @@ public struct Identity {
     }
     
     public var publicSigningKey: PublicSigningKey {
-        .init(privateSigningKey)
+        privateSigningKey.publicKey
     }
     
     public var privateAgreementKey: PrivateAgreementKey {

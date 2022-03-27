@@ -82,7 +82,7 @@ A number of types are simply serialized as untagged CBOR byte strings. They do n
 The algorithms that Secure Components currently incorporates are listed below. The components include provisions for the future inclusion of additional algorithms and methods.
 
 * **Hashing:** [Blake2b](https://datatracker.ietf.org/doc/rfc7693)
-* **Signing:** [EdDSA-25519](https://datatracker.ietf.org/doc/html/rfc8032)
+* **Signing:** [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)
 * **Symmetric Encryption:** [IETF-ChaCha20-Poly1305](https://datatracker.ietf.org/doc/html/rfc8439)
 * **Public Key Encryption:** [X25519](https://datatracker.ietf.org/doc/html/rfc7748)
 * **Key Derivation**: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869)

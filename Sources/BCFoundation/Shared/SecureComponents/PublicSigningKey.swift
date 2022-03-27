@@ -2,7 +2,7 @@ import Foundation
 import CryptoKit
 import WolfBase
 
-/// A Curve25519 public key used to verify cryptographic signatures.
+/// A x-only public key used to verify Schnorr signatures.
 public struct PublicSigningKey: RawRepresentable, CustomStringConvertible, Hashable {
     public let rawValue: Data
     
@@ -13,20 +13,13 @@ public struct PublicSigningKey: RawRepresentable, CustomStringConvertible, Hasha
         self.rawValue = rawValue
     }
     
-    public init(_ privateKey: PrivateSigningKey) {
-        self.rawValue = privateKey.cryptoKitForm.publicKey.rawRepresentation
-    }
-    
     public var description: String {
         "PublicSigningKey(\(rawValue.hex))"
     }
     
-    var cryptoKitForm: Curve25519.Signing.PublicKey {
-        try! .init(rawRepresentation: rawValue)
-    }
-    
-    public func isValidSignature(_ signature: Signature, for data: DataProvider) -> Bool {
-        cryptoKitForm.isValidSignature(signature.rawValue, for: data.providedData)
+    public func isValidSignature(_ signature: Signature, for message: DataProvider) -> Bool {
+        let key = ECXOnlyPublicKey(rawValue)!
+        return key.schnorrVerify(signature: signature.data, tag: signature.tag, message: message)
     }
 }
 

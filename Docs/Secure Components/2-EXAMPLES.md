@@ -41,9 +41,14 @@ In this example no signing or encryption is performed.
 ```swift
 // Alice sends a plaintext message to Bob.
 let envelope = Envelope(plaintext: Self.plaintext)
+let ur = envelope.ur
 
+// ➡️ ☁️ ➡️
+
+// Bob receives the envelope.
+let receivedEnvelope = try Envelope(ur: ur)
 // Bob reads the message.
-XCTAssertEqual(envelope.plaintext, Self.plaintext)
+XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
 ```
 
 #### Schematic
@@ -90,18 +95,23 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 ```swift
 // Alice sends a signed plaintext message to Bob.
 let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
+let ur = envelope.ur
 
+// ➡️ ☁️ ➡️
+
+// Bob receives the envelope.
+let receivedEnvelope = try Envelope(ur: ur)
 // Bob receives the message and verifies that it was signed by Alice.
-XCTAssertTrue(envelope.hasValidSignature(from: Self.alicePeer))
+XCTAssertTrue(receivedEnvelope.hasValidSignature(from: Self.alicePeer))
 // Confirm that it wasn't signed by Carol.
-XCTAssertFalse(envelope.hasValidSignature(from: Self.carolPeer))
+XCTAssertFalse(receivedEnvelope.hasValidSignature(from: Self.carolPeer))
 // Confirm that it was signed by Alice OR Carol.
-XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 1))
+XCTAssertTrue(receivedEnvelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 1))
 // Confirm that it was not signed by Alice AND Carol.
-XCTAssertFalse(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 2))
+XCTAssertFalse(receivedEnvelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 2))
 
 // Bob reads the message.
-XCTAssertEqual(envelope.plaintext, Self.plaintext)
+XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
 ```
 
 #### Schematic
@@ -121,12 +131,13 @@ Envelope {
 49(                 # Envelope
    [
       1,            # type 1: Plaintext
-      h'536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e', # payload
+      h'536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e',
       [             # signatures
          707(       # Signature
             [
-               1,   # type 1: EdDSA-25519
-               h'5d6dd8d3609a22c2d1107df3720c96a8bfa3ee7934b20e2ea24af01038674790335b7e042a885d16469b942cbfb86614f2d341ee25595931b653742e8f97f303'
+               1,   # type 1: Schnorr
+               h'1c97a6fbe5450f45da51594ce71ecb81338d2286e41af13563faa393f0d5875c52a31e1c29763c559fb398f51ae1761c12c2f08842a2a7dfffc18cb660194649',
+               h''  # tag
             ]
          )
       ]
@@ -144,16 +155,17 @@ d8 31                                    # tag(49):         Envelope
          536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e # "Some mysteries aren't meant to be solved."
       81                                 # array(1):        signatures
          d9 02c3                         # tag(707):        Signature
-            82                           # array(2)
-               01                        # unsigned(1):     type 1: EdDSA-25519
+            83                           # array(3)
+               01                        # unsigned(1):     type 1: Schnorr
                5840                      # bytes(64)
-                  5d6dd8d3609a22c2d1107df3720c96a8bfa3ee7934b20e2ea24af01038674790335b7e042a885d16469b942cbfb86614f2d341ee25595931b653742e8f97f303
+                  1c97a6fbe5450f45da51594ce71ecb81338d2286e41af13563faa393f0d5875c52a31e1c29763c559fb398f51ae1761c12c2f08842a2a7dfffc18cb660194649
+               40                        # bytes(0):        tag
 ```
 
 ### UR
 
 ```
-ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmlytaaosrlfadhdfzluvtdwfsceftvtfxemptnlrozcgddkcwhkiymomomuglvlfrzcwegulpfddmhsmteshkotesbsbyjzkteezotlbnwturjldayamwashlglhydamedtpeaagamtkoskaoskjotncn
+ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmlytaaosrlsadhdfzcemsolzovwfebsfetngyhkgsvdcksblyeolgcplnvecywneciazsotmuwttllthhgmotckcedtkofngoneqdmkykcyvykocebgsawtlofwoeosurzmselkrphncffggafzskwmvtox
 ```
 
 ### Example 3: Multisigned Plaintext
@@ -161,12 +173,18 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 ```swift
 // Alice and Carol jointly send a signed plaintext message to Bob.
 let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.aliceIdentity, Self.carolIdentity])
+let ur = envelope.ur
 
-// Bob receives the message and verifies that it was signed by both Alice and Carol.
-XCTAssertTrue(envelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer]))
+// ➡️ ☁️ ➡️
+
+// Bob receives the envelope.
+let receivedEnvelope = try Envelope(ur: ur)
+
+// Bob verifies the message was signed by both Alice and Carol.
+XCTAssertTrue(receivedEnvelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer]))
 
 // Bob reads the message.
-XCTAssertEqual(envelope.plaintext, Self.plaintext)
+XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
 ```
 
 #### Schematic
@@ -187,17 +205,19 @@ Envelope {
    [
       1,                # type 1: Plaintext
       h'536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e',
-      [
+      [                 # signatures
          707(           # Signature
             [
-               1,       # type 1: EdDSA-25519
-               h'4aa5226cb01ec5be3c83ee6dd4463e3956d080064a496c4b75d3ce3deadb9378fbe5f8083c3e42d0ded2399c48474329d637186728bce0da08ca7f71703d240b'
+               1,       # type 1: Schnorr
+               h'4bd7af240bd6206d92c365ce610436d04f7e86b4385471fd7e671d476b0a4a46c2d95d48adc49f2cb380f0245d3b0c5a12e2d483216f8c806e8e05e1af85e92b',
+               h''      # tag
             ]
          ),
          707(           # Signature
             [
-               1,       # type 1: EdDSA-25519
-               h'83872849a462bd2eaa847386cbe3efaa50f50815f4eee4745178110e24a5c7889ea2f4d015c15f5f19046bae00fc207291b1febf39751e17f88f590aab092602'
+               1,       # type 1: Schnorr
+               h'af67970cc974a32f012919abe17e7f53de91f009ac799fda55b9012f79dd6cf29df0de42be476aed7cfbbe540271cdbedd526e1cf722db7a30c4ad1ec46376ba',
+               h''      # tag
             ]
          )
       ]
@@ -215,21 +235,24 @@ d8 31                                    # tag(49):         Envelope
          536f6d65206d7973746572696573206172656e2774206d65616e7420746f20626520736f6c7665642e # "Some mysteries aren't meant to be solved."
       82                                 # array(2):        signatures
          d9 02c3                         # tag(707):        Signature
-            82                           # array(2)
-               01                        # unsigned(1):     type 1: EdDSA-25519
+            83                           # array(3)
+               01                        # unsigned(1):     type 1: Schnorr
                5840                      # bytes(64)
-                  4aa5226cb01ec5be3c83ee6dd4463e3956d080064a496c4b75d3ce3deadb9378fbe5f8083c3e42d0ded2399c48474329d637186728bce0da08ca7f71703d240b
+                  4bd7af240bd6206d92c365ce610436d04f7e86b4385471fd7e671d476b0a4a46c2d95d48adc49f2cb380f0245d3b0c5a12e2d483216f8c806e8e05e1af85e92b
+               40                        # bytes(0):        tag
+
          d9 02c3                         # tag(707):        Signature
-            82                           # array(2)
-               01                        # unsigned(1):     type 1: EdDSA-25519
+            83                           # array(3)
+               01                        # unsigned(1):     type 1: Schnorr
                5840                      # bytes(64)
-                  83872849a462bd2eaa847386cbe3efaa50f50815f4eee4745178110e24a5c7889ea2f4d015c15f5f19046bae00fc207291b1febf39751e17f88f590aab092602
+                  af67970cc974a32f012919abe17e7f53de91f009ac799fda55b9012f79dd6cf29df0de42be476aed7cfbbe540271cdbedd526e1cf722db7a30c4ad1ec46376ba
+               40                        # bytes(0):        tag
 ```
 
 #### UR
 
 ```
-ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmlftaaosrlfadhdfzceuthpytidpeptnersynhefhgtlanebyemrspmcwkehyhssgesspfpjewzendydwfmwdctdiyndadanslelgcyztlgtnfwjoememtslypscnhtloktrsadhlpkaxrhbataaosrlfadhdfzectthtcwfnwngsgmhfdrcstdbtflfrcaknzcvtgededsredkzekgwztbjoytpypllrylckwpvobzrsdtwnvolktldndpvlsrjkvyrtpmgsssfzkoimsopfwmiyjlptamloahlglt
+ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmlftaaosrlsadhdfzgrtspedkbdtbcxjnmosrihtohsaaentigwkblnqzetghjszckbiocafljebkgefgsatahlfdpmssnedwqdlawtdkhlfrbnhtbgvotylscljllklajtmnahvypelpwldnfztaaosrlsadhdfzpeiomsbnsojyotdladdtcfpyvykblbguuemewtaspskknetngorhaddlkkutjzwzntwtuefwrnflimwekezornghaojssnrnutgmjtceylcpuykndysspmckssiakordfzontotazm
 ```
 
 ### Example 4: Symmetric Encryption
@@ -240,15 +263,21 @@ let key = SymmetricKey()
 
 // Alice sends a message encrypted with the key to Bob.
 let envelope = Envelope(plaintext: Self.plaintext, key: key)
+let ur = envelope.ur
+
+// ➡️ ☁️ ➡️
+
+// Bob receives the envelope.
+let receivedEnvelope = try Envelope(ur: ur)
 
 // Bob decrypts and reads the message.
-XCTAssertEqual(envelope.plaintext(with: key), Self.plaintext)
+XCTAssertEqual(receivedEnvelope.plaintext(with: key), Self.plaintext)
 
 // Can't read with no key.
-XCTAssertNil(envelope.plaintext)
+XCTAssertNil(receivedEnvelope.plaintext)
 
 // Can't read with incorrect key.
-XCTAssertNil(envelope.plaintext(with: SymmetricKey()))
+XCTAssertNil(receivedEnvelope.plaintext(with: SymmetricKey()))
 ```
 
 #### Schematic

@@ -8,6 +8,7 @@
 import Foundation
 @_exported import BCWally
 import URKit
+import WolfBase
 
 public protocol ECKey {
     static var keyLen: Int { get }
@@ -65,6 +66,18 @@ public struct ECPrivateKey: ECKey {
         return ECCompressedPublicKey(Wally.ecPublicKeyFromPrivateKey(data: data))!
     }
     
+    public var xOnlyPublic: ECXOnlyPublicKey {
+        let kp = LibSecP256K1.keyPair(from: self.data)!
+        let x = LibSecP256K1.xOnlyPublicKey(from: kp)
+        let data = LibSecP256K1.serialize(key: x)
+        return ECXOnlyPublicKey(data)!
+    }
+    
+    public func schnorrSign(message: DataProvider, tag: DataProvider) -> Data {
+        let kp = LibSecP256K1.keyPair(from: self.data)!
+        return LibSecP256K1.schnorrSign(msg: message.providedData, tag: tag.providedData, keyPair: kp)
+    }
+    
     public var wif: String {
         Wally.encodeWIF(key: data, network: .mainnet, isPublicKeyCompressed: true)
     }
@@ -97,6 +110,11 @@ public struct ECXOnlyPublicKey: Hashable {
             return nil
         }
         self.init(data)
+    }
+    
+    public func schnorrVerify(signature: Data, tag: DataProvider, message: DataProvider) -> Bool {
+        let publicKey = LibSecP256K1.xOnlyPublicKey(from: data)!
+        return LibSecP256K1.schnorrVerify(msg: message.providedData, tag: tag.providedData, signature: signature, publicKey: publicKey)
     }
 }
 

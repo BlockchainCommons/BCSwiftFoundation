@@ -2,13 +2,7 @@ import Foundation
 import CryptoKit
 import WolfBase
 
-/// A Curve25519 private key used to create cryptographic signatures.
-///
-/// Implements EdDSA signature over Curve25519.
-///
-/// https://datatracker.ietf.org/doc/html/rfc8032
-///
-/// Note: “CryptoKit implementation of the algorithm employs randomization to generate a different signature on every call, even for the same data and key, to guard against side-channel attacks.”
+/// An private key for use in creating Schnorr signatures.
 public struct PrivateSigningKey: RawRepresentable, CustomStringConvertible, Hashable {
     public let rawValue: Data
 
@@ -20,11 +14,19 @@ public struct PrivateSigningKey: RawRepresentable, CustomStringConvertible, Hash
     }
 
     public init() {
-        self.rawValue = Curve25519.Signing.PrivateKey().rawRepresentation
+        self.rawValue = SecureRandomNumberGenerator.shared.data(count: 32)
     }
     
-    public func sign(data: DataProvider) -> Signature {
-        return try! Signature(rawValue: cryptoKitForm.signature(for: data.providedData))!
+    public func sign(_ data: DataProvider, tag: DataProvider = Data()) -> Signature {
+        let privateKey = ECPrivateKey(rawValue)!
+        let sig = privateKey.schnorrSign(message: data.providedData, tag: tag.providedData)
+        return Signature(data: sig, tag: tag)!
+    }
+    
+    public var publicKey: PublicSigningKey {
+        let privateKey = ECPrivateKey(rawValue)!
+        let xOnlyPublicKey = privateKey.xOnlyPublic
+        return PublicSigningKey(rawValue: xOnlyPublicKey.data)!
     }
     
     public var description: String {

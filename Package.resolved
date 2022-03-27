@@ -29,6 +29,15 @@
         }
       },
       {
+        "package": "secp256k1",
+        "repositoryURL": "https://github.com/GigaBitcoin/secp256k1.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "abe7c8232970c1fd57f4c77590bce2c868df7137",
+          "version": "0.5.0"
+        }
+      },
+      {
         "package": "URKit",
         "repositoryURL": "https://github.com/BlockchainCommons/URKit.git",
         "state": {

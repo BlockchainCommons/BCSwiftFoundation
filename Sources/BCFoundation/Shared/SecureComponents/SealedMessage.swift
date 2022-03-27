@@ -53,13 +53,11 @@ extension SealedMessage {
     public init(cbor: CBOR) throws {
         guard
             case let CBOR.array(elements) = cbor,
-            elements.count == 4,
+            elements.count == 3,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
-            case let CBOR.data(messageData) = elements[1],
-            let message = Message(taggedCBOR: messageData),
-            case let CBOR.data(ephemeralPublicKeyData) = elements[2],
-            let ephemeralPublicKey = PublicAgreementKey(taggedCBOR: ephemeralPublicKeyData)
+            let message = try? Message(taggedCBOR: elements[1]),
+            let ephemeralPublicKey = try? PublicAgreementKey(taggedCBOR: elements[2])
         else {
             throw CBORError.invalidFormat
         }

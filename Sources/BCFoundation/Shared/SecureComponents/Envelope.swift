@@ -123,23 +123,23 @@ extension Envelope {
         self.init(plaintext: inner.taggedCBOR, signatures: signatures)
     }
 
-    public init(plaintext: DataProvider, signers: [Identity]) {
+    public init(plaintext: DataProvider, signers: [Identity], tag: Data = Data()) {
         let signatures = signers.map {
-            $0.privateSigningKey.sign(data: plaintext)
+            $0.privateSigningKey.sign(plaintext, tag: tag)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: Envelope, signers: [Identity]) {
-        self.init(plaintext: inner.taggedCBOR, signers: signers)
+    public init(inner: Envelope, signers: [Identity], tag: Data = Data()) {
+        self.init(plaintext: inner.taggedCBOR, signers: signers, tag: tag)
     }
     
-    public init(plaintext: DataProvider, signer: Identity) {
-        self.init(plaintext: plaintext, signers: [signer])
+    public init(plaintext: DataProvider, signer: Identity, tag: Data = Data()) {
+        self.init(plaintext: plaintext, signers: [signer], tag: tag)
     }
     
-    public init(inner: Envelope, signer: Identity) {
-        self.init(plaintext: inner.taggedCBOR, signer: signer)
+    public init(inner: Envelope, signer: Identity, tag: Data = Data()) {
+        self.init(plaintext: inner.taggedCBOR, signer: signer, tag: tag)
     }
     
     public init(plaintext: DataProvider, recipients: [Peer]) {
@@ -187,12 +187,12 @@ extension Envelope {
         isValidSignature(signature, key: peer.publicSigningKey)
     }
     
-    public func hasValidSignature(with key: PublicSigningKey) -> Bool {
+    public func hasValidSignature(key: PublicSigningKey) -> Bool {
         signatures.contains { isValidSignature($0, key: key) }
     }
     
     public func hasValidSignature(from peer: Peer) -> Bool {
-        hasValidSignature(with: peer.publicSigningKey)
+        hasValidSignature(key: peer.publicSigningKey)
     }
     
     public func hasValidSignatures(with keys: [PublicSigningKey], threshold: Int? = nil) -> Bool {

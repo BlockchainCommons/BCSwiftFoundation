@@ -1,31 +1,36 @@
 import Foundation
 import CryptoKit
 import URKit
+import WolfBase
 
-/// A cryptographic signature created by EdDSA over Curve25519.
+/// A Schnorr signature.
 ///
-/// https://datatracker.ietf.org/doc/html/rfc8032
+/// https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
 public struct Signature: Equatable {
-    public let rawValue: Data
+    public let data: Data
+    public let tag: Data
     
-    public init?(rawValue: Data) {
-        guard rawValue.count == 64 else {
+    public init?(data: DataProvider, tag: DataProvider) {
+        let data = data.providedData
+        guard data.count == 64 else {
             return nil
         }
-        self.rawValue = rawValue
+        self.data = data
+        self.tag = tag.providedData
     }
     
     public var description: String {
-        "Signature(\(rawValue.hex))"
+        "Signature(tag(\(tag.hex))-\(data.hex))"
     }
 }
 
 extension Signature {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
-        let sig = CBOR.data(self.rawValue)
+        let sig = CBOR.data(self.data)
+        let tag = CBOR.data(self.tag)
         
-        return CBOR.array([type, sig])
+        return CBOR.array([type, sig, tag])
     }
     
     public var taggedCBOR: CBOR {
@@ -37,20 +42,16 @@ extension Signature {
             throw CBORError.invalidFormat
         }
         
-        guard elements.count == 2 else {
+        guard elements.count == 3 else {
             throw CBORError.invalidFormat
         }
         
         guard
             case let CBOR.unsignedInt(type) = elements[0],
-            type == 1
-        else {
-            throw CBORError.invalidFormat
-        }
-
-        guard
+            type == 1,
             case let CBOR.data(sigData) = elements[1],
-            let sig = Signature(rawValue: sigData)
+            case let CBOR.data(tagData) = elements[2],
+            let sig = Signature(data: sigData, tag: tagData)
         else {
             throw CBORError.invalidFormat
         }
