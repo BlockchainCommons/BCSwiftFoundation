@@ -8,6 +8,9 @@ public struct PrivateAgreementKey: RawRepresentable, CustomStringConvertible, Ha
     public let rawValue: Data
     
     public init?(rawValue: Data) {
+        guard rawValue.count == 32 else {
+            return nil
+        }
         self.rawValue = rawValue
     }
     
@@ -26,7 +29,9 @@ public struct PrivateAgreementKey: RawRepresentable, CustomStringConvertible, Ha
 
 extension PrivateAgreementKey {
     public var cbor: CBOR {
-        CBOR.data(rawValue)
+        let type = CBOR.unsignedInt(1)
+        let key = CBOR.data(self.rawValue)
+        return CBOR.array([type, key])
     }
     
     public var taggedCBOR: CBOR {
@@ -35,7 +40,11 @@ extension PrivateAgreementKey {
     
     public init(cbor: CBOR) throws {
         guard
-            case let CBOR.data(rawValue) = cbor,
+            case let CBOR.array(elements) = cbor,
+            elements.count == 2,
+            case let CBOR.unsignedInt(type) = elements[0],
+            type == 1,
+            case let CBOR.data(rawValue) = elements[1],
             let key = PrivateAgreementKey(rawValue: rawValue)
         else {
             throw CBORError.invalidFormat

@@ -38,15 +38,9 @@ extension Signature {
     }
     
     public init(cbor: CBOR) throws {
-        guard case let CBOR.array(elements) = cbor else {
-            throw CBORError.invalidFormat
-        }
-        
-        guard elements.count == 3 else {
-            throw CBORError.invalidFormat
-        }
-        
         guard
+            case let CBOR.array(elements) = cbor,
+            elements.count == 3,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
             case let CBOR.data(sigData) = elements[1],

@@ -2,6 +2,9 @@ import Foundation
 import protocol WolfBase.DataProvider
 import CryptoSwift
 
+/// A symmetric key for encryption and decryption of IETF-ChaCha20-Poly1305 messages.
+///
+/// https://datatracker.ietf.org/doc/html/rfc8439
 public struct SymmetricKey: CustomStringConvertible, Equatable, Hashable, RawRepresentable, DataProvider {
     public let rawValue: Data
     

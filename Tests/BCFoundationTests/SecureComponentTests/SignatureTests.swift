@@ -9,6 +9,7 @@ class SignatureTests: XCTestCase {
     static let signature = privateKey.sign(message)
 
     func testSigning() {
+        print(Self.signature.data.hex)
         XCTAssertTrue(Self.publicKey.isValidSignature(Self.signature, for: Self.message))
         XCTAssertFalse(Self.publicKey.isValidSignature(Self.signature, for: "Wolf Mcnally"))
         

@@ -4,9 +4,8 @@ import WolfBase
 
 /// Holds information used to communicate cryptographically with a remote peer.
 ///
-/// Includes the peer's public signing key for verifying signatures created by the
-/// peer via EdDSA over Curve25519, and the peer's public public agreement key
-/// and salt used for X25519 key agreement.
+/// Includes the peer's public signing key for verifying Schnorr signatures, and
+/// the peer's public public agreement key and salt used for X25519 key agreement.
 public struct Peer: CustomStringConvertible, Hashable {
     public let publicSigningKey: PublicSigningKey
     public let publicAgreementKey: PublicAgreementKey

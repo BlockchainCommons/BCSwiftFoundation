@@ -1,8 +1,16 @@
 # Secure Components - Overview
 
 **Authors:** Wolf McNally, Christopher Allen, Blockchain Commons</br>
-**Revised:** March 22, 2022</br>
+**Revised:** March 28, 2022</br>
 **Status:** DRAFT
+
+---
+
+## Contents
+
+* Overview: This document.
+* [Examples](2-EXAMPLES.md)
+* [Definitions](3-DEFINITIONS.md)
 
 ---
 
@@ -76,6 +84,7 @@ A number of types are simply serialized as untagged CBOR byte strings. They do n
 * `Nonce`
 * `Plaintext`
 * `Salt`
+* `Tag`
 
 ## Algorithms
 
@@ -86,7 +95,7 @@ The algorithms that Secure Components currently incorporates are listed below. T
 * **Symmetric Encryption:** [IETF-ChaCha20-Poly1305](https://datatracker.ietf.org/doc/html/rfc8439)
 * **Public Key Encryption:** [X25519](https://datatracker.ietf.org/doc/html/rfc7748)
 * **Key Derivation**: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869)
-* **Password-Based Key Derivation**: [Scrypt](https://datatracker.ietf.org/doc/html/rfc7914)
+* **Password-Based Key Derivation**: [scrypt](https://datatracker.ietf.org/doc/html/rfc7914)
 * **Sharding**: [SSKR (Sharded Secret Key Reconstruction)](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-011-sskr.md)
 
 ## Structure of the Envelope

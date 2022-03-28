@@ -40,16 +40,22 @@ public struct PrivateSigningKey: RawRepresentable, CustomStringConvertible, Hash
 
 extension PrivateSigningKey {
     public var cbor: CBOR {
-        CBOR.data(rawValue)
+        let type = CBOR.unsignedInt(1)
+        let key = CBOR.data(self.rawValue)
+        return CBOR.array([type, key])
     }
-    
+
     public var taggedCBOR: CBOR {
         CBOR.tagged(.privateSigningKey, cbor)
     }
     
     public init(cbor: CBOR) throws {
         guard
-            case let CBOR.data(rawValue) = cbor,
+            case let CBOR.array(elements) = cbor,
+            elements.count == 2,
+            case let CBOR.unsignedInt(type) = elements[0],
+            type == 1,
+            case let CBOR.data(rawValue) = elements[1],
             let key = PrivateSigningKey(rawValue: rawValue)
         else {
             throw CBORError.invalidFormat

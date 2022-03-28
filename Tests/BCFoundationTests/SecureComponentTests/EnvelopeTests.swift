@@ -175,7 +175,7 @@ class EnvelopeTests: XCTestCase {
         let envelope = Envelope(plaintext: Self.plaintext, recipients: [Self.bobPeer, Self.carolPeer])
         let ur = envelope.ur
 
-        print(envelope.taggedCBOR.diag)
+//        print(envelope.taggedCBOR.diag)
 //        print(envelope.taggedCBOR.dump)
 //        print(envelope.ur)
 
@@ -237,10 +237,17 @@ class EnvelopeTests: XCTestCase {
         let envelopes = Envelope.split(plaintext: danSeed.taggedCBOR, groupThreshold: 1, groups: [(2, 3)])
         
         // Flattening the array of arrays gives just a single array of all the envelopes to be distributed.
-        let sentURs = envelopes.flatMap { $0 }.map { $0.ur }
+        let sentEnvelopes = envelopes.flatMap { $0 }
+        let sentURs = sentEnvelopes.map { $0.ur }
         
         // Dan sends one envelope to each of Alice, Bob, and Carol.
         
+        print(sentEnvelopes[0].taggedCBOR.diag)
+        print(sentEnvelopes[0].taggedCBOR.dump)
+        print(sentEnvelopes[0].ur)
+
+        // ➡️ ☁️ ➡️
+
         // let aliceEnvelope = Envelope(ur: sentURs[0]) // UNRECOVERED
         let bobEnvelope = try Envelope(ur: sentURs[1])
         let carolEnvelope = try Envelope(ur: sentURs[2])
