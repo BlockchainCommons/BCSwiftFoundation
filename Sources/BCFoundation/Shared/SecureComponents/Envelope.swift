@@ -8,8 +8,8 @@ import WolfBase
 ///
 /// It is an enumerated type with two options: `.plaintext` and `.encrypted`. If
 /// `.plaintext` is used, it may also carry one or more signatures. If `.encrypted`
-/// is used, the encrypted `Message` is accompanied by a `Permit` that defines the
-/// conditions under which the `Message` may be decrypted.
+/// is used, the `EncryptedMessage` is accompanied by a `Permit` that defines the
+/// conditions under which the `EncryptedMessage` may be decrypted.
 ///
 /// To facilitate further decoding, it is recommended that the payload of an
 /// `Envelope` should itself be tagged CBOR.
@@ -24,12 +24,12 @@ import WolfBase
 /// with the appropriate signatures.
 public enum Envelope {
     case plaintext(Data, [Signature])
-    case encrypted(Message, Permit)
+    case encrypted(EncryptedMessage, Permit)
 }
 
-/// A `Permit` specifies the conditions under which a `Message` may be decrypted.
+/// A `Permit` specifies the conditions under which an `EncryptedMessage` may be decrypted.
 ///
-/// `.symmetric` means that the `Message` was encrypted with a `SymmetricKey` that
+/// `.symmetric` means that the `EncryptedMessage` was encrypted with a `SymmetricKey` that
 /// the receiver is already expected to have.
 ///
 /// `.recipients` facilitates multi-recipient public key cryptography by including
@@ -37,12 +37,12 @@ public enum Envelope {
 /// recipient's public key, and which contains an ephemeral key that can be used by
 /// a recipient to decrypt the main message.
 ///
-/// `.share` facilitates social recovery by pairing a `Message` encrypted with an
+/// `.share` facilitates social recovery by pairing an `EncryptedMessage` encrypted with an
 /// ephemeral key with an `SSKRShare`, and providing for the production of a set of
 /// `Envelope`s, each one including a different share. Only a threshold of shares will
 /// allow the recovery of the ephemeral key and hence the decryption of the original
 /// message. Each recipient of one of these `Envelope`s will have an encrypted
-/// backup of the entire original `Message`, but only a single `SSKRShare`. A N-of-M
+/// backup of the entire original `EncryptedMessage`, but only a single `SSKRShare`. A N-of-M
 /// threshold of such shares will be necessary for the owner to recover the original
 /// message.
 public enum Permit {
@@ -52,7 +52,7 @@ public enum Permit {
 }
 
 extension Envelope {
-    public init(message: Message) {
+    public init(message: EncryptedMessage) {
         self = .encrypted(message, .symmetric)
     }
     
@@ -280,7 +280,7 @@ extension Envelope {
             }
             self = .plaintext(plaintext, signatures)
         case 2:
-            let message = try Message(taggedCBOR: elements[1])
+            let message = try EncryptedMessage(taggedCBOR: elements[1])
             let permit = try Permit(taggedCBOR: elements[2])
             self = .encrypted(message, permit)
         default:

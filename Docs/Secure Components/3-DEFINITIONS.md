@@ -24,7 +24,7 @@ This section describes each component, and provides its CDDL definition for CBOR
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
-|48|`crypto-msg`|`Message`|
+|48|`crypto-msg`|`EncryptedMessage`|
 |702||`Permit`|
 
 An `Envelope` allows for flexible signing, encryption, and sharding of messages. Here is its definition in Swift:
@@ -32,14 +32,14 @@ An `Envelope` allows for flexible signing, encryption, and sharding of messages.
 ```swift
 public enum Envelope {
     case plaintext(Data, [Signature])
-    case encrypted(Message, Permit)
+    case encrypted(EncryptedMessage, Permit)
 }
 ```
 
 It is an enumerated type with two cases: `.plaintext` and `.encrypted`.
 
 * If `.plaintext` is used, it may also carry one or more signatures.
-* If `.encrypted` is used, the encrypted `Message` is accompanied by a `Permit` that defines the conditions under which the `Message` may be decrypted.
+* If `.encrypted` is used, the `EncryptedMessage` is accompanied by a `Permit` that defines the conditions under which the `EncryptedMessage` may be decrypted.
 
 To facilitate further decoding, it is RECOMMENDED that the payload of an `Envelope` should itself be tagged CBOR.
 
@@ -47,7 +47,7 @@ To facilitate further decoding, it is RECOMMENDED that the payload of an `Envelo
 
 The reason why `.plaintext` messages may be signed and `.encrypted` messages may not is that generally a signer should have access to the content they are signing, therefore this design encourages the sign-then-encrypt order of operations. If encrypt-then-sign is preferred, then this is easily accomplished by creating an `.encrypted` and then enclosing that envelope in a `.plaintext` with the appropriate signatures.
 
-A `Permit` specifies the conditions under which a `Message` may be decrypted. It is an enumerated type with three cases:
+A `Permit` specifies the conditions under which an `EncryptedMessage` may be decrypted. It is an enumerated type with three cases:
 
 ```swift
 public enum Permit {
@@ -57,9 +57,9 @@ public enum Permit {
 }
 ```
 
-* `.symmetric` means that the `Message` was encrypted with a `SymmetricKey` that the receiver is already expected to have.
+* `.symmetric` means that the `EncryptedMessage` was encrypted with a `SymmetricKey` that the receiver is already expected to have.
 * `.recipients` facilitates multi-recipient public key cryptography by including an array of `SealedMessage`, each of which is encrypted to a particular recipient's public key, and which contains an ephemeral key that can be used by a recipient to decrypt the main message.
-* `.share` facilitates social recovery by pairing a `Message` encrypted with an ephemeral key with an `SSKRShare`, and providing for the production of a set of `Envelope`s, each one including a different share. Only an M-of-N threshold of shares will allow the recovery of the ephemeral key and hence the decryption of the original message. Each recipient of one of these `Envelope`s will have an encrypted backup of the entire original `Message`, but only a single `SSKRShare`.
+* `.share` facilitates social recovery by pairing an `EncryptedMessage` encrypted with an ephemeral key with an `SSKRShare`, and providing for the production of a set of `Envelope`s, each one including a different share. Only an M-of-N threshold of shares will allow the recovery of the ephemeral key and hence the decryption of the original message. Each recipient of one of these `Envelope`s will have an encrypted backup of the entire original `EncryptedMessage`, but only a single `SSKRShare`.
 
 ### CDDL for Envelope
 
@@ -95,15 +95,15 @@ sskr-share: crypto-sskr
 
 ---
 
-## Message
+## EncryptedMessage
 
-`Message` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
+`EncryptedMessage` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
 |49|`crypto-envelope`|`Envelope`|
 
-### CDDL for Message
+### CDDL for EncryptedMessage
 
 ```
 crypto-msg = #6.49([ type, ciphertext, aad, nonce, auth ])

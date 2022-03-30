@@ -10,9 +10,9 @@ import protocol WolfBase.DataProvider
 ///
 /// https://datatracker.ietf.org/doc/html/rfc8439
 ///
-/// To facilitate decoding, it is recommended that the plaintext of a `Message` be
+/// To facilitate decoding, it is recommended that the plaintext of an `EncryptedMessage` be
 /// tagged CBOR.
-public struct Message: CustomStringConvertible, Equatable {
+public struct EncryptedMessage: CustomStringConvertible, Equatable {
     public let ciphertext: Data
     public let aad: Data // Additional authenticated data (AAD) per RFC8439
     public let nonce: Nonce
@@ -76,14 +76,14 @@ public struct Message: CustomStringConvertible, Equatable {
     }
 }
 
-extension Message {
+extension EncryptedMessage {
     public static func sharedKey(identityPrivateKey: PrivateAgreementKey, peerPublicKey: PublicAgreementKey) -> SymmetricKey {
         let sharedSecret = try! identityPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: peerPublicKey.cryptoKitForm)
         return SymmetricKey(rawValue: sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: Data(), sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
     }
 }
 
-extension Message {
+extension EncryptedMessage {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let ciphertext = CBOR.data(self.ciphertext)
@@ -142,7 +142,7 @@ extension Message {
     }
 }
 
-extension Message {
+extension EncryptedMessage {
     public var ur: UR {
         return try! UR(type: URType.message.type, cbor: cbor)
     }

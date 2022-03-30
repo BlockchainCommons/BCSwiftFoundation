@@ -65,10 +65,19 @@ XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
 
 > "An envelope containing plaintext."
 
-```
-Envelope {
-    Plaintext
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph plaintext
+            payload
+            subgraph signatures
+            end
+        end
+    end
+style payload fill:#0000
+style plaintext fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000, stroke-dasharray: 5 5
 ```
 
 ### CBOR Diagnostic Notation
@@ -94,7 +103,7 @@ d8 31                                    # tag(49): Envelope
       80                                 # array(0): signatures
 ```
 
-## UR
+### UR
 
 ```
 ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmladnvsrysa
@@ -128,11 +137,21 @@ XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
 
 > "An envelope containing signed plaintext."
 
-```
-Envelope {
-    Plaintext
-    Signature
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph plaintext
+            payload
+            subgraph signatures
+                signature0
+            end
+        end
+    end
+style payload fill:#0000
+style signature0 fill:#0000
+style plaintext fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -172,7 +191,7 @@ d8 31                                    # tag(49):         Envelope
                40                        # bytes(0):        tag
 ```
 
-## UR
+### UR
 
 ```
 ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtjycxjyjlcxidihcxjkjljzkoihiedmlytaaosrlsadhdfzcemsolzovwfebsfetngyhkgsvdcksblyeolgcplnvecywneciazsotmuwttllthhgmotckcedtkofngoneqdmkykcyvykocebgsawtlofwoeosurzmselkrphncffggafzskwmvtox
@@ -201,11 +220,23 @@ XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
 
 > "An envelope containing plaintext signed by several parties."
 
-```
-Envelope {
-    Plaintext
-    [Signature, Signature]
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph plaintext
+            payload
+            subgraph signatures
+                signature0
+                signature1
+            end
+        end
+    end
+style payload fill:#0000
+style signature0 fill:#0000
+style signature1 fill:#0000
+style plaintext fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -294,13 +325,24 @@ XCTAssertNil(receivedEnvelope.plaintext(with: SymmetricKey()))
 
 > "An envelope containing a encrypted message."
 
-```
-Envelope {
-    Message {           |
-        Plaintext       | ENCRYPTED
-    }                   |
-    Permit: symmetric
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                symmetric
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style symmetric fill:#0000
+style encrypted fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -309,7 +351,7 @@ Envelope {
 49(                                                 # Envelope
    [
       2,                                            # type 2: encrypted
-      48(                                           # Message
+      48(                                           # EncryptedMessage
          [
             1,                                      # type 1: IETF-ChaCha20-Poly1305
             h'ec9faf81af0c7c6e27f6625a1286f7d5be106b806d60f7148d7746a5a8047012797217dbec56d8a577', # ciphertext
@@ -331,7 +373,7 @@ Envelope {
 d8 31                                    # tag(49):         Envelope
    83                                    # array(3)
       02                                 # unsigned(2):     type 2: encrypted
-      d8 30                              # tag(48):         Message
+      d8 30                              # tag(48):         EncryptedMessage
          85                              # array(5)
             01                           # unsigned(1):     type 1: IETF-ChaCha20-Poly1305
             5829                         # bytes(41):       ciphertext
@@ -385,16 +427,35 @@ XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
 
 > "An encrypted envelope containing a signed envelope."
 
-```
-Envelope {
-    Message {           |
-        Envelope {      |
-            Plaintext   | ENCRYPTED
-            Signature   |
-        }               |
-    }                   |
-    Permit: symmetric
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph encrypted
+            subgraph EncryptedMessage
+                subgraph Envelope2
+                    subgraph plaintext
+                        payload
+                        subgraph signatures
+                            signature
+                        end
+                    end
+                end
+            end
+            subgraph Permit
+                symmetric
+            end
+        end
+    end
+    style payload fill:#0000
+    style EncryptedMessage fill:#f002,stroke:#f00
+    style symmetric fill:#0000
+    style encrypted fill:#0000
+    style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+    style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+    style Permit fill:#0000
+    style plaintext fill:#0000
+    style signatures fill:#0000
+    style signature fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -403,7 +464,7 @@ Envelope {
 49(                                                 # Envelope
    [
       2,                                            # type 2: encrypted
-      48(                                           # Message
+      48(                                           # EncryptedMessage
          [
             1,                                      # type 1: IETF-ChaCha20-Poly1305
             h'36b10f4f2eb1c7951b38af70b38486f12566e86e3e72f5d41200b6fd15084f1fbd3615b599ea0d3dbba66cb45188a195b7da5321026a558e0b28f92a186c8d4afdf2af6da756c01ff8aac71ccfabfe6528c6f8d04e8d3670fce19c1dddd13e548bc6bd38efdf3c2e82486dc096f3b3cfd0da5dd237e4c458', # ciphertext (inner signed Envelope)
@@ -425,7 +486,7 @@ Envelope {
 d8 31                                    # tag(49):         Envelope
    83                                    # array(3)
       02                                 # unsigned(2):     type 2: encrypted
-      d8 30                              # tag(48):         Message
+      d8 30                              # tag(48):         EncryptedMessage
          85                              # array(5)
             01                           # unsigned(1):     type 1: IETF-ChaCha20-Poly1305
             5878                         # bytes(120):      ciphertext (inner signed Envelope)
@@ -479,18 +540,35 @@ XCTAssertEqual(plaintext, Self.plaintext)
 
 > "A signed envelope containing an encrypted envelope."
 
-```
-Envelope {
-    Plaintext {
-        Envelope {
-            Message {           |
-                Plaintext       | ENCRYPTED
-            }                   |
-            Permit: symmetric   |
-        }
-    }
-    Signature
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph plaintext
+            subgraph Envelope2
+                subgraph encrypted
+                    subgraph EncryptedMessage
+                        payload
+                    end
+                    subgraph Permit
+                        symmetric
+                    end
+                    end
+                end
+            subgraph signatures
+              signature
+            end
+        end
+    end
+style payload fill:#0000
+style signature fill:#0000
+style plaintext fill:#0000
+style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000
+style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+style EncryptedMessage fill:#f002,stroke:#f00
+style encrypted fill:#0000
+style Permit fill:#0000
+style symmetric fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -556,15 +634,29 @@ XCTAssertNil(envelope.plaintext(for: Self.aliceIdentity))
 
 > "An envelope that can only be opened by specific receivers."
 
-```
-Envelope {
-    Message {       |
-        Plaintext   | ENCRYPTED
-    }               |
-    Permit: recipients {
-        [SealedMessage, SealedMessage]
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph recipients
+                    SealedMessage1
+                    SealedMessage2
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style SealedMessage1 fill:#0000
+style SealedMessage2 fill:#0000
+style encrypted fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
+style recipients fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -573,7 +665,7 @@ Envelope {
 49(                                                             # Envelope
    [
       2,                                                        # type 2: encrypted
-      48(                                                       # Message
+      48(                                                       # EncryptedMessage
          [
             1,                                                  # type 1: IETF-ChaCha20-Poly1305
             h'1e39b27031bd1f3db5c4f622fe598e5bf4d774600b32567232e048cf19bda32f94a15006054d9135f4', # ciphertext (content)
@@ -589,7 +681,7 @@ Envelope {
                55(                                              # SealedMessage
                   [
                      1,                                         # type 1
-                     48(                                        # Message
+                     48(                                        # EncryptedMessage
                         [
                            1,                                   # type 1: IETF-ChaCha20-Poly1305
                            h'837437f4b5e3c506572ce4f3bb4a16c928ee211d30913862f3c52ec170f1ebe8', # ciphertext (content key)
@@ -606,7 +698,7 @@ Envelope {
                55(                                              # SealedMessage
                   [
                      1,                                         # type 1
-                     48(                                        # Message
+                     48(                                        # EncryptedMessage
                         [
                            1,                                   # type 1: IETF-ChaCha20-Poly1305
                            h'1d265bb282f6c8b6f44b8891bbd6be66af46f6361b58a5fb0d92822480b38c5e', # ciphertext (content key)
@@ -633,7 +725,7 @@ Envelope {
 d8 31                                    # tag(49):             Envelope
    83                                    # array(3)
       02                                 # unsigned(2):         type 2: encrypted
-      d8 30                              # tag(48):             Message
+      d8 30                              # tag(48):             EncryptedMessage
          85                              # array(5)
             01                           # unsigned(1):         type 1: IETF-ChaCha20-Poly1305
             5829                         # bytes(41):           ciphertext (content)
@@ -717,18 +809,40 @@ XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
 
 > "A signed envelope that can only be opened by specific receivers."
 
-```
-Envelope {
-    Message {               |
-        Envelope {          |
-            Plaintext       | ENCRYPTED
-            Signature       |
-        }                   |
-    }                       |
-    Permit: recipients {
-        [SealedMessage, SealedMessage]
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph encrypted
+            subgraph EncryptedMessage
+                subgraph Envelope2
+                    subgraph plaintext
+                        payload
+                        subgraph signatures
+                            signature
+                        end
+                    end
+                end
+            end
+            subgraph Permit
+                subgraph recipients
+                    SealedMessage1
+                    SealedMessage2
+                end
+            end
+        end
+    end
+style encrypted fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+style payload fill:#0000
+style Permit fill:#0000
+style plaintext fill:#0000
+style recipients fill:#0000
+style SealedMessage1 fill:#0000
+style SealedMessage2 fill:#0000
+style signature fill:#0000
+style signatures fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -737,7 +851,7 @@ Envelope {
 49(                                                             # Envelope
    [
       2,                                                        # type 2: encrypted
-      48(                                                       # Message
+      48(                                                       # EncryptedMessage
          [
             1,                                                  # type 1: IETF-ChaCha20-Poly1305
             h'867eb0c86f00acde3b7a25eeab98f4d59cc376912f35e6dc61cc42fc01a34c55bc7a85d14775eca8fa441543fc23f640d7e6378b1d7444eb3ec867d1cf28adb07ff1d8650a9dfcae40d089da4176f10417321a0ba99c5b9b3cb66a7e8cd2991a77f3b8452ed927e8d59ec71e55b242bf02f1791965da241a', # ciphertext (inner signed envelope)
@@ -753,7 +867,7 @@ Envelope {
                55(                                              # SealedMessage
                   [
                      1,                                         # type 1
-                     48(                                        # Message
+                     48(                                        # EncryptedMessage
                         [
                            1,                                   # type 1: IETF-ChaCha20-Poly1305
                            h'b0dee30d81a7a0c771e1ca5f08876913e8f8acc0a59e45a6fab42703787ca9be', # ciphertext (content key)
@@ -770,7 +884,7 @@ Envelope {
                55(                                              # SealedMessage
                   [
                      1,                                         # type 1
-                     48(                                        # Message
+                     48(                                        # EncryptedMessage
                         [
                            1,                                   # type 1: IETF-ChaCha20-Poly1305
                            h'7db2a930004235e99558da8a8d70edcd9edfa53008334b6c8add675548599d90', # ciphertext (content key)
@@ -797,7 +911,7 @@ Envelope {
 d8 31                                    # tag(49):                         Envelope
    83                                    # array(3)
       02                                 # unsigned(2):                     type 2: encrypted
-      d8 30                              # tag(48):                         Message
+      d8 30                              # tag(48):                         EncryptedMessage
          85                              # array(5)
             01                           # unsigned(1):                     type 1: IETF-ChaCha20-Poly1305
             5878                         # bytes(120):                      ciphertext (inner signed envelope)
@@ -814,7 +928,7 @@ d8 31                                    # tag(49):                         Enve
                d8 37                     # tag(55):                         SealedMessage
                   83                     # array(3)
                      01                  # unsigned(1):                     type 1
-                     d8 30               # tag(48):                         Message
+                     d8 30               # tag(48):                         EncryptedMessage
                         85               # array(5)
                            01            # unsigned(1):                     type 1: IETF-ChaCha20-Poly1305
                            5820          # bytes(32):                       ciphertext (content key)
@@ -830,7 +944,7 @@ d8 31                                    # tag(49):                         Enve
                d8 37                     # tag(55):                         SealedMessage
                   83                     # array(3)
                      01                  # unsigned(1):                     type 1
-                     d8 30               # tag(48):                         Message
+                     d8 30               # tag(48):                         EncryptedMessage
                         85               # array(5)
                            01            # unsigned(1):                     type 1: IETF-ChaCha20-Poly1305
                            5820          # bytes(32):                       ciphertext (content key)
@@ -897,33 +1011,73 @@ XCTAssertNil(Envelope.plaintext(from: [bobEnvelope]))
 
 > "Several envelopes containing a seed split into several SSKR shares."
 
+```mermaid
+graph TD
+    subgraph Envelope0
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph sskr
+                    SSKRShare0
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style sskr fill:#0000
+style SSKRShare0 fill:#0000
+style encrypted fill:#0000
+style Envelope0 fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
 ```
-Envelope 0 {
-    Message {       |
-        Seed        | ENCRYPTED
-    }               |
-    Permit: sskr {
-        SSKRShare 0
-    }
-}
 
-Envelope 1 {
-    Message {       |
-        Seed        | ENCRYPTED
-    }               |
-    Permit: sskr {
-        SSKRShare 1
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph sskr
+                    SSKRShare1
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style sskr fill:#0000
+style SSKRShare1 fill:#0000
+style encrypted fill:#0000
+style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
+```
 
-Envelope 2 {
-    Message {       |
-        Seed        | ENCRYPTED
-    }               |
-    Permit: sskr {
-        SSKRShare 2
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope2
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph sskr
+                    SSKRShare2
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style sskr fill:#0000
+style SSKRShare2 fill:#0000
+style encrypted fill:#0000
+style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
 ```
 
 ### CBOR Diagnostic Notation
@@ -961,7 +1115,7 @@ This example details one of the three envelopes.
 d8 31                                    # tag(49):             Envelope
    83                                    # array(3)
       02                                 # unsigned(2):         type 2: encrypted
-      d8 30                              # tag(48):             Message
+      d8 30                              # tag(48):             EncryptedMessage
          85                              # array(5)
             01                           # unsigned(1):         type 1: IETF-ChaCha20-Poly1305
             58b2                         # bytes(178):          ciphertext (Seed)
@@ -978,6 +1132,8 @@ d8 31                                    # tag(49):             Envelope
                5825                      # bytes(37)
                   7770000100dc17ac8e85e9b6a0dc204002e0a9178e279c7b3799380fba2f8a2067b46bff5e
 ```
+
+### UR
 
 ```
 ur:crypto-envelope/lsaotpdylpadhdprbgguaeutrtcwrottttdpoxqdspyaatjootqzhgndstgdgabwcwcpsgbdamvtcfwzgarphytddkdmldbzhttsfnjolegojemdfsesctzchneccyjzzcztjktoyldienoxvysnsnetjkbwdlgoecetqdytehdkftldfswpqddmfxgaaycfaxpramnbwfynmsesfyimnnsbnykgiyimdlglenmwuofwvlwnbzhtgwrdrngwurvtsoctzolncxtdihbdvecmcnfygtmslnfmjzbywzqdbbjobycngyeylowpbgztsgwslfyasozcgwzolfiyimqdnsgowzismhoetshybdlfmhfrdwpscaahfzgsrptppmtirfmuldhspewefzvogdamahfhashedtvstdmtdabbrdgroyrfadtaaornlfaxtaadechddaktjoaeadaeuochpsmnlpwlrpnbuocxfzaovtptchmndinskgemnletbsrddllecxioqzjezmhyfmghrehn

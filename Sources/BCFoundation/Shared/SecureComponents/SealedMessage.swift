@@ -6,24 +6,24 @@ import WolfBase
 /// It is encrypted using an ephemeral private key that is thrown away, and encapsulates
 /// the ephemeral public key and the receiver's public key needed for decryption.
 public struct SealedMessage {
-    public let message: Message
+    public let message: EncryptedMessage
     public let ephemeralPublicKey: PublicAgreementKey
     
     public init(plaintext: DataProvider, receiver: Peer, aad: Data? = nil) {
         let ephemeralSender = Identity()
         let receiverPublicKey = receiver.publicAgreementKey
-        let key = Message.sharedKey(identityPrivateKey: ephemeralSender.privateAgreementKey, peerPublicKey: receiverPublicKey)
+        let key = EncryptedMessage.sharedKey(identityPrivateKey: ephemeralSender.privateAgreementKey, peerPublicKey: receiverPublicKey)
         self.message = key.encrypt(plaintext: plaintext, aad: aad)
         self.ephemeralPublicKey = ephemeralSender.publicAgreementKey
     }
     
-    public init(message: Message, ephemeralPublicKey: PublicAgreementKey) {
+    public init(message: EncryptedMessage, ephemeralPublicKey: PublicAgreementKey) {
         self.message = message
         self.ephemeralPublicKey = ephemeralPublicKey
     }
     
     public func plaintext(with identity: Identity) -> Data? {
-        let key = Message.sharedKey(identityPrivateKey: identity.privateAgreementKey, peerPublicKey: ephemeralPublicKey)
+        let key = EncryptedMessage.sharedKey(identityPrivateKey: identity.privateAgreementKey, peerPublicKey: ephemeralPublicKey)
         return key.decrypt(message: message)
     }
     
@@ -56,7 +56,7 @@ extension SealedMessage {
             elements.count == 3,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
-            let message = try? Message(taggedCBOR: elements[1]),
+            let message = try? EncryptedMessage(taggedCBOR: elements[1]),
             let ephemeralPublicKey = try? PublicAgreementKey(taggedCBOR: elements[2])
         else {
             throw CBORError.invalidFormat

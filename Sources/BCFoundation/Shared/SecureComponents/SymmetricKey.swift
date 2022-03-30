@@ -27,15 +27,15 @@ public struct SymmetricKey: CustomStringConvertible, Equatable, Hashable, RawRep
         rawValue.description.flanked("Key(", ")")
     }
     
-    public func encrypt(plaintext: DataProvider, aad: Data? = nil, nonce: Message.Nonce? = nil) -> Message {
+    public func encrypt(plaintext: DataProvider, aad: Data? = nil, nonce: EncryptedMessage.Nonce? = nil) -> EncryptedMessage {
         let plaintext = plaintext.providedData
         let aad = aad ?? Data()
-        let nonce = nonce ?? Message.Nonce()
+        let nonce = nonce ?? EncryptedMessage.Nonce()
         let (ciphertext, auth) = try! AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: self.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes)
-        return Message(ciphertext: Data(ciphertext), aad: aad, nonce: nonce, auth: Message.Auth(rawValue: Data(auth))!)!
+        return EncryptedMessage(ciphertext: Data(ciphertext), aad: aad, nonce: nonce, auth: EncryptedMessage.Auth(rawValue: Data(auth))!)!
     }
     
-    public func decrypt(message: Message) -> Data? {
+    public func decrypt(message: EncryptedMessage) -> Data? {
         guard let (plaintext, success) =
                 try? AEADChaCha20Poly1305.decrypt(message.ciphertext.bytes, key: self.bytes, iv: message.nonce.bytes, authenticationHeader: message.aad.bytes, authenticationTag: message.auth.bytes),
                 success

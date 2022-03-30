@@ -40,7 +40,7 @@ The types defined in the Secure Components suite are designed to be minimal, sim
 
 * `Envelope` is the central "top level" type of Secure Components. It is a general container for messages that provides for encryption, signing, and sharding.
 
-* `Message` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
+* `EncryptedMessage` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
 
 * `Identity` holds key material such as a Seed belonging to an identifiable entity, and can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
 
@@ -52,7 +52,7 @@ Many of the types defined herein are assigned CBOR tags for use when encoding th
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
-|48|`crypto-msg`|`Message`|
+|48|`crypto-msg`|`EncryptedMessage`|
 |49|`crypto-envelope`|`Envelope`|
 |50|`crypto-identity`|`Identity`|
 |51|`crypto-peer`|`Peer`|
@@ -105,20 +105,20 @@ An `Envelope` allows for flexible signing, encryption, and sharding of messages.
 ```swift
 public enum Envelope {
     case plaintext(Data, [Signature])
-    case encrypted(Message, Permit)
+    case encrypted(EncryptedMessage, Permit)
 }
 ```
 
 It is an enumerated type with two cases: `.plaintext` and `.encrypted`.
 
 * If `.plaintext` is used, it may also carry one or more signatures.
-* If `.encrypted` is used, the encrypted `Message` is accompanied by a `Permit` that defines the conditions under which the `Message` may be decrypted.
+* If `.encrypted` is used, the `EncryptedMessage` is accompanied by a `Permit` that defines the conditions under which the `EncryptedMessage` may be decrypted.
 
 To facilitate further decoding, it is RECOMMENDED that the payload of an `Envelope` should itself be tagged CBOR.
 
 `Envelope` can contain as its payload another CBOR-encoded `Envelope`. This facilitates both sign-then-encrypt and encrypt-then sign constructions. The reason why `.plaintext` messages may be signed and `.encrypted` messages may not is that generally a signer should have access to the content of what they are signing, therefore this design encourages the sign-then-encrypt order of operations. If encrypt-then-sign is preferred, then this is easily accomplished by creating an `.encrypted` and then enclosing that envelope in a `.plaintext` with the appropriate signatures.
 
-A `Permit` specifies the conditions under which a `Message` may be decrypted, and contains three cases:
+A `Permit` specifies the conditions under which an `EncryptedMessage` may be decrypted, and contains three cases:
 
 ```swift
 public enum Permit {
@@ -128,135 +128,289 @@ public enum Permit {
 }
 ```
 
-* `.symmetric` means that the `Message` was encrypted with a `SymmetricKey` that the receiver is already expected to have.
+* `.symmetric` means that the `EncryptedMessage` was encrypted with a `SymmetricKey` that the receiver is already expected to have.
 * `.recipients` facilitates multi-recipient public key cryptography by including an array of `SealedMessage`, each of which is encrypted to a particular recipient's public key, and which contains an ephemeral key that can be used by a recipient to decrypt the main message.
-* `.share` facilitates social recovery by pairing a `Message` encrypted with an ephemeral key with an `SSKRShare`, and providing for the production of a set of `Envelope`s, each one including a different share. Only an M-of-N threshold of shares will allow the recovery of the ephemeral key and hence the decryption of the original message. Each recipient of one of these `Envelope`s will have an encrypted backup of the entire original `Message`, but only a single `SSKRShare`.
+* `.share` facilitates social recovery by pairing an `EncryptedMessage` encrypted with an ephemeral key with an `SSKRShare`, and providing for the production of a set of `Envelope`s, each one including a different share. Only an M-of-N threshold of shares will allow the recovery of the ephemeral key and hence the decryption of the original message. Each recipient of one of these `Envelope`s will have an encrypted backup of the entire original `EncryptedMessage`, but only a single `SSKRShare`.
 
 This structure provides a flexible framework for constructing solutions to various applications. Here are some high-level schematics of such applications. See the EXAMPLES chapter for more detail.
 
 ### "An envelope containing plaintext."
 
-```
-Envelope {
-    Plaintext
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph plaintext
+            payload
+            subgraph signatures
+            end
+        end
+    end
+style payload fill:#0000
+style plaintext fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000, stroke-dasharray: 5 5
 ```
 
 ### "An envelope containing signed plaintext."
 
-```
-Envelope {
-    Plaintext
-    Signature
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph plaintext
+            payload
+            subgraph signatures
+                signature0
+            end
+        end
+    end
+style payload fill:#0000
+style signature0 fill:#0000
+style plaintext fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000
 ```
 
 ### "An envelope containing plaintext signed by several parties."
 
-```
-Envelope {
-    Plaintext
-    [Signature, Signature]
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph plaintext
+            payload
+            subgraph signatures
+                signature0
+                signature1
+            end
+        end
+    end
+style payload fill:#0000
+style signature0 fill:#0000
+style signature1 fill:#0000
+style plaintext fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000
 ```
 
-### "An envelope containing a encrypted message."
+### "An envelope containing an encrypted message."
 
-```
-Envelope {
-    Message {           |
-        Plaintext       | ENCRYPTED
-    }                   |
-    Permit: symmetric
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                symmetric
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style symmetric fill:#0000
+style encrypted fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
 ```
 
 ### "An encrypted envelope containing a signed envelope."
 
-```
-Envelope {
-    Message {           |
-        Envelope {      |
-            Plaintext   | ENCRYPTED
-            Signature   |
-        }               |
-    }                   |
-    Permit: symmetric
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph encrypted
+            subgraph EncryptedMessage
+                subgraph Envelope2
+                    subgraph plaintext
+                        payload
+                        subgraph signatures
+                            signature
+                        end
+                    end
+                end
+            end
+            subgraph Permit
+                symmetric
+            end
+        end
+    end
+    style payload fill:#0000
+    style EncryptedMessage fill:#f002,stroke:#f00
+    style symmetric fill:#0000
+    style encrypted fill:#0000
+    style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+    style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+    style Permit fill:#0000
+    style plaintext fill:#0000
+    style signatures fill:#0000
+    style signature fill:#0000
 ```
 
 ### "A signed envelope containing an encrypted envelope."
 
-```
-Envelope {
-    Plaintext {
-        Envelope {
-            Message {           |
-                Plaintext       | ENCRYPTED
-            }                   |
-            Permit: symmetric
-        }
-    }
-    Signature
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph plaintext
+            subgraph Envelope2
+                subgraph encrypted
+                    subgraph EncryptedMessage
+                        payload
+                    end
+                    subgraph Permit
+                        symmetric
+                    end
+                    end
+                end
+            subgraph signatures
+              signature
+            end
+        end
+    end
+style payload fill:#0000
+style signature fill:#0000
+style plaintext fill:#0000
+style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+style signatures fill:#0000
+style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+style EncryptedMessage fill:#f002,stroke:#f00
+style encrypted fill:#0000
+style Permit fill:#0000
+style symmetric fill:#0000
 ```
 
 ### "An envelope that can only be opened by specific receivers."
 
-```
-Envelope {
-    Message {       |
-        Plaintext   | ENCRYPTED
-    }               |
-    Permit: recipients {
-        [SealedMessage, SealedMessage]
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph recipients
+                    SealedMessage1
+                    SealedMessage2
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style SealedMessage1 fill:#0000
+style SealedMessage2 fill:#0000
+style encrypted fill:#0000
+style Envelope fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
+style recipients fill:#0000
 ```
 
 ### "A signed envelope that can only be opened by specific receivers."
 
-```
-Envelope {
-    Message {               |
-        Envelope {          |
-            Plaintext       | ENCRYPTED
-            Signature       |
-        }                   |
-    }                       |
-    Permit: recipients {
-        [SealedMessage, SealedMessage]
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph encrypted
+            subgraph EncryptedMessage
+                subgraph Envelope2
+                    subgraph plaintext
+                        payload
+                        subgraph signatures
+                            signature
+                        end
+                    end
+                end
+            end
+            subgraph Permit
+                subgraph recipients
+                    SealedMessage1
+                    SealedMessage2
+                end
+            end
+        end
+    end
+style encrypted fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+style payload fill:#0000
+style Permit fill:#0000
+style plaintext fill:#0000
+style recipients fill:#0000
+style SealedMessage1 fill:#0000
+style SealedMessage2 fill:#0000
+style signature fill:#0000
+style signatures fill:#0000
 ```
 
 ### "Several envelopes containing a seed split into several SSKR shares."
 
+```mermaid
+graph TD
+    subgraph Envelope0
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph sskr
+                    SSKRShare0
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style sskr fill:#0000
+style SSKRShare0 fill:#0000
+style encrypted fill:#0000
+style Envelope0 fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
 ```
-Envelope 0 {
-    Message {       |
-        Seed        | ENCRYPTED
-    }               |
-    Permit: sskr {
-        SSKRShare 0
-    }
-}
 
-Envelope 1 {
-    Message {       |
-        Seed        | ENCRYPTED
-    }               |
-    Permit: sskr {
-        SSKRShare 1
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope1
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph sskr
+                    SSKRShare1
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style sskr fill:#0000
+style SSKRShare1 fill:#0000
+style encrypted fill:#0000
+style Envelope1 fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
+```
 
-Envelope 2 {
-    Message {       |
-        Seed        | ENCRYPTED
-    }               |
-    Permit: sskr {
-        SSKRShare 2
-    }
-}
+```mermaid
+graph TD
+    subgraph Envelope2
+        subgraph encrypted
+            subgraph EncryptedMessage
+                payload
+            end
+            subgraph Permit
+                subgraph sskr
+                    SSKRShare2
+                end
+            end
+        end
+    end
+style payload fill:#0000
+style EncryptedMessage fill:#f002,stroke:#f00
+style sskr fill:#0000
+style SSKRShare2 fill:#0000
+style encrypted fill:#0000
+style Envelope2 fill:#0000, stroke: #88f, stroke-width: 3
+style Permit fill:#0000
 ```
