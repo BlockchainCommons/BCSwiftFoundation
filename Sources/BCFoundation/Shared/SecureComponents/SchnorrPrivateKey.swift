@@ -3,7 +3,7 @@ import CryptoKit
 import WolfBase
 
 /// An private key for use in creating Schnorr signatures.
-public struct PrivateSigningKey: RawRepresentable, CustomStringConvertible, Hashable {
+public struct SchnorrPrivateKey: RawRepresentable, CustomStringConvertible, Hashable {
     public let rawValue: Data
 
     public init?(rawValue: Data) {
@@ -23,10 +23,10 @@ public struct PrivateSigningKey: RawRepresentable, CustomStringConvertible, Hash
         return Signature(data: sig, tag: tag)!
     }
     
-    public var publicKey: PublicSigningKey {
+    public var publicKey: SchnorrPublicKey {
         let privateKey = ECPrivateKey(rawValue)!
         let xOnlyPublicKey = privateKey.xOnlyPublic
-        return PublicSigningKey(rawValue: xOnlyPublicKey.data)!
+        return SchnorrPublicKey(rawValue: xOnlyPublicKey.data)!
     }
     
     public var description: String {
@@ -38,7 +38,7 @@ public struct PrivateSigningKey: RawRepresentable, CustomStringConvertible, Hash
     }
 }
 
-extension PrivateSigningKey {
+extension SchnorrPrivateKey {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let key = CBOR.data(self.rawValue)
@@ -46,7 +46,7 @@ extension PrivateSigningKey {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.privateSigningKey, cbor)
+        CBOR.tagged(.schnorrPrivateKey, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -56,7 +56,7 @@ extension PrivateSigningKey {
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
             case let CBOR.data(rawValue) = elements[1],
-            let key = PrivateSigningKey(rawValue: rawValue)
+            let key = SchnorrPrivateKey(rawValue: rawValue)
         else {
             throw CBORError.invalidFormat
         }
@@ -64,7 +64,7 @@ extension PrivateSigningKey {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.privateSigningKey, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.schnorrPrivateKey, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

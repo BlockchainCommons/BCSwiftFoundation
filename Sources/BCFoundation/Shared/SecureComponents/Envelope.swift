@@ -125,7 +125,7 @@ extension Envelope {
 
     public init(plaintext: DataProvider, signers: [Identity], tag: Data = Data()) {
         let signatures = signers.map {
-            $0.privateSigningKey.sign(plaintext, tag: tag)
+            $0.schnorrPrivateKey.sign(plaintext, tag: tag)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
@@ -176,7 +176,7 @@ extension Envelope {
         return signatures
     }
     
-    public func isValidSignature(_ signature: Signature, key: PublicSigningKey) -> Bool {
+    public func isValidSignature(_ signature: Signature, key: SchnorrPublicKey) -> Bool {
         guard let plaintext = plaintext else {
             return false
         }
@@ -187,7 +187,7 @@ extension Envelope {
         isValidSignature(signature, key: peer.publicSigningKey)
     }
     
-    public func hasValidSignature(key: PublicSigningKey) -> Bool {
+    public func hasValidSignature(key: SchnorrPublicKey) -> Bool {
         signatures.contains { isValidSignature($0, key: key) }
     }
     
@@ -195,7 +195,7 @@ extension Envelope {
         hasValidSignature(key: peer.publicSigningKey)
     }
     
-    public func hasValidSignatures(with keys: [PublicSigningKey], threshold: Int? = nil) -> Bool {
+    public func hasValidSignatures(with keys: [SchnorrPublicKey], threshold: Int? = nil) -> Bool {
         keys.filter(hasValidSignature).count >= threshold ?? keys.count
     }
     

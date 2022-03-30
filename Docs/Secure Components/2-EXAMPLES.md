@@ -690,7 +690,7 @@ style recipients fill:#0000
                            h'555429d2197fa77b9451988d6db7f38b'  # auth
                         ]
                      ),
-                     705(                                       # ephemeralPublicKey: X25519 PublicAgreementKey
+                     705(                                       # ephemeralPublicKey: X25519 AgreementPublicKey
                         h'd66e3e690410b8a8d71d846c5af494bd41edd7feb263e650a6cba05f9336c770'
                      )
                   ]
@@ -707,7 +707,7 @@ style recipients fill:#0000
                            h'be028fe883d56549e0094895d1d17ef5'  # auth
                         ]
                      ),
-                     705(                                       # ephemeralPublicKey: X25519 PublicAgreementKey
+                     705(                                       # ephemeralPublicKey: X25519 AgreementPublicKey
                         h'222abfb6ebb1cccedc02f7aaa48d1907f31fbd98af91d773bbbfe4f8871fc719'
                      )
                   ]
@@ -752,7 +752,7 @@ d8 31                                    # tag(49):             Envelope
                               55bc9a52d35e44df973899fc
                            50            # bytes(16):           auth
                               555429d2197fa77b9451988d6db7f38b
-                     d9 02c1             # tag(705):            ephemeralPublicKey: X25519 PublicAgreementKey
+                     d9 02c1             # tag(705):            ephemeralPublicKey: X25519 AgreementPublicKey
                         5820             # bytes(32)
                            d66e3e690410b8a8d71d846c5af494bd41edd7feb263e650a6cba05f9336c770
                d8 37                     # tag(55):             SealedMessage
@@ -768,7 +768,7 @@ d8 31                                    # tag(49):             Envelope
                               06cb46ec90c07428be9a67eb
                            50            # bytes(16):           auth
                               be028fe883d56549e0094895d1d17ef5
-                     d9 02c1             # tag(705):            ephemeralPublicKey: X25519 PublicAgreementKey
+                     d9 02c1             # tag(705):            ephemeralPublicKey: X25519 AgreementPublicKey
                         5820             # bytes(32)
                            222abfb6ebb1cccedc02f7aaa48d1907f31fbd98af91d773bbbfe4f8871fc719
 ```
@@ -876,7 +876,7 @@ style signatures fill:#0000
                            h'4897769b496056ac06b99a27d1f02143'  # auth
                         ]
                      ),
-                     705(                                       # ephemeralPublicKey: X25519 PublicAgreementKey
+                     705(                                       # ephemeralPublicKey: X25519 AgreementPublicKey
                         h'fe0cdb101f9041e3fe93bc78b1877bac9dbc0e675cf775a86602e14f1dd5440a'
                      )
                   ]
@@ -893,7 +893,7 @@ style signatures fill:#0000
                            h'68371106ad338cbdb875fd4bf41bb385'  # auth
                         ]
                      ),
-                     705(                                       # ephemeralPublicKey: X25519 PublicAgreementKey
+                     705(                                       # ephemeralPublicKey: X25519 AgreementPublicKey
                         h'fe43086af5db9bd0f30638f2f7e7ffc0284af690b13000ad8dab4a698bd05433'
                      )
                   ]

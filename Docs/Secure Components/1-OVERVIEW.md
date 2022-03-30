@@ -67,10 +67,10 @@ Types that do not define a UR type generally would never be serialized as a top-
 |700|`Digest`|
 |701|`Password`|
 |702|`Permit`|
-|703|`PrivateAgreementKey`|
-|704|`PrivateSigningKey`|
-|705|`PublicAgreementKey`|
-|706|`PublicSigningKey`|
+|703|`AgreementPrivateKey`|
+|704|`AgreementPublicKey`|
+|705|`SchnorrPrivateKey`|
+|706|`SchnorrPublicKey`|
 |707|`Signature`|
 |708|`SymmetricKey`|
 

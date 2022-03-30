@@ -12,9 +12,9 @@ public struct SealedMessage {
     public init(plaintext: DataProvider, receiver: Peer, aad: Data? = nil) {
         let ephemeralSender = Identity()
         let receiverPublicKey = receiver.publicAgreementKey
-        let key = EncryptedMessage.sharedKey(identityPrivateKey: ephemeralSender.privateAgreementKey, peerPublicKey: receiverPublicKey)
+        let key = EncryptedMessage.sharedKey(identityPrivateKey: ephemeralSender.agreementPrivateKey, peerPublicKey: receiverPublicKey)
         self.message = key.encrypt(plaintext: plaintext, aad: aad)
-        self.ephemeralPublicKey = ephemeralSender.publicAgreementKey
+        self.ephemeralPublicKey = ephemeralSender.agreementPublicKey
     }
     
     public init(message: EncryptedMessage, ephemeralPublicKey: PublicAgreementKey) {
@@ -23,7 +23,7 @@ public struct SealedMessage {
     }
     
     public func plaintext(with identity: Identity) -> Data? {
-        let key = EncryptedMessage.sharedKey(identityPrivateKey: identity.privateAgreementKey, peerPublicKey: ephemeralPublicKey)
+        let key = EncryptedMessage.sharedKey(identityPrivateKey: identity.agreementPrivateKey, peerPublicKey: ephemeralPublicKey)
         return key.decrypt(message: message)
     }
     

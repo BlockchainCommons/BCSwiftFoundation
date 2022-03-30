@@ -35,7 +35,7 @@ extension PublicAgreementKey {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.publicAgreementKey, cbor)
+        CBOR.tagged(.agreementPublicKey, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -53,7 +53,7 @@ extension PublicAgreementKey {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.publicAgreementKey, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.agreementPublicKey, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

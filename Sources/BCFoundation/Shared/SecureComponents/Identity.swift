@@ -47,21 +47,21 @@ public struct Identity {
         self.init(SecureRandomNumberGenerator.shared.data(count: 32))
     }
     
-    public var privateSigningKey: PrivateSigningKey {
+    public var schnorrPrivateKey: SchnorrPrivateKey {
         return .init(rawValue: HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "signing".utf8Data, outputByteCount: 32)
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var publicSigningKey: PublicSigningKey {
-        privateSigningKey.publicKey
+    public var schnorrPublicKey: SchnorrPublicKey {
+        schnorrPrivateKey.publicKey
     }
     
-    public var privateAgreementKey: PrivateAgreementKey {
+    public var agreementPrivateKey: PrivateAgreementKey {
         return .init(rawValue: HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "agreement".utf8Data, outputByteCount: 32)
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var publicAgreementKey: PublicAgreementKey {
-        .init(privateAgreementKey)
+    public var agreementPublicKey: PublicAgreementKey {
+        .init(agreementPrivateKey)
     }
 }

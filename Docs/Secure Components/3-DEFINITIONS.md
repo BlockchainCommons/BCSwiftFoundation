@@ -127,10 +127,10 @@ auth: bytes .size 16    ; Authentication tag created by Poly1305
 
 ### Derivations
 
-* `PrivateSigningKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `signing`.
-* `PublicSigningKey`: [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) x-only public key.
-* `PrivateAgreementKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `agreement`.
-* `PrivateSigningKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
+* `SchnorrPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `signing`.
+* `SchnorrPublicKey`: [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) x-only public key.
+* `AgreementPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `agreement`.
+* `SchnorrPrivateKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
 
 ### CDDL for Identity
 
@@ -223,15 +223,15 @@ hashed-password: bytes              ; 32 bytes recommended
 
 ---
 
-## PrivateAgreementKey
+## AgreementPrivateKey
 
 A Curve25519 private key used for [X25519 key agreement](https://datatracker.ietf.org/doc/html/rfc7748).
 
 |CBOR Tag|Swift Type|
 |---|---|
-|703|`PrivateAgreementKey`|
+|703|`AgreementPrivateKey`|
 
-### CDDL for PrivateAgreementKey
+### CDDL for AgreementPrivateKey
 
 ```
 private-agreement-key = #6.703([ key-type, key ])
@@ -242,37 +242,18 @@ key: bytes .size 32
 
 ---
 
-## PrivateSigningKey
-
-A private key for creating [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signatures.
-
-|CBOR Tag|Swift Type|
-|---|---|
-|704|`PrivateSigningKey`||700|`Digest`|
-
-### CDDL for PrivateSigningKey
-
-```
-private-signing-key = #6.704([ key-type, key ])
-
-key-type: uint = 1
-key: bytes .size 32
-```
-
----
-
-## PublicAgreementKey
+## AgreementPublicKey
 
 A Curve25519 public key used for [X25519 key agreement](https://datatracker.ietf.org/doc/html/rfc7748).
 
 |CBOR Tag|Swift Type|
 |---|---|
-|705|`PublicAgreementKey`|
+|704|`AgreementPublicKey`|
 
-### CDDL for PublicAgreementKey
+### CDDL for AgreementPublicKey
 
 ```
-public-agreement-key = #6.705([ key-type, key ])
+public-agreement-key = #6.704([ key-type, key ])
 
 key-type: uint = 1
 key: bytes .size 32
@@ -280,15 +261,34 @@ key: bytes .size 32
 
 ---
 
-## PublicSigningKey
+## SchnorrPrivateKey
+
+A private key for creating [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signatures.
+
+|CBOR Tag|Swift Type|
+|---|---|
+|705|`SchnorrPrivateKey`||700|`Digest`|
+
+### CDDL for SchnorrPrivateKey
+
+```
+private-signing-key = #6.705([ key-type, key ])
+
+key-type: uint = 1
+key: bytes .size 32
+```
+
+---
+
+## SchnorrPublicKey
 
 An x-only public key for verifying [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signatures.
 
 |CBOR Tag|Swift Type|
 |---|---|
-|706|`PublicSigningKey`|
+|706|`SchnorrPublicKey`|
 
-### CDDL for PublicSigningKey
+### CDDL for SchnorrPublicKey
 
 ```
 public-signing-key = #6.706([ key-type, key ])
