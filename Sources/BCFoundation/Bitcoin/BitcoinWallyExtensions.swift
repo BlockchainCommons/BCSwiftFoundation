@@ -74,7 +74,7 @@ extension Wally {
         }
     }
     
-    public static func multisigScriptPubKey(pubKeys:[ECCompressedPublicKey], threshold: UInt, isBIP67: Bool = true) -> ScriptPubKey {
+    public static func multisigScriptPubKey(pubKeys:[ECPublicKey], threshold: UInt, isBIP67: Bool = true) -> ScriptPubKey {
         let pubKeysData = pubKeys.map { $0.data }
         let output = Wally.multisigScriptPubKey(pubKeys: pubKeysData, threshold: threshold, isBIP67: isBIP67)
         return ScriptPubKey(Script(output))

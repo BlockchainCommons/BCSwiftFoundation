@@ -69,10 +69,10 @@ Types that do not define a UR type generally would never be serialized as a top-
 |702|`Permit`|
 |703|`AgreementPrivateKey`|
 |704|`AgreementPublicKey`|
-|705|`SchnorrPrivateKey`|
-|706|`SchnorrPublicKey`|
+|705|`SigningPrivateKey`|
+|706|`SigningPublicKey`|
 |707|`Signature`|
-|708|`SymmetricKey`|
+|710|`SymmetricKey`|
 
 ## Untagged Types
 

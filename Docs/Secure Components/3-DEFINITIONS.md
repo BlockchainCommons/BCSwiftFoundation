@@ -127,10 +127,10 @@ auth: bytes .size 16    ; Authentication tag created by Poly1305
 
 ### Derivations
 
-* `SchnorrPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `signing`.
-* `SchnorrPublicKey`: [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) x-only public key.
+* `SigningPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `signing`.
+* `SigningPublicKey`: [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) x-only public key.
 * `AgreementPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `agreement`.
-* `SchnorrPrivateKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
+* `SigningPrivateKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
 
 ### CDDL for Identity
 
@@ -261,15 +261,15 @@ key: bytes .size 32
 
 ---
 
-## SchnorrPrivateKey
+## SigningPrivateKey
 
 A private key for creating [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signatures.
 
 |CBOR Tag|Swift Type|
 |---|---|
-|705|`SchnorrPrivateKey`||700|`Digest`|
+|705|`SigningPrivateKey`||700|`Digest`|
 
-### CDDL for SchnorrPrivateKey
+### CDDL for SigningPrivateKey
 
 ```
 private-signing-key = #6.705([ key-type, key ])
@@ -280,15 +280,15 @@ key: bytes .size 32
 
 ---
 
-## SchnorrPublicKey
+## SigningPublicKey
 
 An x-only public key for verifying [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signatures.
 
 |CBOR Tag|Swift Type|
 |---|---|
-|706|`SchnorrPublicKey`|
+|706|`SigningPublicKey`|
 
-### CDDL for SchnorrPublicKey
+### CDDL for SigningPublicKey
 
 ```
 public-signing-key = #6.706([ key-type, key ])
@@ -324,7 +324,7 @@ signature-tag: bytes
 A symmetric key for encryption and decryption of [IETF-ChaCha20-Poly1305](https://datatracker.ietf.org/doc/html/rfc8439) messages.
 |CBOR Tag|Swift Type|
 |---|---|
-|708|`SymmetricKey`|
+|710|`SymmetricKey`|
 
 ### CDDL for SymmetricKey
 

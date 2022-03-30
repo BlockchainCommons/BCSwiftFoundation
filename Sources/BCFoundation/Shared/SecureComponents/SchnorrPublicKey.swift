@@ -3,7 +3,7 @@ import CryptoKit
 import WolfBase
 
 /// A x-only public key used to verify Schnorr signatures.
-public struct SchnorrPublicKey: RawRepresentable, CustomStringConvertible, Hashable {
+public struct SigningPublicKey: RawRepresentable, CustomStringConvertible, Hashable {
     public let rawValue: Data
     
     public init?(rawValue: Data) {
@@ -23,7 +23,7 @@ public struct SchnorrPublicKey: RawRepresentable, CustomStringConvertible, Hasha
     }
 }
 
-extension SchnorrPublicKey {
+extension SigningPublicKey {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let key = CBOR.data(self.rawValue)
@@ -31,7 +31,7 @@ extension SchnorrPublicKey {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.schnorrPublicKey, cbor)
+        CBOR.tagged(.signingPublicKey, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -41,7 +41,7 @@ extension SchnorrPublicKey {
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
             case let CBOR.data(rawValue) = elements[1],
-            let key = SchnorrPublicKey(rawValue: rawValue)
+            let key = SigningPublicKey(rawValue: rawValue)
         else {
             throw CBORError.invalidFormat
         }
@@ -49,7 +49,7 @@ extension SchnorrPublicKey {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.schnorrPublicKey, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.signingPublicKey, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

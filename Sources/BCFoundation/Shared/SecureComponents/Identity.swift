@@ -47,13 +47,13 @@ public struct Identity {
         self.init(SecureRandomNumberGenerator.shared.data(count: 32))
     }
     
-    public var schnorrPrivateKey: SchnorrPrivateKey {
+    public var signingPrivateKey: SigningPrivateKey {
         return .init(rawValue: HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "signing".utf8Data, outputByteCount: 32)
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var schnorrPublicKey: SchnorrPublicKey {
-        schnorrPrivateKey.publicKey
+    public var signingPublicKey: SigningPublicKey {
+        signingPrivateKey.publicKey
     }
     
     public var agreementPrivateKey: PrivateAgreementKey {

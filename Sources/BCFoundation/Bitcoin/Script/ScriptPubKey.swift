@@ -47,7 +47,7 @@ public struct ScriptPubKey : Equatable {
         self.script = Script(data)
     }
     
-    public init(multisig pubKeys: [ECCompressedPublicKey], threshold: UInt, isBIP67: Bool = true) {
+    public init(multisig pubKeys: [ECPublicKey], threshold: UInt, isBIP67: Bool = true) {
         self = Wally.multisigScriptPubKey(pubKeys: pubKeys, threshold: threshold, isBIP67: isBIP67)
     }
 

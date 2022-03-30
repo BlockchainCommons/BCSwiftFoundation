@@ -12,7 +12,7 @@ struct DescriptorKeyExpression {
     let key: Key
 
     enum Key {
-        case ecCompressedPublicKey(ECCompressedPublicKey)
+        case ecCompressedPublicKey(ECPublicKey)
         case ecUncompressedPublicKey(ECUncompressedPublicKey)
         //case ecXOnlyPublicKey(ECXOnlyPublicKey)
         case wif(WIF)

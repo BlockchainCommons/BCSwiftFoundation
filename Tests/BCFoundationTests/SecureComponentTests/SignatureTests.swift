@@ -3,7 +3,7 @@ import WolfBase
 import BCFoundation
 
 class SignatureTests: XCTestCase {
-    static let privateKey = SchnorrPrivateKey(rawValue: ‡"322b5c1dd5a17c3481c2297990c85c232ed3c17b52ce9905c6ec5193ad132c36")!
+    static let privateKey = SigningPrivateKey(rawValue: ‡"322b5c1dd5a17c3481c2297990c85c232ed3c17b52ce9905c6ec5193ad132c36")!
     static let publicKey = privateKey.publicKey
     static let message = "Wolf McNally"
     static let signature = privateKey.sign(message)
