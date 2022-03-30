@@ -8,14 +8,14 @@
 import Foundation
 
 public struct PSBTSigningOrigin: CustomStringConvertible {
-    public let key: ECCompressedPublicKey
+    public let key: ECPublicKey
     public let path: DerivationPath
     
     public var description: String {
         "PSBTSigningOrigin(key: \(key), path: \(path))"
     }
     
-    public func childKey(for masterKey: HDKey) -> ECCompressedPublicKey? {
+    public func childKey(for masterKey: HDKey) -> ECPublicKey? {
         guard
             let masterKeyFingerprint = masterKey.originFingerprint,
             case .fingerprint(let originFingerprint) = path.origin,
@@ -37,7 +37,7 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
 }
 
 extension PSBTSigningOrigin {
-    public func signingStatus<SignerType: PSBTSigner>(seeds: [SignerType], signatures: Set<ECCompressedPublicKey>) -> PSBTSigningStatus<SignerType> {
+    public func signingStatus<SignerType: PSBTSigner>(seeds: [SignerType], signatures: Set<ECPublicKey>) -> PSBTSigningStatus<SignerType> {
         if let seed = seeds.first(where: {
             guard let key = childKey(for: $0.masterKey) else {
                 return false

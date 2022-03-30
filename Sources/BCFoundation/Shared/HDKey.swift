@@ -360,8 +360,8 @@ extension HDKeyProtocol {
         Wally.base58(from: wallyExtKey, isPrivate: true)
     }
     
-    public var ecPublicKey: ECCompressedPublicKey {
-        ECCompressedPublicKey(Data(of: wallyExtKey.pub_key))!
+    public var ecPublicKey: ECPublicKey {
+        ECPublicKey(Data(of: wallyExtKey.pub_key))!
     }
 
     public var ecPrivateKey: ECPrivateKey? {

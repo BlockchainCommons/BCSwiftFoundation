@@ -299,10 +299,10 @@ extension DescriptorParser {
         case .data:
             let data = token.data
             if
-                data.count == ECCompressedPublicKey.keyLen,
+                data.count == ECPublicKey.keyLen,
                 [0x02, 0x03].contains(data[0])
             {
-                resultKey = .ecCompressedPublicKey(ECCompressedPublicKey(data)!)
+                resultKey = .ecCompressedPublicKey(ECPublicKey(data)!)
             } else if
                 allowUncompressed,
                 data.count == ECUncompressedPublicKey.keyLen

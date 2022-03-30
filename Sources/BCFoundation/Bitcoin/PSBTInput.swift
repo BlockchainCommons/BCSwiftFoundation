@@ -11,7 +11,7 @@ import WolfBase
 
 public struct PSBTInput {
     public let origins: [PSBTSigningOrigin]
-    public let signatures: [ECCompressedPublicKey: Data]
+    public let signatures: [ECPublicKey: Data]
     public let witnessScript: ScriptPubKey?
     public let isSegwit: Bool
     public let amount: Satoshi?
@@ -88,7 +88,7 @@ public struct PSBTInput {
     }
     
     public var isFullySigned: Bool {
-        let signatureKeys: Set<ECCompressedPublicKey> = Set(signatures.keys)
+        let signatureKeys: Set<ECPublicKey> = Set(signatures.keys)
         return origins.allSatisfy { origin in
             signatureKeys.contains(origin.key)
         }
@@ -107,7 +107,7 @@ func getOrigins(keypaths: wally_map) -> [PSBTSigningOrigin] {
         // TOOD: simplify after https://github.com/ElementsProject/libwally-core/issues/241
         let item: wally_map_item = keypaths.items[i]
 
-        let pubKey = ECCompressedPublicKey(Data(bytes: item.key, count: Int(EC_PUBLIC_KEY_LEN)))!
+        let pubKey = ECPublicKey(Data(bytes: item.key, count: Int(EC_PUBLIC_KEY_LEN)))!
         let fingerprintData = Data(bytes: item.value, count: Int(BIP32_KEY_FINGERPRINT_LEN))
         let fingerprint = deserialize(UInt32.self, fingerprintData)!
         let keyPath = Data(bytes: item.value + Int(BIP32_KEY_FINGERPRINT_LEN), count: Int(item.value_len) - Int(BIP32_KEY_FINGERPRINT_LEN))
@@ -123,11 +123,11 @@ func getOrigins(keypaths: wally_map) -> [PSBTSigningOrigin] {
     return result
 }
 
-func getSignatures(signatures: wally_map) -> [ECCompressedPublicKey: Data] {
-    var result: [ECCompressedPublicKey: Data] = [:]
+func getSignatures(signatures: wally_map) -> [ECPublicKey: Data] {
+    var result: [ECPublicKey: Data] = [:]
     for i in 0 ..< signatures.num_items {
         let item = signatures.items[i]
-        let pubKey = ECCompressedPublicKey(Data(bytes: item.key, count: Int(EC_PUBLIC_KEY_LEN)))!
+        let pubKey = ECPublicKey(Data(bytes: item.key, count: Int(EC_PUBLIC_KEY_LEN)))!
         let sig = Data(bytes: item.value, count: Int(item.value_len))
         result[pubKey] = sig
     }

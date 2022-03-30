@@ -19,7 +19,7 @@ public protocol ECKey {
     
     var hex: String { get }
     
-    var `public`: ECCompressedPublicKey { get }
+    var `public`: ECPublicKey { get }
     
     var cbor: CBOR { get }
     var taggedCBOR: CBOR { get }
@@ -39,8 +39,8 @@ extension ECKey {
     }
 }
 
-public protocol ECPublicKey: ECKey {
-    var compressed: ECCompressedPublicKey { get }
+public protocol ECPublicKeyProtocol: ECKey {
+    var compressed: ECPublicKey { get }
     var uncompressed: ECUncompressedPublicKey { get }
 }
 
@@ -62,8 +62,8 @@ public struct ECPrivateKey: ECKey {
         self.init(data)
     }
 
-    public var `public`: ECCompressedPublicKey {
-        return ECCompressedPublicKey(Wally.ecPublicKeyFromPrivateKey(data: data))!
+    public var `public`: ECPublicKey {
+        return ECPublicKey(Wally.ecPublicKeyFromPrivateKey(data: data))!
     }
     
     public var xOnlyPublic: ECXOnlyPublicKey {
@@ -118,7 +118,7 @@ public struct ECXOnlyPublicKey: Hashable {
     }
 }
 
-public struct ECCompressedPublicKey: ECPublicKey, Hashable {
+public struct ECPublicKey: ECPublicKeyProtocol, Hashable {
     public static var keyLen: Int = Int(EC_PUBLIC_KEY_LEN)
     public let data: Data
 
@@ -136,7 +136,7 @@ public struct ECCompressedPublicKey: ECPublicKey, Hashable {
         self.init(data)
     }
 
-    public var compressed: ECCompressedPublicKey {
+    public var compressed: ECPublicKey {
         self
     }
     
@@ -154,7 +154,7 @@ public struct ECCompressedPublicKey: ECPublicKey, Hashable {
         address(version: isSH ? useInfo.versionSH : useInfo.versionPKH)
     }
 
-    public var `public`: ECCompressedPublicKey {
+    public var `public`: ECPublicKey {
         self
     }
     
@@ -168,10 +168,10 @@ public struct ECCompressedPublicKey: ECPublicKey, Hashable {
     }
 }
 
-extension ECCompressedPublicKey: CustomStringConvertible {
+extension ECPublicKey: CustomStringConvertible {
 }
 
-public struct ECUncompressedPublicKey: ECPublicKey {
+public struct ECUncompressedPublicKey: ECPublicKeyProtocol {
     public static var keyLen: Int = Int(EC_PUBLIC_KEY_UNCOMPRESSED_LEN)
     public let data: Data
 
@@ -189,15 +189,15 @@ public struct ECUncompressedPublicKey: ECPublicKey {
         self.init(data)
     }
 
-    public var compressed: ECCompressedPublicKey {
-        return ECCompressedPublicKey(Wally.ecPublicKeyCompress(data: data))!
+    public var compressed: ECPublicKey {
+        return ECPublicKey(Wally.ecPublicKeyCompress(data: data))!
     }
     
     public var uncompressed: ECUncompressedPublicKey {
         self
     }
 
-    public var `public`: ECCompressedPublicKey {
+    public var `public`: ECPublicKey {
         self.compressed
     }
 

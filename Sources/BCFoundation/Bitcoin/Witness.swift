@@ -10,7 +10,7 @@ import Foundation
 
 public struct Witness {
     public let type: WitnessType
-    public let pubKey: ECCompressedPublicKey
+    public let pubKey: ECPublicKey
     public let signature: Data
     public let isDummy: Bool
 
@@ -19,7 +19,7 @@ public struct Witness {
         case payToScriptHashPayToWitnessPubKeyHash // P2SH-P2WPKH (wrapped SegWit)
     }
 
-    public init(type: WitnessType, pubKey: ECCompressedPublicKey, signature: Data, isDummy: Bool = false) {
+    public init(type: WitnessType, pubKey: ECPublicKey, signature: Data, isDummy: Bool = false) {
         self.type = type
         self.pubKey = pubKey
         self.signature = signature
@@ -54,7 +54,7 @@ public struct Witness {
     }
 
     // Initialize without signature argument to get a dummy signature for fee calculation
-    public init(type: WitnessType, pubKey: ECCompressedPublicKey) {
+    public init(type: WitnessType, pubKey: ECPublicKey) {
         let dummySignature = Data([UInt8].init(repeating: 0, count: Int(EC_SIGNATURE_DER_MAX_LOW_R_LEN)))
         self.init(type: type, pubKey: pubKey, signature: dummySignature, isDummy: true)
     }

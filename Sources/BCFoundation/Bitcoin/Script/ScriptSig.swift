@@ -15,8 +15,8 @@ public struct ScriptSig {
     public var signature: Data?
 
     public enum ScriptSigType : Equatable {
-        case payToPubKeyHash(ECCompressedPublicKey) // P2PKH (legacy)
-        case payToScriptHashPayToWitnessPubKeyHash(ECCompressedPublicKey) // P2SH-P2WPKH (wrapped SegWit)
+        case payToPubKeyHash(ECPublicKey) // P2PKH (legacy)
+        case payToScriptHashPayToWitnessPubKeyHash(ECPublicKey) // P2SH-P2WPKH (wrapped SegWit)
     }
 
     public init(type: ScriptSigType) {
