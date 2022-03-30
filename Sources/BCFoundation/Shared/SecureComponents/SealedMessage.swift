@@ -7,7 +7,7 @@ import WolfBase
 /// the ephemeral public key and the receiver's public key needed for decryption.
 public struct SealedMessage {
     public let message: EncryptedMessage
-    public let ephemeralPublicKey: PublicAgreementKey
+    public let ephemeralPublicKey: AgreementPublicKey
     
     public init(plaintext: DataProvider, receiver: Peer, aad: Data? = nil) {
         let ephemeralSender = Identity()
@@ -17,7 +17,7 @@ public struct SealedMessage {
         self.ephemeralPublicKey = ephemeralSender.agreementPublicKey
     }
     
-    public init(message: EncryptedMessage, ephemeralPublicKey: PublicAgreementKey) {
+    public init(message: EncryptedMessage, ephemeralPublicKey: AgreementPublicKey) {
         self.message = message
         self.ephemeralPublicKey = ephemeralPublicKey
     }
@@ -57,7 +57,7 @@ extension SealedMessage {
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
             let message = try? EncryptedMessage(taggedCBOR: elements[1]),
-            let ephemeralPublicKey = try? PublicAgreementKey(taggedCBOR: elements[2])
+            let ephemeralPublicKey = try? AgreementPublicKey(taggedCBOR: elements[2])
         else {
             throw CBORError.invalidFormat
         }

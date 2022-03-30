@@ -1,10 +1,10 @@
 import Foundation
 import CryptoKit
 
-/// A Curve25519 public key used for X25519 key agreement.
+/// A Curve25519 private key used for X25519 key agreement.
 ///
 /// https://datatracker.ietf.org/doc/html/rfc7748
-public struct PublicAgreementKey: RawRepresentable, CustomStringConvertible, Hashable {
+public struct AgreementPrivateKey: RawRepresentable, CustomStringConvertible, Hashable {
     public let rawValue: Data
     
     public init?(rawValue: Data) {
@@ -14,28 +14,28 @@ public struct PublicAgreementKey: RawRepresentable, CustomStringConvertible, Has
         self.rawValue = rawValue
     }
     
-    public init(_ privateKey: PrivateAgreementKey) {
-        self.rawValue = privateKey.cryptoKitForm.publicKey.rawRepresentation
+    public init() {
+        self.rawValue = Curve25519.KeyAgreement.PrivateKey().rawRepresentation
     }
     
     public var description: String {
-        "PublicAgreementKey\(rawValue.hex)"
+        "PrivateAgreementKey\(rawValue)"
     }
-    
-    public var cryptoKitForm: Curve25519.KeyAgreement.PublicKey {
+
+    public var cryptoKitForm: Curve25519.KeyAgreement.PrivateKey {
         try! .init(rawRepresentation: rawValue)
     }
 }
 
-extension PublicAgreementKey {
+extension AgreementPrivateKey {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let key = CBOR.data(self.rawValue)
         return CBOR.array([type, key])
     }
-
+    
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.agreementPublicKey, cbor)
+        CBOR.tagged(.agreementPrivateKey, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -45,7 +45,7 @@ extension PublicAgreementKey {
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
             case let CBOR.data(rawValue) = elements[1],
-            let key = PublicAgreementKey(rawValue: rawValue)
+            let key = AgreementPrivateKey(rawValue: rawValue)
         else {
             throw CBORError.invalidFormat
         }
@@ -53,7 +53,7 @@ extension PublicAgreementKey {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.agreementPublicKey, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.agreementPrivateKey, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)

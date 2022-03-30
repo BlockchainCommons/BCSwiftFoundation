@@ -56,12 +56,12 @@ public struct Identity {
         signingPrivateKey.publicKey
     }
     
-    public var agreementPrivateKey: PrivateAgreementKey {
+    public var agreementPrivateKey: AgreementPrivateKey {
         return .init(rawValue: HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "agreement".utf8Data, outputByteCount: 32)
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var agreementPublicKey: PublicAgreementKey {
+    public var agreementPublicKey: AgreementPublicKey {
         .init(agreementPrivateKey)
     }
 }

@@ -8,10 +8,10 @@ import WolfBase
 /// the peer's public public agreement key and salt used for X25519 key agreement.
 public struct Peer: CustomStringConvertible, Hashable {
     public let publicSigningKey: SigningPublicKey
-    public let publicAgreementKey: PublicAgreementKey
+    public let publicAgreementKey: AgreementPublicKey
     public let salt: Data
     
-    public init(publicSigningKey: SigningPublicKey, publicAgreementKey: PublicAgreementKey, salt: DataProvider? = nil) {
+    public init(publicSigningKey: SigningPublicKey, publicAgreementKey: AgreementPublicKey, salt: DataProvider? = nil) {
         self.publicSigningKey = publicSigningKey
         self.publicAgreementKey = publicAgreementKey
         self.salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
@@ -51,7 +51,7 @@ extension Peer {
             case let CBOR.data(signingKeyData) = elements[1],
             let signingKey = SigningPublicKey(taggedCBOR: signingKeyData),
             case let CBOR.data(agreementKeyData) = elements[2],
-            let agreementKey = PublicAgreementKey(taggedCBOR: agreementKeyData),
+            let agreementKey = AgreementPublicKey(taggedCBOR: agreementKeyData),
             case let CBOR.data(salt) = elements[3]
         else {
             throw CBORError.invalidFormat
