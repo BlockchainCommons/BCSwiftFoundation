@@ -2,46 +2,54 @@ import Foundation
 import CryptoKit
 import WolfBase
 
-/// An private key for use in creating Schnorr signatures.
-public struct SigningPrivateKey: RawRepresentable, CustomStringConvertible, Hashable {
-    public let rawValue: Data
+public struct SigningPrivateKey: CustomStringConvertible, Hashable {
+    public let data: Data
 
-    public init?(rawValue: Data) {
-        guard rawValue.count == 32 else {
+    public init?(_ data: DataProvider) {
+        let data = data.providedData
+        guard data.count == 32 else {
             return nil
         }
-        self.rawValue = rawValue
+        self.data = data
     }
 
     public init() {
-        self.rawValue = SecureRandomNumberGenerator.shared.data(count: 32)
+        self.data = SecureRandomNumberGenerator.shared.data(count: 32)
     }
     
-    public func sign(_ data: DataProvider, tag: DataProvider = Data()) -> Signature {
-        let privateKey = ECPrivateKey(rawValue)!
-        let sig = privateKey.schnorrSign(message: data.providedData, tag: tag.providedData)
-        return Signature(data: sig, tag: tag)!
+    public func ecdsaSign(_ message: DataProvider) -> Signature {
+        let privateKey = ECPrivateKey(data)!
+        let sig = privateKey.ecdsaSign(message: message.providedData)
+        return Signature(ecdsaData: sig)!
+    }
+
+    public func schnorrSign(_ message: DataProvider, tag: DataProvider = Data()) -> Signature {
+        let privateKey = ECPrivateKey(data)!
+        let sig = privateKey.schnorrSign(message: message.providedData, tag: tag.providedData)
+        return Signature(schnorrData: sig, tag: tag)!
     }
     
-    public var publicKey: SigningPublicKey {
-        let privateKey = ECPrivateKey(rawValue)!
+    public var ecdsaPublicKey: SigningPublicKey {
+        let privateKey = ECPrivateKey(data)!
+        let publicKey = privateKey.public
+        return SigningPublicKey(ecdsaData: publicKey.data)!
+    }
+    
+    public var schnorrPublicKey: SigningPublicKey {
+        let privateKey = ECPrivateKey(data)!
         let xOnlyPublicKey = privateKey.xOnlyPublic
-        return SigningPublicKey(rawValue: xOnlyPublicKey.data)!
+        return SigningPublicKey(schnorrData: xOnlyPublicKey.data)!
     }
     
     public var description: String {
-        "PrivateSigningKey(\(rawValue))"
-    }
-    
-    var cryptoKitForm: Curve25519.Signing.PrivateKey {
-        try! .init(rawRepresentation: rawValue)
+        "PrivateSigningKey(\(data))"
     }
 }
 
 extension SigningPrivateKey {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
-        let key = CBOR.data(self.rawValue)
+        let key = CBOR.data(self.data)
         return CBOR.array([type, key])
     }
 
@@ -55,8 +63,8 @@ extension SigningPrivateKey {
             elements.count == 2,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
-            case let CBOR.data(rawValue) = elements[1],
-            let key = SigningPrivateKey(rawValue: rawValue)
+            case let CBOR.data(data) = elements[1],
+            let key = SigningPrivateKey(data)
         else {
             throw CBORError.invalidFormat
         }

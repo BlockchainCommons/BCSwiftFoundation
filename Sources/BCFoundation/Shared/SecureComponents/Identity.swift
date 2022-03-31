@@ -39,8 +39,9 @@ public struct Identity {
     public let salt: Data
     
     public init(_ provider: IdentityDataProvider, salt: DataProvider? = nil) {
+        let salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
         self.data = provider.identityData
-        self.salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
+        self.salt = salt
     }
     
     public init() {
@@ -48,20 +49,33 @@ public struct Identity {
     }
     
     public var signingPrivateKey: SigningPrivateKey {
-        return .init(rawValue: HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "signing".utf8Data, outputByteCount: 32)
+        return .init(HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "signing".utf8Data, outputByteCount: 32)
             .withUnsafeBytes { Data($0) })!
     }
     
+    public var ecdsaSigningPublicKey: SigningPublicKey {
+        signingPrivateKey.ecdsaPublicKey
+    }
+    
     public var signingPublicKey: SigningPublicKey {
-        signingPrivateKey.publicKey
+        signingPrivateKey.schnorrPublicKey
     }
     
     public var agreementPrivateKey: AgreementPrivateKey {
-        return .init(rawValue: HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "agreement".utf8Data, outputByteCount: 32)
+        return .init(HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "agreement".utf8Data, outputByteCount: 32)
             .withUnsafeBytes { Data($0) })!
     }
     
     public var agreementPublicKey: AgreementPublicKey {
-        .init(agreementPrivateKey)
+        agreementPrivateKey.publicKey(salt: salt)!
+    }
+    
+    public var peer: Peer {
+        Peer(signingPublicKey: signingPublicKey, agreementPublicKey: agreementPublicKey)
+    }
+    
+    public var ecdsaPeer: Peer {
+        Peer(signingPublicKey: ecdsaSigningPublicKey, agreementPublicKey: agreementPublicKey)
     }
 }
+

@@ -67,7 +67,7 @@ extension LibSecP256K1 {
         message.sha256().sha256()
     }
     
-    static func sign32(msg32: Data, secKey: Data) -> Data {
+    static func ecdsaSign32(msg32: Data, secKey: Data) -> Data {
         let msgCount = 32
         precondition(msg32.count == msgCount)
         
@@ -89,11 +89,11 @@ extension LibSecP256K1 {
         return Data(of: sig)
     }
     
-    static func sign(message: Data, secKey: Data) -> Data {
-        sign32(msg32: doubleSHA256(message: message), secKey: secKey)
+    static func ecdsaSign(message: Data, secKey: Data) -> Data {
+        ecdsaSign32(msg32: doubleSHA256(message: message), secKey: secKey)
     }
     
-    static func verify32(msg32: Data, signature: Data, publicKey: secp256k1_pubkey) -> Bool {
+    static func ecdsaVerify32(msg32: Data, signature: Data, publicKey: secp256k1_pubkey) -> Bool {
         precondition(signature.count == 64)
         
         let context = secp256k1_context_create(UInt32(SECP256K1_CONTEXT_VERIFY))!
@@ -109,8 +109,8 @@ extension LibSecP256K1 {
         return result == 1
     }
     
-    static func verify(message: Data, signature: Data, publicKey: secp256k1_pubkey) -> Bool {
-        verify32(msg32: doubleSHA256(message: message), signature: signature, publicKey: publicKey)
+    static func ecdsaVerify(message: Data, signature: Data, publicKey: secp256k1_pubkey) -> Bool {
+        ecdsaVerify32(msg32: doubleSHA256(message: message), signature: signature, publicKey: publicKey)
     }
 }
 

@@ -1,36 +1,47 @@
 import Foundation
 import CryptoKit
+import WolfBase
 
 /// A Curve25519 private key used for X25519 key agreement.
 ///
 /// https://datatracker.ietf.org/doc/html/rfc7748
-public struct AgreementPrivateKey: RawRepresentable, CustomStringConvertible, Hashable {
-    public let rawValue: Data
+public struct AgreementPrivateKey: CustomStringConvertible, Hashable {
+    public let data: Data
     
-    public init?(rawValue: Data) {
-        guard rawValue.count == 32 else {
+    public init?(_ data: DataProvider) {
+        let data = data.providedData
+        guard data.count == 32 else {
             return nil
         }
-        self.rawValue = rawValue
+        self.data = data
     }
     
     public init() {
-        self.rawValue = Curve25519.KeyAgreement.PrivateKey().rawRepresentation
+        self.data = Curve25519.KeyAgreement.PrivateKey().rawRepresentation
+    }
+
+    public var publicKey: AgreementPublicKey {
+        let salt = SecureRandomNumberGenerator.shared.data(count: 16)
+        return publicKey(salt: salt)!
+    }
+    
+    public func publicKey(salt: DataProvider) -> AgreementPublicKey? {
+        AgreementPublicKey(data: cryptoKitForm.publicKey.rawRepresentation, salt: salt)
     }
     
     public var description: String {
-        "PrivateAgreementKey\(rawValue)"
+        "PrivateAgreementKey\(data)"
     }
 
     public var cryptoKitForm: Curve25519.KeyAgreement.PrivateKey {
-        try! .init(rawRepresentation: rawValue)
+        try! .init(rawRepresentation: data)
     }
 }
 
 extension AgreementPrivateKey {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
-        let key = CBOR.data(self.rawValue)
+        let key = CBOR.data(self.data)
         return CBOR.array([type, key])
     }
     
@@ -44,8 +55,8 @@ extension AgreementPrivateKey {
             elements.count == 2,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
-            case let CBOR.data(rawValue) = elements[1],
-            let key = AgreementPrivateKey(rawValue: rawValue)
+            case let CBOR.data(data) = elements[1],
+            let key = AgreementPrivateKey(data)
         else {
             throw CBORError.invalidFormat
         }

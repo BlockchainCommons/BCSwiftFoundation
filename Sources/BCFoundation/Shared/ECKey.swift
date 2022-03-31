@@ -15,7 +15,7 @@ public protocol ECKey {
 
     var data: Data { get }
     
-    init?(_ data: Data)
+    init?(_ data: DataProvider)
     
     var hex: String { get }
     
@@ -48,7 +48,8 @@ public struct ECPrivateKey: ECKey {
     public static let keyLen = Int(EC_PRIVATE_KEY_LEN)
     public let data: Data
 
-    public init?(_ data: Data) {
+    public init?(_ data: DataProvider) {
+        let data = data.providedData
         guard data.count == Self.keyLen else {
             return nil
         }
@@ -73,8 +74,8 @@ public struct ECPrivateKey: ECKey {
         return ECXOnlyPublicKey(data)!
     }
     
-    public func sign(message: DataProvider) -> Data {
-        LibSecP256K1.sign32(msg32: message.providedData, secKey: data)
+    public func ecdsaSign(message: DataProvider) -> Data {
+        LibSecP256K1.ecdsaSign(message: message.providedData, secKey: data)
     }
     
     public func schnorrSign(message: DataProvider, tag: DataProvider) -> Data {
@@ -102,7 +103,8 @@ public struct ECXOnlyPublicKey: Hashable {
     public static var keyLen = 32
     public let data: Data
 
-    public init?(_ data: Data) {
+    public init?(_ data: DataProvider) {
+        let data = data.providedData
         guard data.count == Self.keyLen else {
             return nil
         }
@@ -126,7 +128,8 @@ public struct ECPublicKey: ECPublicKeyProtocol, Hashable {
     public static var keyLen: Int = Int(EC_PUBLIC_KEY_LEN)
     public let data: Data
 
-    public init?(_ data: Data) {
+    public init?(_ data: DataProvider) {
+        let data = data.providedData
         guard data.count == Self.keyLen else {
             return nil
         }
@@ -162,10 +165,10 @@ public struct ECPublicKey: ECPublicKeyProtocol, Hashable {
         self
     }
     
-    public func verify(message: Data, signature: Data) -> Bool {
+    public func verify(message: DataProvider, signature: Data) -> Bool {
         precondition(signature.count == 64)
         let publicKey = LibSecP256K1.ecPublicKey(from: data)!
-        return LibSecP256K1.verify(message: message, signature: signature, publicKey: publicKey)
+        return LibSecP256K1.ecdsaVerify(message: message.providedData, signature: signature, publicKey: publicKey)
     }
     
     public var hash160: Data {
@@ -185,7 +188,8 @@ public struct ECUncompressedPublicKey: ECPublicKeyProtocol {
     public static var keyLen: Int = Int(EC_PUBLIC_KEY_UNCOMPRESSED_LEN)
     public let data: Data
 
-    public init?(_ data: Data) {
+    public init?(_ data: DataProvider) {
+        let data = data.providedData
         guard data.count == Self.keyLen else {
             return nil
         }

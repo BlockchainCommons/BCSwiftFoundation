@@ -122,27 +122,52 @@ extension Envelope {
     public init(inner: Envelope, signatures: [Signature]) {
         self.init(plaintext: inner.taggedCBOR, signatures: signatures)
     }
+}
 
-    public init(plaintext: DataProvider, signers: [Identity], tag: Data = Data()) {
-        let signatures = signers.map {
-            $0.signingPrivateKey.sign(plaintext, tag: tag)
+extension Envelope {
+    public init(plaintext: DataProvider, schnorrSigners: [Identity], tag: Data = Data()) {
+        let signatures = schnorrSigners.map {
+            $0.signingPrivateKey.schnorrSign(plaintext, tag: tag)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: Envelope, signers: [Identity], tag: Data = Data()) {
-        self.init(plaintext: inner.taggedCBOR, signers: signers, tag: tag)
+    public init(inner: Envelope, schnorrSigners: [Identity], tag: Data = Data()) {
+        self.init(plaintext: inner.taggedCBOR, schnorrSigners: schnorrSigners, tag: tag)
     }
     
-    public init(plaintext: DataProvider, signer: Identity, tag: Data = Data()) {
-        self.init(plaintext: plaintext, signers: [signer], tag: tag)
+    public init(plaintext: DataProvider, schnorrSigner: Identity, tag: Data = Data()) {
+        self.init(plaintext: plaintext, schnorrSigners: [schnorrSigner], tag: tag)
     }
     
-    public init(inner: Envelope, signer: Identity, tag: Data = Data()) {
-        self.init(plaintext: inner.taggedCBOR, signer: signer, tag: tag)
+    public init(inner: Envelope, schnorrSigner: Identity, tag: Data = Data()) {
+        self.init(plaintext: inner.taggedCBOR, schnorrSigner: schnorrSigner, tag: tag)
+    }
+}
+
+extension Envelope {
+    public init(plaintext: DataProvider, ecdsaSigners: [Identity]) {
+        let signatures = ecdsaSigners.map {
+            $0.signingPrivateKey.ecdsaSign(plaintext)
+        }
+        self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(plaintext: DataProvider, recipients: [Peer]) {
+    public init(inner: Envelope, ecdsaSigners: [Identity]) {
+        self.init(plaintext: inner.taggedCBOR, ecdsaSigners: ecdsaSigners)
+    }
+    
+    public init(plaintext: DataProvider, ecdsaSigner: Identity) {
+        self.init(plaintext: plaintext, ecdsaSigners: [ecdsaSigner])
+    }
+    
+    public init(inner: Envelope, ecdsaSigner: Identity) {
+        self.init(plaintext: inner.taggedCBOR, ecdsaSigner: ecdsaSigner)
+    }
+}
+
+extension Envelope {
+   public init(plaintext: DataProvider, recipients: [Peer]) {
         let contentKey = SymmetricKey()
         let message = contentKey.encrypt(plaintext: plaintext)
         let sealedMessages = recipients.map { peer in
@@ -184,7 +209,7 @@ extension Envelope {
     }
     
     public func isValidSignature(_ signature: Signature, peer: Peer) -> Bool {
-        isValidSignature(signature, key: peer.publicSigningKey)
+        isValidSignature(signature, key: peer.signingPublicKey)
     }
     
     public func hasValidSignature(key: SigningPublicKey) -> Bool {
@@ -192,7 +217,7 @@ extension Envelope {
     }
     
     public func hasValidSignature(from peer: Peer) -> Bool {
-        hasValidSignature(key: peer.publicSigningKey)
+        hasValidSignature(key: peer.signingPublicKey)
     }
     
     public func hasValidSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) -> Bool {
@@ -200,7 +225,7 @@ extension Envelope {
     }
     
     public func hasValidSignatures(from peers: [Peer], threshold: Int? = nil) -> Bool {
-        hasValidSignatures(with: peers.map { $0.publicSigningKey }, threshold: threshold)
+        hasValidSignatures(with: peers.map { $0.signingPublicKey }, threshold: threshold)
     }
 }
 
