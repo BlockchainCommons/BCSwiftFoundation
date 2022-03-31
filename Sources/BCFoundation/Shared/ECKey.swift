@@ -73,6 +73,10 @@ public struct ECPrivateKey: ECKey {
         return ECXOnlyPublicKey(data)!
     }
     
+    public func sign(message: DataProvider) -> Data {
+        LibSecP256K1.sign32(msg32: message.providedData, secKey: data)
+    }
+    
     public func schnorrSign(message: DataProvider, tag: DataProvider) -> Data {
         let kp = LibSecP256K1.keyPair(from: self.data)!
         return LibSecP256K1.schnorrSign(msg: message.providedData, tag: tag.providedData, keyPair: kp)
@@ -156,6 +160,12 @@ public struct ECPublicKey: ECPublicKeyProtocol, Hashable {
 
     public var `public`: ECPublicKey {
         self
+    }
+    
+    public func verify(message: Data, signature: Data) -> Bool {
+        precondition(signature.count == 64)
+        let publicKey = LibSecP256K1.ecPublicKey(from: data)!
+        return LibSecP256K1.verify(message: message, signature: signature, publicKey: publicKey)
     }
     
     public var hash160: Data {
