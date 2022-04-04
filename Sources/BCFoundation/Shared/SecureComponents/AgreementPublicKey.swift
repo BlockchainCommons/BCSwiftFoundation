@@ -7,22 +7,19 @@ import WolfBase
 /// https://datatracker.ietf.org/doc/html/rfc7748
 public struct AgreementPublicKey: CustomStringConvertible, Hashable {
     public let data: Data
-    public let salt: Data
     
-    public init?(data: DataProvider, salt: DataProvider) {
+    public init?(data: DataProvider) {
         let data = data.providedData
-        let salt = salt.providedData
         guard
             data.count == 32
         else {
             return nil
         }
         self.data = data
-        self.salt = salt
     }
     
     public var description: String {
-        "AgreementPublicKey\(salt.hex)-\(data.hex)"
+        "AgreementPublicKey\(data.hex)"
     }
     
     public var cryptoKitForm: Curve25519.KeyAgreement.PublicKey {
@@ -34,8 +31,7 @@ extension AgreementPublicKey {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let key = CBOR.data(self.data)
-        let salt = CBOR.data(self.salt)
-        return CBOR.array([type, key, salt])
+        return CBOR.array([type, key])
     }
 
     public var taggedCBOR: CBOR {
@@ -45,12 +41,11 @@ extension AgreementPublicKey {
     public init(cbor: CBOR) throws {
         guard
             case let CBOR.array(elements) = cbor,
-            elements.count == 3,
+            elements.count == 2,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
             case let CBOR.data(data) = elements[1],
-            case let CBOR.data(salt) = elements[2],
-            let key = AgreementPublicKey(data: data, salt: salt)
+            let key = AgreementPublicKey(data: data)
         else {
             throw CBORError.invalidFormat
         }

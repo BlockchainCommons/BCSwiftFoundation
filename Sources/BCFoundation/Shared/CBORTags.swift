@@ -72,5 +72,5 @@ extension CBOR.Tag {
     public static let signingPrivateKey = CBOR.Tag(705)
     public static let signingPublicKey = CBOR.Tag(706)
     public static let signature = CBOR.Tag(707)
-    public static let symmetricKey = CBOR.Tag(710)
+    public static let symmetricKey = CBOR.Tag(708)
 }

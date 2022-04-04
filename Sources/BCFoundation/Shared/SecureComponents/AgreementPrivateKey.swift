@@ -21,12 +21,7 @@ public struct AgreementPrivateKey: CustomStringConvertible, Hashable {
     }
 
     public var publicKey: AgreementPublicKey {
-        let salt = SecureRandomNumberGenerator.shared.data(count: 16)
-        return publicKey(salt: salt)!
-    }
-    
-    public func publicKey(salt: DataProvider) -> AgreementPublicKey? {
-        AgreementPublicKey(data: cryptoKitForm.publicKey.rawRepresentation, salt: salt)
+        AgreementPublicKey(data: cryptoKitForm.publicKey.rawRepresentation)!
     }
     
     public var description: String {

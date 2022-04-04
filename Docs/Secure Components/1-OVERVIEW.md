@@ -29,7 +29,7 @@ The Secure Components suite provides tools for easily implementing encryption (s
 * Provide a minimal set of datatypes for representing common encryption constructions.
 * Provide serialization of types to and from CBOR and UR.
 * Base these types on algorithms and constructs that are considered best practices.
-* Support innovative constructs like Sharded Secret Key Reconstruction (SSKR).
+* Support innovative constructs like [Sharded Secret Key Reconstruction (SSKR)](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-011-sskr.md).
 * Interoperate with structures of particular interest to blockchain and cryptocurrency developers, such as [seeds](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-006-urtypes.md#cryptographic-seed-crypto-seed) and [HD keys](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-007-hdkey.md).
 * Allow for the future extension of functionality to include additional cryptographic algorithms and methods.
 * Provide a reference API implementation in Swift that is easy to use and hard to abuse.
@@ -72,7 +72,7 @@ Types that do not define a UR type generally would never be serialized as a top-
 |705|`SigningPrivateKey`|
 |706|`SigningPublicKey`|
 |707|`Signature`|
-|710|`SymmetricKey`|
+|708|`SymmetricKey`|
 
 ## Untagged Types
 
@@ -86,12 +86,14 @@ A number of types are simply serialized as untagged CBOR byte strings. They do n
 * `Salt`
 * `Tag`
 
+For example, a field called `Nonce` is currently only used in the context of the IETF-ChaCha20-Poly1305 encryption algorithm, and therefore does not need to be specifically tagged. If another algorithm also needed a field called `Nonce`, it would be used in the context of *that* algorithm, and the two fields would not be considered interchangeable.
+
 ## Algorithms
 
 The algorithms that Secure Components currently incorporates are listed below. The components include provisions for the future inclusion of additional algorithms and methods.
 
 * **Hashing:** [Blake2b](https://datatracker.ietf.org/doc/rfc7693)
-* **Signing:** [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)
+* **Signing:** [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) or [ECDSA-25519-doublesha256](https://en.bitcoin.it/wiki/BIP_0137)
 * **Symmetric Encryption:** [IETF-ChaCha20-Poly1305](https://datatracker.ietf.org/doc/html/rfc8439)
 * **Public Key Encryption:** [X25519](https://datatracker.ietf.org/doc/html/rfc7748)
 * **Key Derivation**: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869)
@@ -116,7 +118,9 @@ It is an enumerated type with two cases: `.plaintext` and `.encrypted`.
 
 To facilitate further decoding, it is RECOMMENDED that the payload of an `Envelope` should itself be tagged CBOR.
 
-`Envelope` can contain as its payload another CBOR-encoded `Envelope`. This facilitates both sign-then-encrypt and encrypt-then sign constructions. The reason why `.plaintext` messages may be signed and `.encrypted` messages may not is that generally a signer should have access to the content of what they are signing, therefore this design encourages the sign-then-encrypt order of operations. If encrypt-then-sign is preferred, then this is easily accomplished by creating an `.encrypted` and then enclosing that envelope in a `.plaintext` with the appropriate signatures.
+`Envelope` may contain as its payload another CBOR-encoded `Envelope`. This facilitates various constructions, including sign-then-encrypt and encrypt-then sign.
+
+The reason why `.plaintext` messages may be signed and `.encrypted` messages may not is that generally a signer should have access to the content of what they are signing, therefore this design encourages the sign-then-encrypt order of operations. If encrypt-then-sign is preferred, then this is easily accomplished by creating an `.encrypted` and then enclosing that envelope in a `.plaintext` with the appropriate signatures.
 
 A `Permit` specifies the conditions under which an `EncryptedMessage` may be decrypted, and contains three cases:
 
@@ -132,7 +136,7 @@ public enum Permit {
 * `.recipients` facilitates multi-recipient public key cryptography by including an array of `SealedMessage`, each of which is encrypted to a particular recipient's public key, and which contains an ephemeral key that can be used by a recipient to decrypt the main message.
 * `.share` facilitates social recovery by pairing an `EncryptedMessage` encrypted with an ephemeral key with an `SSKRShare`, and providing for the production of a set of `Envelope`s, each one including a different share. Only an M-of-N threshold of shares will allow the recovery of the ephemeral key and hence the decryption of the original message. Each recipient of one of these `Envelope`s will have an encrypted backup of the entire original `EncryptedMessage`, but only a single `SSKRShare`.
 
-This structure provides a flexible framework for constructing solutions to various applications. Here are some high-level schematics of such applications. See the EXAMPLES chapter for more detail.
+This structure provides a flexible framework for constructing solutions for various applications. Here are some high-level schematics of such applications. See the EXAMPLES chapter for more detail.
 
 ### "An envelope containing plaintext."
 

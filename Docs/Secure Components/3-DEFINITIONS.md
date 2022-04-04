@@ -43,9 +43,9 @@ It is an enumerated type with two cases: `.plaintext` and `.encrypted`.
 
 To facilitate further decoding, it is RECOMMENDED that the payload of an `Envelope` should itself be tagged CBOR.
 
-`Envelope` can contain as its payload another CBOR-encoded `Envelope`. This facilitates both sign-then-encrypt and encrypt-then sign constructions.
+`Envelope` may contain as its payload another CBOR-encoded `Envelope`. This facilitates various constructions, including sign-then-encrypt and encrypt-then sign.
 
-The reason why `.plaintext` messages may be signed and `.encrypted` messages may not is that generally a signer should have access to the content they are signing, therefore this design encourages the sign-then-encrypt order of operations. If encrypt-then-sign is preferred, then this is easily accomplished by creating an `.encrypted` and then enclosing that envelope in a `.plaintext` with the appropriate signatures.
+The reason why `.plaintext` messages may be signed and `.encrypted` messages may not is that generally a signer should have access to the content of what they are signing, therefore this design encourages the sign-then-encrypt order of operations. If encrypt-then-sign is preferred, then this is easily accomplished by creating an `.encrypted` and then enclosing that envelope in a `.plaintext` with the appropriate signatures.
 
 A `Permit` specifies the conditions under which an `EncryptedMessage` may be decrypted. It is an enumerated type with three cases:
 
@@ -99,6 +99,16 @@ sskr-share: crypto-sskr
 
 `EncryptedMessage` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
 
+```mermaid
+graph TB
+    subgraph EncryptedMessage
+        ciphertext
+        aad
+        nonce
+        auth
+    end
+```
+
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
 |49|`crypto-envelope`|`Envelope`|
@@ -121,6 +131,26 @@ auth: bytes .size 16    ; Authentication tag created by Poly1305
 
 `Identity` holds key material such as a Seed belonging to an identifiable entity, or an HDKey derived from a Seed. It can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
 
+```mermaid
+graph LR
+  subgraph Identity
+    key-material;
+    salt;
+  end
+  subgraph Peer
+    SigningPublicKey;
+    AgreementPublicKey;
+  end
+    key-material --> SigningPrivateKey;
+    key-material --> AgreementPrivateKey;
+    salt --> AgreementPrivateKey;
+    SigningPrivateKey --> SigningPublicKey-Schnorr;
+    SigningPrivateKey --> SigningPublicKey-ECDSA;
+    AgreementPrivateKey --> AgreementPublicKey;
+    SigningPublicKey-Schnorr --> SigningPublicKey;
+    SigningPublicKey-ECDSA --> SigningPublicKey;
+```
+
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
 |50|`crypto-identity`|`Identity`|
@@ -128,7 +158,7 @@ auth: bytes .size 16    ; Authentication tag created by Poly1305
 ### Derivations
 
 * `SigningPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `signing`.
-* `SigningPublicKey`: [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) x-only public key.
+* `SigningPublicKey`: [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) x-only public key or [ECDSA-25519-doublesha256](https://en.bitcoin.it/wiki/BIP_0137) public key.
 * `AgreementPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `agreement`.
 * `SigningPrivateKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
 
@@ -146,7 +176,15 @@ salt: bytes
 
 ## Peer
 
-`Peer` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption.
+`Peer` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption. The `SigningPublicKey` may specifically be for verifying Schnorr or ECDSA signatures.
+
+```mermaid
+graph TB
+    subgraph Peer
+        SigningPublicKey
+        AgreementPublicKey
+    end
+```
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
@@ -155,7 +193,7 @@ salt: bytes
 ### CDDL for Peer
 
 ```
-crypto-peer = #6.51([peer-type, public-signing-key, public-agreement-key])
+crypto-peer = #6.51([peer-type, signing-public-key, agreement-public-key])
 
 peer-type: uint = 1
 ```
@@ -165,6 +203,14 @@ peer-type: uint = 1
 ## SealedMessage
 
 `SealedMessage` is a message that has been one-way encrypted to a particular `Peer`, and is used to implement multi-recipient public key encryption using `Envelope`. The sender of the message is generated at encryption time, and the ephemeral sender's public key is included, enabling the receipient to decrypt the message without identifying the sender.
+
+```mermaid
+graph TB
+    subgraph Peer
+        EncryptedMessage
+        AgreementPublicKey
+    end
+```
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
@@ -176,7 +222,7 @@ peer-type: uint = 1
 crypto-sealed = #6.55([sealed-type, crypto-message, ephemeral-public-key])
 
 sealed-type: uint = 1
-ephemeral-public-key: public-agreement-key
+ephemeral-public-key: agreement-public-key
 ```
 
 ---
@@ -202,7 +248,18 @@ blake-hash: bytes .size 32
 
 ## Password
 
-`Password` is a password that has been salted and hashed using [scrypt](https://datatracker.ietf.org/doc/html/rfc7914), and is thereofore suitable for storage and use as a proxy for a user's identity. To validate an entered password, the same hashing algorithm using the same parameters and salt must be performed again, and the hashes compared to determine validity. This way the authenticator never needs to store the password.
+`Password` is a password that has been salted and hashed using [scrypt](https://datatracker.ietf.org/doc/html/rfc7914), and is thereofore suitable for storage and use for authenticating users via password. To validate an entered password, the same hashing algorithm using the same parameters and salt must be performed again, and the hashes compared to determine validity. This way the authenticator never needs to store the password. The processor and memory intensive design of the scrypt algorithm makes such hashes resistant to brute-force attacks.
+
+```mermaid
+graph TB
+    subgraph Password
+        n
+        r
+        p
+        salt
+        hashed-password
+    end
+```
 
 |CBOR Tag|Swift Type|
 |---|---|
@@ -231,6 +288,13 @@ A Curve25519 private key used for [X25519 key agreement](https://datatracker.iet
 |---|---|
 |703|`AgreementPrivateKey`|
 
+```mermaid
+graph TB
+    subgraph AgreementPrivateKey
+        key
+    end
+```
+
 ### CDDL for AgreementPrivateKey
 
 ```
@@ -250,10 +314,17 @@ A Curve25519 public key used for [X25519 key agreement](https://datatracker.ietf
 |---|---|
 |704|`AgreementPublicKey`|
 
+```mermaid
+graph TB
+    subgraph AgreementPublicKey
+        key
+    end
+```
+
 ### CDDL for AgreementPublicKey
 
 ```
-public-agreement-key = #6.704([ key-type, key ])
+agreement-public-key = #6.704([ key-type, key ])
 
 key-type: uint = 1
 key: bytes .size 32
@@ -269,6 +340,13 @@ A private key for creating [BIP-340 Schnorr](https://github.com/bitcoin/bips/blo
 |---|---|
 |705|`SigningPrivateKey`||700|`Digest`|
 
+```mermaid
+graph TB
+    subgraph SigningPrivateKey
+        key
+    end
+```
+
 ### CDDL for SigningPrivateKey
 
 ```
@@ -282,26 +360,63 @@ key: bytes .size 32
 
 ## SigningPublicKey
 
-An x-only public key for verifying [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signatures.
+A public key for verifying signatures. It has two variants:
+
+* An x-only public key for verifying [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signatures.
+* An ECDSA key [ECDSA-25519-doublesha256](https://en.bitcoin.it/wiki/BIP_0137) signatures.
 
 |CBOR Tag|Swift Type|
 |---|---|
 |706|`SigningPublicKey`|
 
+```mermaid
+graph TB
+    subgraph SigningPublicKey-Schnorr
+        key-schnorr
+    end
+    subgraph SigningPublicKey-ECDSA
+        key-ecdsa
+    end
+```
+
 ### CDDL for SigningPublicKey
 
 ```
-public-signing-key = #6.706([ key-type, key ])
+signing-public-key = #6.706([ key-variant-schnorr / key-variant-ecdsa ])
 
-key-type: uint = 1
-key: bytes .size 32
+key-variant-schnorr = (key-type-schnorr, key-schnorr)
+key-type-schnorr: uint = 1
+key-schnorr: bytes .size 32
+
+key-variant-ecdsa = (key-type-ecdsa, key-ecdsa)
+key-type-ecdsa: uint = 2
+key-ecdsa: bytes .size 33
 ```
+
+### CBOR Diagnostic Notation for SigningPublicKey
+
+* Schnorr variant: `[1, key-schnorr]`
+* ECDSA variant: `[2, key-ecdsa]`
 
 ---
 
 ## Signature
 
-A [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signature.
+A cryptographic signature. It has two variants:
+
+* A [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) signature.
+* An ECDSA signature [ECDSA-25519-doublesha256](https://en.bitcoin.it/wiki/BIP_0137) signatures.
+
+```mermaid
+graph TB
+    subgraph Signature-Schnorr
+        signature-schnorr
+        tag
+    end
+    subgraph Signature-ECDSA
+        signature-ecdsa
+    end
+```
 
 |CBOR Tag|Swift Type|
 |---|---|
@@ -310,11 +425,16 @@ A [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawi
 ### CDDL for Signature
 
 ```
-signature = #6.707([ signature-type, signature-bytes, signature-tag ])
+signature = #6.707([ signature-variant-schnorr / signature-variant-ecdsa ])
 
-signature-type: uint = 1
-signature-bytes: bytes .size 64
-signature-tag: bytes
+signature-variant-schnorr = (signature-type-schnorr, signature-schnorr, tag)
+signature-type-schnorr: uint = 1
+signature-schnorr: bytes .size 64
+tag: bytes
+
+signature-variant-ecdsa = (signature-type-ecdsa, signature-ecdsa)
+signature-type-ecdsa: uint = 2
+signature-ecdsa: bytes .size 64
 ```
 
 ---
@@ -322,9 +442,17 @@ signature-tag: bytes
 ## SymmetricKey
 
 A symmetric key for encryption and decryption of [IETF-ChaCha20-Poly1305](https://datatracker.ietf.org/doc/html/rfc8439) messages.
+
+```mermaid
+graph TB
+    subgraph SymmetricKey
+        key
+    end
+```
+
 |CBOR Tag|Swift Type|
 |---|---|
-|710|`SymmetricKey`|
+|708|`SymmetricKey`|
 
 ### CDDL for SymmetricKey
 

@@ -53,29 +53,17 @@ public struct Identity {
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var ecdsaSigningPublicKey: SigningPublicKey {
-        signingPrivateKey.ecdsaPublicKey
-    }
-    
-    public var signingPublicKey: SigningPublicKey {
-        signingPrivateKey.schnorrPublicKey
-    }
-    
     public var agreementPrivateKey: AgreementPrivateKey {
         return .init(HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "agreement".utf8Data, outputByteCount: 32)
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var agreementPublicKey: AgreementPublicKey {
-        agreementPrivateKey.publicKey(salt: salt)!
-    }
-    
     public var peer: Peer {
-        Peer(signingPublicKey: signingPublicKey, agreementPublicKey: agreementPublicKey)
+        Peer(signingPublicKey: signingPrivateKey.schnorrPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
     
     public var ecdsaPeer: Peer {
-        Peer(signingPublicKey: ecdsaSigningPublicKey, agreementPublicKey: agreementPublicKey)
+        Peer(signingPublicKey: signingPrivateKey.ecdsaPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
 }
 

@@ -14,7 +14,7 @@ public struct SealedMessage {
         let receiverPublicKey = receiver.agreementPublicKey
         let key = EncryptedMessage.sharedKey(identityPrivateKey: ephemeralSender.agreementPrivateKey, peerPublicKey: receiverPublicKey)
         self.message = key.encrypt(plaintext: plaintext, aad: aad)
-        self.ephemeralPublicKey = ephemeralSender.agreementPublicKey
+        self.ephemeralPublicKey = ephemeralSender.agreementPrivateKey.publicKey
     }
     
     public init(message: EncryptedMessage, ephemeralPublicKey: AgreementPublicKey) {
