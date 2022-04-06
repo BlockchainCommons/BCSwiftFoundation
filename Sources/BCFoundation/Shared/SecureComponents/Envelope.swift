@@ -167,8 +167,7 @@ extension Envelope {
 }
 
 extension Envelope {
-   public init(plaintext: DataProvider, recipients: [Peer]) {
-        let contentKey = SymmetricKey()
+    public init(plaintext: DataProvider, recipients: [Peer], contentKey: SymmetricKey = .init()) {
         let message = contentKey.encrypt(plaintext: plaintext)
         let sealedMessages = recipients.map { peer in
             SealedMessage(plaintext: contentKey, receiver: peer)
@@ -176,8 +175,8 @@ extension Envelope {
         self = .encrypted(message, .recipients(sealedMessages))
     }
     
-    public init(inner: Envelope, recipients: [Peer]) {
-        self.init(plaintext: inner.taggedCBOR, recipients: recipients)
+    public init(inner: Envelope, recipients: [Peer], contentKey: SymmetricKey = .init()) {
+        self.init(plaintext: inner.taggedCBOR, recipients: recipients, contentKey: contentKey)
     }
     
     public var plaintext: Data? {
@@ -230,10 +229,14 @@ extension Envelope {
 }
 
 extension Envelope {
-    public static func split(plaintext: DataProvider, groupThreshold: Int, groups: [(Int, Int)]) -> [[Envelope]] {
-        let ephemeralKey = SymmetricKey()
-        let message = ephemeralKey.encrypt(plaintext: plaintext)
-        let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: ephemeralKey)
+    public static func split(
+        plaintext: DataProvider,
+        groupThreshold: Int,
+        groups: [(Int, Int)],
+        contentKey: SymmetricKey = .init()
+    ) -> [[Envelope]] {
+        let message = contentKey.encrypt(plaintext: plaintext)
+        let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: contentKey)
         return shares.map { groupShares in
             groupShares.map { share in .encrypted(message, .share(share)) }
         }
@@ -247,9 +250,9 @@ extension Envelope {
             return share
         }
         guard
-            let ephemeralKey = try? SymmetricKey(SSKRCombine(shares: shares)),
+            let contentKey = try? SymmetricKey(SSKRCombine(shares: shares)),
             case let .encrypted(message, .share(_)) = envelopes.first,
-            let plaintext = ephemeralKey.decrypt(message: message)
+            let plaintext = contentKey.decrypt(message: message)
         else {
             return nil
         }
