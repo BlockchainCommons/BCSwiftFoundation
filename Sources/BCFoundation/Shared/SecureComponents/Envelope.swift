@@ -56,8 +56,8 @@ extension Envelope {
         self = .encrypted(message, .symmetric)
     }
     
-    public init(plaintext: DataProvider, key: SymmetricKey) {
-        self.init(message: key.encrypt(plaintext: plaintext))
+    public init(plaintext: DataProvider, key: SymmetricKey, aad: Data? = nil, nonce: EncryptedMessage.Nonce? = nil) {
+        self.init(message: key.encrypt(plaintext: plaintext, aad: aad, nonce: nonce))
     }
     
     public func plaintext(with key: SymmetricKey) -> Data? {
@@ -86,7 +86,7 @@ extension Envelope {
         guard
             case let(.encrypted(message, .recipients(sealedMessages))) = self,
             let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: identity),
-            let contentKey = SymmetricKey(rawValue: contentKeyData),
+            let contentKey = SymmetricKey(contentKeyData),
             let plaintext = contentKey.decrypt(message: message)
         else {
             return nil
@@ -247,7 +247,7 @@ extension Envelope {
             return share
         }
         guard
-            let ephemeralKey = try? SymmetricKey(rawValue: SSKRCombine(shares: shares)),
+            let ephemeralKey = try? SymmetricKey(SSKRCombine(shares: shares)),
             case let .encrypted(message, .share(_)) = envelopes.first,
             let plaintext = ephemeralKey.decrypt(message: message)
         else {

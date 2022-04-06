@@ -79,7 +79,7 @@ public struct EncryptedMessage: CustomStringConvertible, Equatable {
 extension EncryptedMessage {
     public static func sharedKey(identityPrivateKey: AgreementPrivateKey, peerPublicKey: AgreementPublicKey) -> SymmetricKey {
         let sharedSecret = try! identityPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: peerPublicKey.cryptoKitForm)
-        return SymmetricKey(rawValue: sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: Data(), sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
+        return SymmetricKey(sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: Data(), sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
     }
 }
 

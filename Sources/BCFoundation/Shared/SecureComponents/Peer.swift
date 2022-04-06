@@ -61,3 +61,17 @@ extension Peer {
         try? self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
+
+extension Peer {
+    public var ur: UR {
+        return try! UR(type: URType.peer.type, cbor: cbor)
+    }
+    
+    public init(ur: UR) throws {
+        guard ur.type == URType.peer.type else {
+            throw URError.unexpectedType
+        }
+        let cbor = try CBOR(ur.cbor)
+        try self.init(cbor: cbor)
+    }
+}

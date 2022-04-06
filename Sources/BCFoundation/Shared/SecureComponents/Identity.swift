@@ -67,3 +67,54 @@ public struct Identity {
     }
 }
 
+extension Identity {
+    public var cbor: CBOR {
+        let type = CBOR.unsignedInt(1)
+        let data = CBOR.data(self.data)
+        let salt = CBOR.data(self.salt)
+        return CBOR.array([type, data, salt])
+    }
+
+    public var taggedCBOR: CBOR {
+        CBOR.tagged(URType.identity.tag, cbor)
+    }
+    
+    public init(cbor: CBOR) throws {
+        guard
+            case let CBOR.array(elements) = cbor,
+            elements.count == 3,
+            case let CBOR.unsignedInt(type) = elements[0],
+            type == 1,
+            case let CBOR.data(data) = elements[1],
+            case let CBOR.data(salt) = elements[2]
+        else {
+            throw CBORError.invalidFormat
+        }
+        self = Identity(data, salt: salt)
+    }
+    
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(URType.identity.tag, cbor) = taggedCBOR else {
+            throw CBORError.invalidTag
+        }
+        try self.init(cbor: cbor)
+    }
+    
+    public init?(taggedCBOR: Data) {
+        try? self.init(taggedCBOR: CBOR(taggedCBOR))
+    }
+}
+
+extension Identity {
+    public var ur: UR {
+        return try! UR(type: URType.identity.type, cbor: cbor)
+    }
+    
+    public init(ur: UR) throws {
+        guard ur.type == URType.identity.type else {
+            throw URError.unexpectedType
+        }
+        let cbor = try CBOR(ur.cbor)
+        try self.init(cbor: cbor)
+    }
+}

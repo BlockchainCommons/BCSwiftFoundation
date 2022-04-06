@@ -2,7 +2,7 @@ import XCTest
 import WolfBase
 @testable import BCFoundation
 
-fileprivate let secureDigest = Digest(data: "Wolf McNally".utf8Data)
+fileprivate let secureDigest = Digest("Wolf McNally".utf8Data)
 
 class DigestTests: XCTestCase {
     func testVectors() {
@@ -19,7 +19,7 @@ class DigestTests: XCTestCase {
             ‡"bfbabbef45554ccfa0dc83752a19cc35d5920956b301d558d772282bc867009168e9e98606bb5ba73a385de5749228c925a85019b71f72fe29b3cd37ca52efe6",
             ‡"f15ab26d4cdfcf56e196bb6ba170a8fccc414de9285afd98a3d3cf2fb88fcbc0f19832ac433a5b2cc2392a4ce34332987d8d2c2bef6c3466138db0c6e42fa47b"
         ].map { Digest(rawValue: $0, digestLength: 64)! }
-        let digest = data.map { Digest(data: $0, digestLength: 64) }
+        let digest = data.map { Digest($0, digestLength: 64) }
         XCTAssertEqual(digest, expectedDigest)
     }
     

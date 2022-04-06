@@ -12,7 +12,7 @@ public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
     public let rawValue: Data
     public static let defaultDigestLength = 32
     
-    public init(data: DataProvider, digestLength: Int = defaultDigestLength) {
+    public init(_ data: DataProvider, digestLength: Int = defaultDigestLength) {
         self.rawValue = try! Blake2.hash(.b2b, size: digestLength, data: data.providedData)
     }
     
@@ -41,7 +41,7 @@ extension Digest {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.digest, cbor)
+        CBOR.tagged(URType.digest.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -71,9 +71,27 @@ extension Digest {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.digest, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.digest.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
+        try self.init(cbor: cbor)
+    }
+    
+    public init?(taggedCBOR: Data) {
+        try? self.init(taggedCBOR: CBOR(taggedCBOR))
+    }
+}
+
+extension Digest {
+    public var ur: UR {
+        return try! UR(type: URType.digest.type, cbor: cbor)
+    }
+    
+    public init(ur: UR) throws {
+        guard ur.type == URType.digest.type else {
+            throw URError.unexpectedType
+        }
+        let cbor = try CBOR(ur.cbor)
         try self.init(cbor: cbor)
     }
 }
