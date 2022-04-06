@@ -26,12 +26,12 @@ class CryptoToolTests: XCTestCase {
 //        let envelope = Envelope(plaintext: message, key: key)
 //        print(envelope.ur)
         
-//        let identity = Identity()
-//        print(identity.ur)
+//        let profile = Profile()
+//        print(profile.ur)
         
-        let ur = try UR(urString: "ur:crypto-identity/lsadhdcxsofssasgpmrfdyrtiavoinbepabseyfnttcnfmdyzcktwnmsbzgsqzfhksiezclagdioeshtqzzmkplamkehpklylejztszowywmztjpme")
-        let identity = try Identity(ur: ur)
-        let peer = identity.peer
+        let ur = try UR(urString: "ur:crypto-profile/lsadhdcxsofssasgpmrfdyrtiavoinbepabseyfnttcnfmdyzcktwnmsbzgsqzfhksiezclagdioeshtqzzmkplamkehpklylejztszowywmztjpme")
+        let profile = try Profile(ur: ur)
+        let peer = profile.peer
         print(peer.ur)
     }
 }

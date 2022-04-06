@@ -2,12 +2,12 @@ import Foundation
 import WolfBase
 import class CryptoSwift.Scrypt
 
-/// A secure derivation scheme from a user-provided password to identity data.
+/// A secure derivation scheme from a user-provided password to profile data.
 ///
 /// Implemented using Scrypt.
 ///
 /// https://datatracker.ietf.org/doc/html/rfc7914
-public class Password: IdentityDataProvider {
+public class Password: ProfileDataProvider {
     public let n: Int
     public let r: Int
     public let p: Int
@@ -50,7 +50,7 @@ public class Password: IdentityDataProvider {
         return data == d
     }
     
-    public var identityData: Data {
+    public var profileData: Data {
         data
     }
 }

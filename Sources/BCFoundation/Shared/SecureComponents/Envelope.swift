@@ -82,10 +82,10 @@ extension Envelope {
         return inner
     }
     
-    public func plaintext(for identity: Identity) -> Data? {
+    public func plaintext(for profile: Profile) -> Data? {
         guard
             case let(.encrypted(message, .recipients(sealedMessages))) = self,
-            let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: identity),
+            let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: profile),
             let contentKey = SymmetricKey(contentKeyData),
             let plaintext = contentKey.decrypt(message: message)
         else {
@@ -94,9 +94,9 @@ extension Envelope {
         return plaintext
     }
     
-    public func inner(for identity: Identity) -> Envelope? {
+    public func inner(for profile: Profile) -> Envelope? {
         guard
-            let innerCBOR = plaintext(for: identity),
+            let innerCBOR = plaintext(for: profile),
             let inner = Envelope(taggedCBOR: innerCBOR)
         else {
             return nil
@@ -125,43 +125,43 @@ extension Envelope {
 }
 
 extension Envelope {
-    public init(plaintext: DataProvider, schnorrSigners: [Identity], tag: Data = Data()) {
+    public init(plaintext: DataProvider, schnorrSigners: [Profile], tag: Data = Data()) {
         let signatures = schnorrSigners.map {
             $0.signingPrivateKey.schnorrSign(plaintext, tag: tag)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: Envelope, schnorrSigners: [Identity], tag: Data = Data()) {
+    public init(inner: Envelope, schnorrSigners: [Profile], tag: Data = Data()) {
         self.init(plaintext: inner.taggedCBOR, schnorrSigners: schnorrSigners, tag: tag)
     }
     
-    public init(plaintext: DataProvider, schnorrSigner: Identity, tag: Data = Data()) {
+    public init(plaintext: DataProvider, schnorrSigner: Profile, tag: Data = Data()) {
         self.init(plaintext: plaintext, schnorrSigners: [schnorrSigner], tag: tag)
     }
     
-    public init(inner: Envelope, schnorrSigner: Identity, tag: Data = Data()) {
+    public init(inner: Envelope, schnorrSigner: Profile, tag: Data = Data()) {
         self.init(plaintext: inner.taggedCBOR, schnorrSigner: schnorrSigner, tag: tag)
     }
 }
 
 extension Envelope {
-    public init(plaintext: DataProvider, ecdsaSigners: [Identity]) {
+    public init(plaintext: DataProvider, ecdsaSigners: [Profile]) {
         let signatures = ecdsaSigners.map {
             $0.signingPrivateKey.ecdsaSign(plaintext)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: Envelope, ecdsaSigners: [Identity]) {
+    public init(inner: Envelope, ecdsaSigners: [Profile]) {
         self.init(plaintext: inner.taggedCBOR, ecdsaSigners: ecdsaSigners)
     }
     
-    public init(plaintext: DataProvider, ecdsaSigner: Identity) {
+    public init(plaintext: DataProvider, ecdsaSigner: Profile) {
         self.init(plaintext: plaintext, ecdsaSigners: [ecdsaSigner])
     }
     
-    public init(inner: Envelope, ecdsaSigner: Identity) {
+    public init(inner: Envelope, ecdsaSigner: Profile) {
         self.init(plaintext: inner.taggedCBOR, ecdsaSigner: ecdsaSigner)
     }
 }

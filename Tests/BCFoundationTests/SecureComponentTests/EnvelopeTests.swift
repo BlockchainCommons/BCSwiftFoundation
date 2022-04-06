@@ -5,16 +5,16 @@ import WolfBase
 fileprivate let plaintext = "Some mysteries aren't meant to be solved.".utf8Data
 
 fileprivate let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
-fileprivate let aliceIdentity = Identity(aliceSeed, salt: "Salt")
-fileprivate let alicePeer = aliceIdentity.peer
+fileprivate let aliceProfile = Profile(aliceSeed, salt: "Salt")
+fileprivate let alicePeer = aliceProfile.peer
 
 fileprivate let bobSeed = Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!
-fileprivate let bobIdentity = Identity(bobSeed, salt: "Salt")
-fileprivate let bobPeer = bobIdentity.peer
+fileprivate let bobProfile = Profile(bobSeed, salt: "Salt")
+fileprivate let bobPeer = bobProfile.peer
 
 fileprivate let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
-fileprivate let carolIdentity = Identity(carolSeed, salt: "Salt")
-fileprivate let carolPeer = carolIdentity.peer
+fileprivate let carolProfile = Profile(carolSeed, salt: "Salt")
+fileprivate let carolPeer = carolProfile.peer
 
 class EnvelopeTests: XCTestCase {
     func testPlaintext() throws {
@@ -36,7 +36,7 @@ class EnvelopeTests: XCTestCase {
 
     func testSignedPlaintext() throws {
         // Alice sends a signed plaintext message to Bob.
-        let envelope = Envelope(plaintext: plaintext, schnorrSigner: aliceIdentity)
+        let envelope = Envelope(plaintext: plaintext, schnorrSigner: aliceProfile)
         let ur = envelope.ur
 
 //        print(envelope.taggedCBOR.diag)
@@ -62,7 +62,7 @@ class EnvelopeTests: XCTestCase {
     
     func testMultisignedPlaintext() throws {
         // Alice and Carol jointly send a signed plaintext message to Bob.
-        let envelope = Envelope(plaintext: plaintext, schnorrSigners: [aliceIdentity, carolIdentity])
+        let envelope = Envelope(plaintext: plaintext, schnorrSigners: [aliceProfile, carolProfile])
         let ur = envelope.ur
 
 //        print(envelope.taggedCBOR.diag)
@@ -113,7 +113,7 @@ class EnvelopeTests: XCTestCase {
         let key = SymmetricKey()
 
         // Alice signs a plaintext message, then encrypts it.
-        let innerSignedEnvelope = Envelope(plaintext: plaintext, schnorrSigner: aliceIdentity)
+        let innerSignedEnvelope = Envelope(plaintext: plaintext, schnorrSigner: aliceProfile)
         let envelope = Envelope(inner: innerSignedEnvelope, key: key)
         let ur = envelope.ur
 
@@ -145,7 +145,7 @@ class EnvelopeTests: XCTestCase {
         
         // Alice encrypts a message, then signs it.
         let innerEncryptedEnvelope = Envelope(plaintext: plaintext, key: key)
-        let envelope = Envelope(inner: innerEncryptedEnvelope, schnorrSigner: aliceIdentity)
+        let envelope = Envelope(inner: innerEncryptedEnvelope, schnorrSigner: aliceProfile)
         let ur = envelope.ur
 
 //        print(envelope.taggedCBOR.diag)
@@ -185,18 +185,18 @@ class EnvelopeTests: XCTestCase {
         let receivedEnvelope = try Envelope(ur: ur)
 
         // Bob decrypts and reads the message.
-        XCTAssertEqual(receivedEnvelope.plaintext(for: bobIdentity), plaintext)
+        XCTAssertEqual(receivedEnvelope.plaintext(for: bobProfile), plaintext)
 
         // Carol decrypts and reads the message.
-        XCTAssertEqual(receivedEnvelope.plaintext(for: carolIdentity), plaintext)
+        XCTAssertEqual(receivedEnvelope.plaintext(for: carolProfile), plaintext)
 
         // Alice didn't encrypt it to herself, so she can't read it.
-        XCTAssertNil(receivedEnvelope.plaintext(for: aliceIdentity))
+        XCTAssertNil(receivedEnvelope.plaintext(for: aliceProfile))
     }
     
     func testSignedMultiRecipient() throws {
         // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
-        let innerSignedEnvelope = Envelope(plaintext: plaintext, schnorrSigner: aliceIdentity)
+        let innerSignedEnvelope = Envelope(plaintext: plaintext, schnorrSigner: aliceProfile)
         let envelope = Envelope(inner: innerSignedEnvelope, recipients: [bobPeer, carolPeer])
         let ur = envelope.ur
 
@@ -209,9 +209,9 @@ class EnvelopeTests: XCTestCase {
         // Bob receives the envelope.
         let receivedEnvelope = try Envelope(ur: ur)
 
-        // Bob decrypts the outer envelope using his identity.
+        // Bob decrypts the outer envelope using his profile.
         guard
-            let innerEnvelope = receivedEnvelope.inner(for: bobIdentity)
+            let innerEnvelope = receivedEnvelope.inner(for: bobProfile)
         else {
             XCTFail()
             return

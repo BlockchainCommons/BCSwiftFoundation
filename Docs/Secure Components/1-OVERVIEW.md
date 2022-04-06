@@ -42,7 +42,7 @@ The types defined in the Secure Components suite are designed to be minimal, sim
 
 * `EncryptedMessage` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
 
-* `Identity` holds key material such as a Seed belonging to an identifiable entity, and can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
+* `Profile` holds key material such as a Seed belonging to an identifiable entity, and can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
 
 * `Peer` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption.
 
@@ -54,7 +54,7 @@ Many of the types defined herein are assigned CBOR tags for use when encoding th
 |---|---|---|
 |48|`crypto-msg`|`EncryptedMessage`|
 |49|`crypto-envelope`|`Envelope`|
-|50|`crypto-identity`|`Identity`|
+|50|`crypto-profile`|`Profile`|
 |51|`crypto-peer`|`Peer`|
 |55|`crypto-sealed`|`SealedMessage`|
 

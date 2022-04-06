@@ -10,9 +10,9 @@ public struct SealedMessage {
     public let ephemeralPublicKey: AgreementPublicKey
     
     public init(plaintext: DataProvider, receiver: Peer, aad: Data? = nil) {
-        let ephemeralSender = Identity()
+        let ephemeralSender = Profile()
         let receiverPublicKey = receiver.agreementPublicKey
-        let key = EncryptedMessage.sharedKey(identityPrivateKey: ephemeralSender.agreementPrivateKey, peerPublicKey: receiverPublicKey)
+        let key = EncryptedMessage.sharedKey(profilePrivateKey: ephemeralSender.agreementPrivateKey, peerPublicKey: receiverPublicKey)
         self.message = key.encrypt(plaintext: plaintext, aad: aad)
         self.ephemeralPublicKey = ephemeralSender.agreementPrivateKey.publicKey
     }
@@ -22,14 +22,14 @@ public struct SealedMessage {
         self.ephemeralPublicKey = ephemeralPublicKey
     }
     
-    public func plaintext(with identity: Identity) -> Data? {
-        let key = EncryptedMessage.sharedKey(identityPrivateKey: identity.agreementPrivateKey, peerPublicKey: ephemeralPublicKey)
+    public func plaintext(with profile: Profile) -> Data? {
+        let key = EncryptedMessage.sharedKey(profilePrivateKey: profile.agreementPrivateKey, peerPublicKey: ephemeralPublicKey)
         return key.decrypt(message: message)
     }
     
-    public static func firstPlaintext(in sealedMessages: [SealedMessage], for identity: Identity) -> Data? {
+    public static func firstPlaintext(in sealedMessages: [SealedMessage], for profile: Profile) -> Data? {
         for sealedMessage in sealedMessages {
-            if let plaintext = sealedMessage.plaintext(with: identity) {
+            if let plaintext = sealedMessage.plaintext(with: profile) {
                 return plaintext
             }
         }

@@ -2,28 +2,28 @@ import Foundation
 import CryptoKit
 import WolfBase
 
-/// Types can conform to `IdentityDataProvider` to indicate that they will provide
+/// Types can conform to `ProfileDataProvider` to indicate that they will provide
 /// unique data from which keys for signing and encryption can be derived.
 ///
 /// Conforming types include `Data`, `Seed`, `HDKey`, and `Password`.
-public protocol IdentityDataProvider {
-    var identityData: Data { get }
+public protocol ProfileDataProvider {
+    var profileData: Data { get }
 }
 
-extension Data: IdentityDataProvider {
-    public var identityData: Data {
+extension Data: ProfileDataProvider {
+    public var profileData: Data {
         self
     }
 }
 
-extension Seed: IdentityDataProvider {
-    public var identityData: Data {
+extension Seed: ProfileDataProvider {
+    public var profileData: Data {
         data
     }
 }
 
-extension HDKey: IdentityDataProvider {
-    public var identityData: Data {
+extension HDKey: ProfileDataProvider {
+    public var profileData: Data {
         keyData
     }
 }
@@ -34,13 +34,13 @@ extension HDKey: IdentityDataProvider {
 /// Derivation is performed used HKDF-SHA512.
 ///
 /// https://datatracker.ietf.org/doc/html/rfc5869
-public struct Identity {
+public struct Profile {
     public let data: Data
     public let salt: Data
     
-    public init(_ provider: IdentityDataProvider, salt: DataProvider? = nil) {
+    public init(_ provider: ProfileDataProvider, salt: DataProvider? = nil) {
         let salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
-        self.data = provider.identityData
+        self.data = provider.profileData
         self.salt = salt
     }
     
@@ -67,7 +67,7 @@ public struct Identity {
     }
 }
 
-extension Identity {
+extension Profile {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let data = CBOR.data(self.data)
@@ -76,7 +76,7 @@ extension Identity {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.identity.tag, cbor)
+        CBOR.tagged(URType.profile.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -90,11 +90,11 @@ extension Identity {
         else {
             throw CBORError.invalidFormat
         }
-        self = Identity(data, salt: salt)
+        self = Profile(data, salt: salt)
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.identity.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.profile.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
@@ -105,13 +105,13 @@ extension Identity {
     }
 }
 
-extension Identity {
+extension Profile {
     public var ur: UR {
-        return try! UR(type: URType.identity.type, cbor: cbor)
+        return try! UR(type: URType.profile.type, cbor: cbor)
     }
     
     public init(ur: UR) throws {
-        guard ur.type == URType.identity.type else {
+        guard ur.type == URType.profile.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)

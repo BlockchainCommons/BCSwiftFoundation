@@ -32,7 +32,7 @@ extension URType {
 
     public static let message = URType(type: "crypto-msg", tag: 48)
     public static let envelope = URType(type: "crypto-envelope", tag: 49)
-    public static let identity = URType(type: "crypto-identity", tag: 50)
+    public static let profile = URType(type: "crypto-profile", tag: 50)
     public static let peer = URType(type: "crypto-peer", tag: 51)
     public static let sealedMessage = URType(type: "crypto-sealed", tag: 55)
     public static let digest = URType(type: "crypto-digest", tag: 700)

@@ -127,13 +127,13 @@ auth: bytes .size 16    ; Authentication tag created by Poly1305
 
 ---
 
-## Identity
+## Profile
 
-`Identity` holds key material such as a Seed belonging to an identifiable entity, or an HDKey derived from a Seed. It can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
+`Profile` holds key material such as a Seed belonging to an identifiable entity, or an HDKey derived from a Seed. It can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
 
 ```mermaid
 graph LR
-  subgraph Identity
+  subgraph Profile
     key-material;
     salt;
   end
@@ -153,7 +153,7 @@ graph LR
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
-|50|`crypto-identity`|`Identity`|
+|50|`crypto-profile`|`Profile`|
 
 ### Derivations
 
@@ -162,12 +162,12 @@ graph LR
 * `AgreementPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `agreement`.
 * `SigningPrivateKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
 
-### CDDL for Identity
+### CDDL for Profile
 
 ```
-crypto-identity = #6.50([identity-type, key-material, salt])
+crypto-profile = #6.50([profile-type, key-material, salt])
 
-identity-type: uint = 1
+profile-type: uint = 1
 key-material: bytes
 salt: bytes
 ```

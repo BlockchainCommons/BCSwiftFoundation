@@ -20,27 +20,27 @@ This section includes a set of high-level examples of API usage in Swift involvi
 
 ## Common structures used by the examples
 
-The unit tests define a common plaintext, and three separate `Identity` objects for *Alice*, *Bob*, and *Carol*, each with a corresponding `Peer`.
+The unit tests define a common plaintext, and three separate `Profile` objects for *Alice*, *Bob*, and *Carol*, each with a corresponding `Peer`.
 
 ```swift
   static let plaintext = "Some mysteries aren't meant to be solved.".utf8Data
 
   static let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
-  static let aliceIdentity = Identity(aliceSeed, salt: "Salt")
-  static let alicePeer = Peer(identity: aliceIdentity)
+  static let aliceProfile = Profile(aliceSeed, salt: "Salt")
+  static let alicePeer = Peer(profile: aliceProfile)
 
   static let bobSeed = Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!
-  static let bobIdentity = Identity(bobSeed, salt: "Salt")
-  static let bobPeer = Peer(identity: bobIdentity)
+  static let bobProfile = Profile(bobSeed, salt: "Salt")
+  static let bobPeer = Peer(profile: bobProfile)
 
   static let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
-  static let carolIdentity = Identity(carolSeed, salt: "Salt")
-  static let carolPeer = Peer(identity: carolIdentity)
+  static let carolProfile = Profile(carolSeed, salt: "Salt")
+  static let carolPeer = Peer(profile: carolProfile)
 ```
 
-An `Identity` is derived from a source of key material such as a `Seed`, an `HDKey`, or a `Password` that produces key material using the Scrypt algorithm, and also includes a random `Salt`.
+A `Profile` is derived from a source of key material such as a `Seed`, an `HDKey`, or a `Password` that produces key material using the Scrypt algorithm, and also includes a random `Salt`.
 
-An `Identity` is kept secret, and can produce both private and public keys for signing and encryption. A `Peer` is just the public keys and `Salt` extracted from an `Identity` and can be made public. Signing and public key encryption is performed using the `Identity` of one party and the `Peer` from another.
+A `Profile` is kept secret, and can produce both private and public keys for signing and encryption. A `Peer` is just the public keys and `Salt` extracted from a `Profile` and can be made public. Signing and public key encryption is performed using the `Profile` of one party and the `Peer` from another.
 
 **Note:** Due to the use of randomness in the cryptographic constructions, separate runs of the code are extremly unlikely to replicate the exact CBOR and URs below.
 
@@ -113,7 +113,7 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 
 ```swift
 // Alice sends a signed plaintext message to Bob.
-let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
+let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceProfile)
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -201,7 +201,7 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 
 ```swift
 // Alice and Carol jointly send a signed plaintext message to Bob.
-let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.aliceIdentity, Self.carolIdentity])
+let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.aliceProfile, Self.carolProfile])
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -401,7 +401,7 @@ ur:crypto-envelope/lsaotpdylpadhddtwpnepelypebnkejtdiynidhtbglnyltlrnbejelajnhny
 let key = SymmetricKey()
 
 // Alice signs a plaintext message, then encrypts it.
-let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
+let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceProfile)
 let envelope = Envelope(inner: innerSignedEnvelope, key: key)
 let ur = envelope.ur
 
@@ -515,7 +515,7 @@ let key = SymmetricKey()
 
 // Alice encrypts a message, then signs it.
 let innerEncryptedEnvelope = Envelope(plaintext: Self.plaintext, key: key)
-let envelope = Envelope(inner: innerEncryptedEnvelope, signer: Self.aliceIdentity)
+let envelope = Envelope(inner: innerEncryptedEnvelope, signer: Self.aliceProfile)
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -621,13 +621,13 @@ ur:crypto-envelope/lsadhdhgtpehlsaotpdylpadhddtfpceimbnfxrlfwzmbsftrpjnhshfttdtl
 let envelope = Envelope(plaintext: Self.plaintext, recipients: [Self.bobPeer, Self.carolPeer])
 
 // Bob decrypts and reads the message.
-XCTAssertEqual(envelope.plaintext(for: Self.bobIdentity), Self.plaintext)
+XCTAssertEqual(envelope.plaintext(for: Self.bobProfile), Self.plaintext)
 
 // Carol decrypts and reads the message.
-XCTAssertEqual(envelope.plaintext(for: Self.carolIdentity), Self.plaintext)
+XCTAssertEqual(envelope.plaintext(for: Self.carolProfile), Self.plaintext)
 
 // Alice didn't encrypt it to herself, so she can't read it.
-XCTAssertNil(envelope.plaintext(for: Self.aliceIdentity))
+XCTAssertNil(envelope.plaintext(for: Self.aliceProfile))
 ```
 
 ### Schematic
@@ -783,7 +783,7 @@ ur:crypto-envelope/lsaotpdylpadhddtckesprjoehryctfsressyncpzehkmnhpwktsjyhnbdeyh
 
 ```swift
 // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
-let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceIdentity)
+let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceProfile)
 let envelope = Envelope(inner: innerSignedEnvelope, recipients: [Self.bobPeer, Self.carolPeer])
 let ur = envelope.ur
 
@@ -792,9 +792,9 @@ let ur = envelope.ur
 // Bob receives the envelope.
 let receivedEnvelope = try Envelope(ur: ur)
 
-// Bob decrypts the outer envelope using his identity.
+// Bob decrypts the outer envelope using his profile.
 guard
-    let innerEnvelope = receivedEnvelope.inner(for: Self.bobIdentity)
+    let innerEnvelope = receivedEnvelope.inner(for: Self.bobProfile)
 else {
     XCTFail()
     return
