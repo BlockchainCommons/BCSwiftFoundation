@@ -29,10 +29,6 @@ public struct EncryptedMessage: CustomStringConvertible, Equatable {
         "Message(ciphertext: \(ciphertext.hex), aad: \(aad.hex), nonce: \(nonce), auth: \(auth))"
     }
     
-    public var digest: Digest {
-        Digest(ciphertext + aad + nonce.rawValue + auth.rawValue)
-    }
-    
     public struct Nonce: CustomStringConvertible, Equatable, Hashable, RawRepresentable {
         public let rawValue: Data
         

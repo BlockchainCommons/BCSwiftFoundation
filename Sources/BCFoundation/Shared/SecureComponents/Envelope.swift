@@ -4,11 +4,47 @@ import SSKR
 import CryptoKit
 import WolfBase
 
+/// An `Envelope` allows for flexible signing, encryption, and sharding of messages.
+///
+/// It is an enumerated type with two options: `.plaintext` and `.encrypted`. If
+/// `.plaintext` is used, it may also carry one or more signatures. If `.encrypted`
+/// is used, the `EncryptedMessage` is accompanied by a `Permit` that defines the
+/// conditions under which the `EncryptedMessage` may be decrypted.
+///
+/// To facilitate further decoding, it is recommended that the payload of an
+/// `Envelope` should itself be tagged CBOR.
+///
+/// `Envelope` can contain as its payload another CBOR-encoded `Envelope`. This
+/// facilitates both sign-then-encrypt and encrypt-then sign constructions. The
+/// reason why `.plaintext` messages may be signed and `.encrypted` messages may not
+/// is that generally a signer should have access to the content of what they are
+/// signing, therefore this design encourages the sign-then-encrypt order of
+/// operations. If encrypt-then-sign is preferred, then this is easily accomplished
+/// by creating an `.encrypted` and then enclosing that envelope in an `.plaintext`
+/// with the appropriate signatures.
 public enum Envelope {
     case plaintext(Data, [Signature])
-    case encrypted(EncryptedMessage, Permit, Digest?)
+    case encrypted(EncryptedMessage, Permit)
 }
 
+/// A `Permit` specifies the conditions under which an `EncryptedMessage` may be decrypted.
+///
+/// `.symmetric` means that the `EncryptedMessage` was encrypted with a `SymmetricKey` that
+/// the receiver is already expected to have.
+///
+/// `.recipients` facilitates multi-recipient public key cryptography by including
+/// an array of `SealedMessage`, each of which is encrypted to a particular
+/// recipient's public key, and which contains an ephemeral key that can be used by
+/// a recipient to decrypt the main message.
+///
+/// `.share` facilitates social recovery by pairing an `EncryptedMessage` encrypted with an
+/// ephemeral key with an `SSKRShare`, and providing for the production of a set of
+/// `Envelope`s, each one including a different share. Only a threshold of shares will
+/// allow the recovery of the ephemeral key and hence the decryption of the original
+/// message. Each recipient of one of these `Envelope`s will have an encrypted
+/// backup of the entire original `EncryptedMessage`, but only a single `SSKRShare`. A N-of-M
+/// threshold of such shares will be necessary for the owner to recover the original
+/// message.
 public enum Permit {
     case symmetric
     case recipients([SealedMessage])
@@ -16,9 +52,8 @@ public enum Permit {
 }
 
 extension Envelope {
-    public init(message: EncryptedMessage, includeDigest: Bool = true) {
-        let digest = Self.makeDigest(message: message, includeDigest: includeDigest)
-        self = .encrypted(message, .symmetric, digest)
+    public init(message: EncryptedMessage) {
+        self = .encrypted(message, .symmetric)
     }
     
     public init(plaintext: DataProvider, key: SymmetricKey, aad: Data? = nil, nonce: EncryptedMessage.Nonce? = nil) {
@@ -26,16 +61,10 @@ extension Envelope {
     }
     
     public func plaintext(with key: SymmetricKey) -> Data? {
-        guard case let(.encrypted(message, .symmetric, digest)) = self else {
+        guard case let(.encrypted(message, .symmetric)) = self else {
             return nil
         }
-        guard
-            let data = key.decrypt(message: message),
-            Self.checkDigest(message: message, digest: digest)
-        else {
-            return nil
-        }
-        return data
+        return key.decrypt(message: message)
     }
     
     public init(inner: Envelope, key: SymmetricKey) {
@@ -53,30 +82,12 @@ extension Envelope {
         return inner
     }
     
-    static func makeDigest(message: EncryptedMessage, includeDigest: Bool) -> Digest? {
-        guard includeDigest else {
-            return nil
-        }
-        return message.digest
-    }
-    
-    static func checkDigest(message: EncryptedMessage, digest: Digest?) -> Bool {
-        guard let digest = digest else {
-            return true
-        }
-        guard message.digest == digest else {
-            return false
-        }
-        return true
-    }
-    
     public func plaintext(for profile: Profile) -> Data? {
         guard
-            case let(.encrypted(message, .recipients(sealedMessages), digest)) = self,
+            case let(.encrypted(message, .recipients(sealedMessages))) = self,
             let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: profile),
             let contentKey = SymmetricKey(contentKeyData),
-            let plaintext = contentKey.decrypt(message: message),
-            Self.checkDigest(message: message, digest: digest)
+            let plaintext = contentKey.decrypt(message: message)
         else {
             return nil
         }
@@ -156,13 +167,12 @@ extension Envelope {
 }
 
 extension Envelope {
-    public init(plaintext: DataProvider, recipients: [Peer], contentKey: SymmetricKey = .init(), includeDigest: Bool = true) {
+    public init(plaintext: DataProvider, recipients: [Peer], contentKey: SymmetricKey = .init()) {
         let message = contentKey.encrypt(plaintext: plaintext)
         let sealedMessages = recipients.map { peer in
             SealedMessage(plaintext: contentKey, receiver: peer)
         }
-        let digest = Self.makeDigest(message: message, includeDigest: includeDigest)
-        self = .encrypted(message, .recipients(sealedMessages), digest)
+        self = .encrypted(message, .recipients(sealedMessages))
     }
     
     public init(inner: Envelope, recipients: [Peer], contentKey: SymmetricKey = .init()) {
@@ -223,28 +233,25 @@ extension Envelope {
         plaintext: DataProvider,
         groupThreshold: Int,
         groups: [(Int, Int)],
-        contentKey: SymmetricKey = .init(),
-        includeDigest: Bool = true
+        contentKey: SymmetricKey = .init()
     ) -> [[Envelope]] {
         let message = contentKey.encrypt(plaintext: plaintext)
-        let digest = Self.makeDigest(message: message, includeDigest: includeDigest)
         let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: contentKey)
         return shares.map { groupShares in
-            groupShares.map { share in .encrypted(message, .share(share), digest) }
+            groupShares.map { share in .encrypted(message, .share(share)) }
         }
     }
     
     public static func plaintext(from envelopes: [Envelope]) -> Data? {
         let shares = envelopes.map { (envelope: Envelope) -> SSKRShare in
-            guard case let .encrypted(_, .share(share), _) = envelope else {
+            guard case let .encrypted(_, .share(share)) = envelope else {
                 fatalError()
             }
             return share
         }
         guard
             let contentKey = try? SymmetricKey(SSKRCombine(shares: shares)),
-            case let .encrypted(message, .share(_), digest) = envelopes.first,
-            Self.checkDigest(message: message, digest: digest),
+            case let .encrypted(message, .share(_)) = envelopes.first,
             let plaintext = contentKey.decrypt(message: message)
         else {
             return nil
@@ -264,29 +271,15 @@ extension Envelope {
                 CBOR.data(data),
                 CBOR.array(signatures.map { $0.taggedCBOR })
             ])
-        case .encrypted(let message, let permit, let digest):
+        case .encrypted(let message, let permit):
             array.append(contentsOf: [
                 CBOR.unsignedInt(2),
                 message.taggedCBOR,
-                permit.taggedCBOR,
-                Self.encodeDigestCBOR(digest: digest)
+                permit.taggedCBOR
             ])
         }
         
         return CBOR.array(array)
-    }
-    
-    static func encodeDigestCBOR(digest: Digest?) -> CBOR {
-        digest?.taggedCBOR ?? CBOR.null
-    }
-    
-    static func decodeDigestCBOR(cbor: CBOR) throws -> Digest? {
-        switch cbor {
-        case .null:
-            return nil
-        default:
-            return try Digest(taggedCBOR: cbor)
-        }
     }
     
     public var taggedCBOR: CBOR {
@@ -305,7 +298,6 @@ extension Envelope {
         switch type {
         case 1:
             guard
-                elements.count == 3,
                 case let CBOR.data(plaintext) = elements[1],
                 case let CBOR.array(signatureItems) = elements[2]
             else {
@@ -316,24 +308,9 @@ extension Envelope {
             }
             self = .plaintext(plaintext, signatures)
         case 2:
-            guard elements.count >= 3 else {
-                throw CBORError.invalidFormat
-            }
             let message = try EncryptedMessage(taggedCBOR: elements[1])
             let permit = try Permit(taggedCBOR: elements[2])
-            let digest: Digest?
-            if elements.count >= 4 {
-                digest = try Self.decodeDigestCBOR(cbor: elements[3])
-            } else {
-                digest = nil
-            }
-            guard
-                elements.count <= 4,
-                Self.checkDigest(message: message, digest: digest)
-            else {
-                throw CBORError.invalidFormat
-            }
-            self = .encrypted(message, permit, digest)
+            self = .encrypted(message, permit)
         default:
             throw CBORError.invalidFormat
         }
