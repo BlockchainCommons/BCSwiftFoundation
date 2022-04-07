@@ -16,6 +16,13 @@ public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
         self.rawValue = try! Blake2.hash(.b2b, size: digestLength, data: data.providedData)
     }
     
+    public init?(_ data: DataProvider, includeDigest: Bool, digestLength: Int = defaultDigestLength) {
+        guard includeDigest else {
+            return nil
+        }
+        self.init(data, digestLength: digestLength)
+    }
+    
     init?(rawValue: Data, digestLength: Int = defaultDigestLength) {
         guard rawValue.count == digestLength else {
             return nil
@@ -30,6 +37,17 @@ public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
     public var description: String {
         "Digest(\(rawValue.hex))"
     }
+    
+    public func validate(_ data: DataProvider) -> Bool {
+        self == Digest(data, digestLength: self.rawValue.count)
+    }
+    
+    public static func validate(_ data: DataProvider, digest: Digest?) -> Bool {
+        guard let digest = digest else {
+            return true
+        }
+        return digest.validate(data)
+    }
 }
 
 extension Digest {
@@ -42,6 +60,13 @@ extension Digest {
     
     public var taggedCBOR: CBOR {
         CBOR.tagged(URType.digest.tag, cbor)
+    }
+    
+    public static func optionalTaggedCBOR(_ digest: Digest?) -> CBOR {
+        guard let digest = digest else {
+            return CBOR.null
+        }
+        return digest.taggedCBOR
     }
     
     public init(cbor: CBOR) throws {
@@ -79,6 +104,13 @@ extension Digest {
     
     public init?(taggedCBOR: Data) {
         try? self.init(taggedCBOR: CBOR(taggedCBOR))
+    }
+    
+    public init?(optionalTaggedCBOR cbor: CBOR) throws {
+        guard cbor != .null else {
+            return nil
+        }
+        try self.init(taggedCBOR: cbor)
     }
 }
 
