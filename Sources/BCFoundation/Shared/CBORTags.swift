@@ -32,8 +32,9 @@ extension URType {
 
     public static let message = URType(type: "crypto-msg", tag: 48)
     public static let envelope = URType(type: "crypto-envelope", tag: 49)
-    public static let profile = URType(type: "crypto-profile", tag: 50)
-    public static let peer = URType(type: "crypto-peer", tag: 51)
+    public static let simplex = URType(type: "crypto-simplex", tag: 49)
+    public static let prvkeys = URType(type: "crypto-prvkeys", tag: 50)
+    public static let pubkeys = URType(type: "crypto-pubkeys", tag: 51)
     public static let sealedMessage = URType(type: "crypto-sealed", tag: 55)
     public static let digest = URType(type: "crypto-digest", tag: 700)
     public static let symmetricKey = URType(type: "crypto-key", tag: 708)

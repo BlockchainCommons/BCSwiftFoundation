@@ -127,17 +127,17 @@ auth: bytes .size 16    ; Authentication tag created by Poly1305
 
 ---
 
-## Profile
+## PrivateKeyBase
 
-`Profile` holds key material such as a Seed belonging to an identifiable entity, or an HDKey derived from a Seed. It can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
+`PrivateKeyBase` holds key material such as a Seed belonging to an identifiable entity, or an HDKey derived from a Seed. It can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
 
 ```mermaid
 graph LR
-  subgraph Profile
+  subgraph PrivateKeyBase
     key-material;
     salt;
   end
-  subgraph Peer
+  subgraph PublicKeyBase
     SigningPublicKey;
     AgreementPublicKey;
   end
@@ -153,7 +153,7 @@ graph LR
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
-|50|`crypto-profile`|`Profile`|
+|50|`crypto-prvkeys`|`PrivateKeyBase`|
 
 ### Derivations
 
@@ -162,25 +162,25 @@ graph LR
 * `AgreementPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `agreement`.
 * `SigningPrivateKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
 
-### CDDL for Profile
+### CDDL for PrivateKeyBase
 
 ```
-crypto-profile = #6.50([profile-type, key-material, salt])
+crypto-prvkeys = #6.50([prvkeys-type, key-material, salt])
 
-profile-type: uint = 1
+prvkeys-type: uint = 1
 key-material: bytes
 salt: bytes
 ```
 
 ---
 
-## Peer
+## PublicKeyBase
 
-`Peer` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption. The `SigningPublicKey` may specifically be for verifying Schnorr or ECDSA signatures.
+`PublicKeyBase` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption. The `SigningPublicKey` may specifically be for verifying Schnorr or ECDSA signatures.
 
 ```mermaid
 graph TB
-    subgraph Peer
+    subgraph PublicKeyBase
         SigningPublicKey
         AgreementPublicKey
     end
@@ -188,25 +188,25 @@ graph TB
 
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
-|51|`crypto-peer`|`Peer`|
+|51|`crypto-pubkeys`|`PublicKeyBase`|
 
-### CDDL for Peer
+### CDDL for PublicKeyBase
 
 ```
-crypto-peer = #6.51([peer-type, signing-public-key, agreement-public-key])
+crypto-pubkeys = #6.51([pubkeys-type, signing-public-key, agreement-public-key])
 
-peer-type: uint = 1
+pubkeys-type: uint = 1
 ```
 
 ---
 
 ## SealedMessage
 
-`SealedMessage` is a message that has been one-way encrypted to a particular `Peer`, and is used to implement multi-recipient public key encryption using `Envelope`. The sender of the message is generated at encryption time, and the ephemeral sender's public key is included, enabling the receipient to decrypt the message without identifying the sender.
+`SealedMessage` is a message that has been one-way encrypted to a particular `PublicKeyBase`, and is used to implement multi-recipient public key encryption using `Envelope`. The sender of the message is generated at encryption time, and the ephemeral sender's public key is included, enabling the receipient to decrypt the message without identifying the sender.
 
 ```mermaid
 graph TB
-    subgraph Peer
+    subgraph PublicKeyBase
         EncryptedMessage
         AgreementPublicKey
     end

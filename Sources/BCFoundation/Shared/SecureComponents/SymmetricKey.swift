@@ -100,3 +100,9 @@ extension SymmetricKey {
         try self.init(cbor: cbor)
     }
 }
+
+extension SymmetricKey: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
+    }
+}

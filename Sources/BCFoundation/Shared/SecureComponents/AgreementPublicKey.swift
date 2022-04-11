@@ -63,3 +63,9 @@ extension AgreementPublicKey {
         try? self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
+
+extension AgreementPublicKey: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
+    }
+}

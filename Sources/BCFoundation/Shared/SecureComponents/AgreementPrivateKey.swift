@@ -1,6 +1,7 @@
 import Foundation
 import CryptoKit
 import WolfBase
+import URKit
 
 /// A Curve25519 private key used for X25519 key agreement.
 ///
@@ -67,5 +68,11 @@ extension AgreementPrivateKey {
     
     public init?(taggedCBOR: Data) {
         try? self.init(taggedCBOR: CBOR(taggedCBOR))
+    }
+}
+
+extension AgreementPrivateKey: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
     }
 }

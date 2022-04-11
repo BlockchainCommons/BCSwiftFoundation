@@ -107,3 +107,9 @@ extension Signature {
         try self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
+
+extension Signature: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
+    }
+}

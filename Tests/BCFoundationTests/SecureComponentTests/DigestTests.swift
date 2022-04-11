@@ -32,7 +32,7 @@ class DigestTests: XCTestCase {
     
     func testCBOR() {
         XCTAssertEqual(
-            secureDigest.taggedCBOR.encoded,
+            secureDigest.taggedCBOR.cborEncode,
             ‡"d902bc820158204d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b"
         )
     }

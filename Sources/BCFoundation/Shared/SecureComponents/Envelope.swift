@@ -51,10 +51,10 @@ extension Envelope {
         return inner
     }
     
-    public func plaintext(for profile: Profile) -> Data? {
+    public func plaintext(for prvkeys: PrivateKeyBase) -> Data? {
         guard
             case let(.encrypted(message, .recipients(sealedMessages), digest)) = self,
-            let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: profile),
+            let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: prvkeys),
             let contentKey = SymmetricKey(contentKeyData),
             let plaintext = contentKey.decrypt(message: message),
             Digest.validate(plaintext, digest: digest)
@@ -64,9 +64,9 @@ extension Envelope {
         return plaintext
     }
     
-    public func inner(for profile: Profile) -> Envelope? {
+    public func inner(for prvkeys: PrivateKeyBase) -> Envelope? {
         guard
-            let innerCBOR = plaintext(for: profile),
+            let innerCBOR = plaintext(for: prvkeys),
             let inner = Envelope(taggedCBOR: innerCBOR)
         else {
             return nil
@@ -95,58 +95,58 @@ extension Envelope {
 }
 
 extension Envelope {
-    public init(plaintext: DataProvider, schnorrSigners: [Profile], tag: Data = Data()) {
+    public init(plaintext: DataProvider, schnorrSigners: [PrivateKeyBase], tag: Data = Data()) {
         let signatures = schnorrSigners.map {
             $0.signingPrivateKey.schnorrSign(plaintext, tag: tag)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: Envelope, schnorrSigners: [Profile], tag: Data = Data()) {
+    public init(inner: Envelope, schnorrSigners: [PrivateKeyBase], tag: Data = Data()) {
         self.init(plaintext: inner.taggedCBOR, schnorrSigners: schnorrSigners, tag: tag)
     }
     
-    public init(plaintext: DataProvider, schnorrSigner: Profile, tag: Data = Data()) {
+    public init(plaintext: DataProvider, schnorrSigner: PrivateKeyBase, tag: Data = Data()) {
         self.init(plaintext: plaintext, schnorrSigners: [schnorrSigner], tag: tag)
     }
     
-    public init(inner: Envelope, schnorrSigner: Profile, tag: Data = Data()) {
+    public init(inner: Envelope, schnorrSigner: PrivateKeyBase, tag: Data = Data()) {
         self.init(plaintext: inner.taggedCBOR, schnorrSigner: schnorrSigner, tag: tag)
     }
 }
 
 extension Envelope {
-    public init(plaintext: DataProvider, ecdsaSigners: [Profile]) {
+    public init(plaintext: DataProvider, ecdsaSigners: [PrivateKeyBase]) {
         let signatures = ecdsaSigners.map {
             $0.signingPrivateKey.ecdsaSign(plaintext)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: Envelope, ecdsaSigners: [Profile]) {
+    public init(inner: Envelope, ecdsaSigners: [PrivateKeyBase]) {
         self.init(plaintext: inner.taggedCBOR, ecdsaSigners: ecdsaSigners)
     }
     
-    public init(plaintext: DataProvider, ecdsaSigner: Profile) {
+    public init(plaintext: DataProvider, ecdsaSigner: PrivateKeyBase) {
         self.init(plaintext: plaintext, ecdsaSigners: [ecdsaSigner])
     }
     
-    public init(inner: Envelope, ecdsaSigner: Profile) {
+    public init(inner: Envelope, ecdsaSigner: PrivateKeyBase) {
         self.init(plaintext: inner.taggedCBOR, ecdsaSigner: ecdsaSigner)
     }
 }
 
 extension Envelope {
-    public init(plaintext: DataProvider, recipients: [Peer], contentKey: SymmetricKey = .init(), includeDigest: Bool = true) {
+    public init(plaintext: DataProvider, recipients: [PublicKeyBase], contentKey: SymmetricKey = .init(), includeDigest: Bool = true) {
         let message = contentKey.encrypt(plaintext: plaintext)
-        let sealedMessages = recipients.map { peer in
-            SealedMessage(plaintext: contentKey, receiver: peer)
+        let sealedMessages = recipients.map { pubkeys in
+            SealedMessage(plaintext: contentKey, receiver: pubkeys)
         }
         let digest = includeDigest ? Digest(plaintext) : nil
         self = .encrypted(message, .recipients(sealedMessages), digest)
     }
     
-    public init(inner: Envelope, recipients: [Peer], contentKey: SymmetricKey = .init()) {
+    public init(inner: Envelope, recipients: [PublicKeyBase], contentKey: SymmetricKey = .init()) {
         self.init(plaintext: inner.taggedCBOR, recipients: recipients, contentKey: contentKey)
     }
     
@@ -178,24 +178,24 @@ extension Envelope {
         return key.isValidSignature(signature, for: plaintext)
     }
     
-    public func isValidSignature(_ signature: Signature, peer: Peer) -> Bool {
-        isValidSignature(signature, key: peer.signingPublicKey)
+    public func isValidSignature(_ signature: Signature, pubkeys: PublicKeyBase) -> Bool {
+        isValidSignature(signature, key: pubkeys.signingPublicKey)
     }
     
     public func hasValidSignature(key: SigningPublicKey) -> Bool {
         signatures.contains { isValidSignature($0, key: key) }
     }
     
-    public func hasValidSignature(from peer: Peer) -> Bool {
-        hasValidSignature(key: peer.signingPublicKey)
+    public func hasValidSignature(from pubkeys: PublicKeyBase) -> Bool {
+        hasValidSignature(key: pubkeys.signingPublicKey)
     }
     
     public func hasValidSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) -> Bool {
         keys.filter(hasValidSignature).count >= threshold ?? keys.count
     }
     
-    public func hasValidSignatures(from peers: [Peer], threshold: Int? = nil) -> Bool {
-        hasValidSignatures(with: peers.map { $0.signingPublicKey }, threshold: threshold)
+    public func hasValidSignatures(from pubkeysArray: [PublicKeyBase], threshold: Int? = nil) -> Bool {
+        hasValidSignatures(with: pubkeysArray.map { $0.signingPublicKey }, threshold: threshold)
     }
 }
 

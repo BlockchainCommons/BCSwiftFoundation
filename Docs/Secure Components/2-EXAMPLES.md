@@ -20,27 +20,27 @@ This section includes a set of high-level examples of API usage in Swift involvi
 
 ## Common structures used by the examples
 
-The unit tests define a common plaintext, and three separate `Profile` objects for *Alice*, *Bob*, and *Carol*, each with a corresponding `Peer`.
+The unit tests define a common plaintext, and three separate `PrivateKeyBase` objects for *Alice*, *Bob*, and *Carol*, each with a corresponding `PublicKeyBase`.
 
 ```swift
   static let plaintext = "Some mysteries aren't meant to be solved.".utf8Data
 
   static let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
-  static let aliceProfile = Profile(aliceSeed, salt: "Salt")
-  static let alicePeer = Peer(profile: aliceProfile)
+  static let alicePrivateKeyBase = PrivateKeyBase(aliceSeed, salt: "Salt")
+  static let alicePublicKeyBase = PublicKeyBase(prvkeys: alicePrivateKeyBase)
 
   static let bobSeed = Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!
-  static let bobProfile = Profile(bobSeed, salt: "Salt")
-  static let bobPeer = Peer(profile: bobProfile)
+  static let bobPrivateKeyBase = PrivateKeyBase(bobSeed, salt: "Salt")
+  static let bobPublicKeyBase = PublicKeyBase(prvkeys: bobPrivateKeyBase)
 
   static let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
-  static let carolProfile = Profile(carolSeed, salt: "Salt")
-  static let carolPeer = Peer(profile: carolProfile)
+  static let carolPrivateKeyBase = PrivateKeyBase(carolSeed, salt: "Salt")
+  static let carolPublicKeyBase = PublicKeyBase(prvkeys: carolPrivateKeyBase)
 ```
 
-A `Profile` is derived from a source of key material such as a `Seed`, an `HDKey`, or a `Password` that produces key material using the Scrypt algorithm, and also includes a random `Salt`.
+A `PrivateKeyBase` is derived from a source of key material such as a `Seed`, an `HDKey`, or a `Password` that produces key material using the Scrypt algorithm, and also includes a random `Salt`.
 
-A `Profile` is kept secret, and can produce both private and public keys for signing and encryption. A `Peer` is just the public keys and `Salt` extracted from a `Profile` and can be made public. Signing and public key encryption is performed using the `Profile` of one party and the `Peer` from another.
+A `PrivateKeyBase` is kept secret, and can produce both private and public keys for signing and encryption. A `PublicKeyBase` is just the public keys and `Salt` extracted from a `PrivateKeyBase` and can be made public. Signing and public key encryption is performed using the `PrivateKeyBase` of one party and the `PublicKeyBase` from another.
 
 **Note:** Due to the use of randomness in the cryptographic constructions, separate runs of the code are extremly unlikely to replicate the exact CBOR and URs below.
 
@@ -113,7 +113,7 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 
 ```swift
 // Alice sends a signed plaintext message to Bob.
-let envelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceProfile)
+let envelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeyBase)
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -121,13 +121,13 @@ let ur = envelope.ur
 // Bob receives the envelope.
 let receivedEnvelope = try Envelope(ur: ur)
 // Bob receives the message and verifies that it was signed by Alice.
-XCTAssertTrue(receivedEnvelope.hasValidSignature(from: Self.alicePeer))
+XCTAssertTrue(receivedEnvelope.hasValidSignature(from: Self.alicePublicKeyBase))
 // Confirm that it wasn't signed by Carol.
-XCTAssertFalse(receivedEnvelope.hasValidSignature(from: Self.carolPeer))
+XCTAssertFalse(receivedEnvelope.hasValidSignature(from: Self.carolPublicKeyBase))
 // Confirm that it was signed by Alice OR Carol.
-XCTAssertTrue(receivedEnvelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 1))
+XCTAssertTrue(receivedEnvelope.hasValidSignatures(from: [Self.alicePublicKeyBase, Self.carolPublicKeyBase], threshold: 1))
 // Confirm that it was not signed by Alice AND Carol.
-XCTAssertFalse(receivedEnvelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer], threshold: 2))
+XCTAssertFalse(receivedEnvelope.hasValidSignatures(from: [Self.alicePublicKeyBase, Self.carolPublicKeyBase], threshold: 2))
 
 // Bob reads the message.
 XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
@@ -201,7 +201,7 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 
 ```swift
 // Alice and Carol jointly send a signed plaintext message to Bob.
-let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.aliceProfile, Self.carolProfile])
+let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.alicePrivateKeyBase, Self.carolPrivateKeyBase])
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -210,7 +210,7 @@ let ur = envelope.ur
 let receivedEnvelope = try Envelope(ur: ur)
 
 // Bob verifies the message was signed by both Alice and Carol.
-XCTAssertTrue(receivedEnvelope.hasValidSignatures(from: [Self.alicePeer, Self.carolPeer]))
+XCTAssertTrue(receivedEnvelope.hasValidSignatures(from: [Self.alicePublicKeyBase, Self.carolPublicKeyBase]))
 
 // Bob reads the message.
 XCTAssertEqual(receivedEnvelope.plaintext, Self.plaintext)
@@ -401,7 +401,7 @@ ur:crypto-envelope/lsaotpdylpadhddtwpnepelypebnkejtdiynidhtbglnyltlrnbejelajnhny
 let key = SymmetricKey()
 
 // Alice signs a plaintext message, then encrypts it.
-let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceProfile)
+let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeyBase)
 let envelope = Envelope(inner: innerSignedEnvelope, key: key)
 let ur = envelope.ur
 
@@ -418,7 +418,7 @@ else {
     return
 }
 // Bob validates Alice's signature.
-XCTAssertTrue(innerEnvelope.hasValidSignature(from: Self.alicePeer))
+XCTAssertTrue(innerEnvelope.hasValidSignature(from: Self.alicePublicKeyBase))
 // Bob reads the message.
 XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
 ```
@@ -515,7 +515,7 @@ let key = SymmetricKey()
 
 // Alice encrypts a message, then signs it.
 let innerEncryptedEnvelope = Envelope(plaintext: Self.plaintext, key: key)
-let envelope = Envelope(inner: innerEncryptedEnvelope, signer: Self.aliceProfile)
+let envelope = Envelope(inner: innerEncryptedEnvelope, signer: Self.alicePrivateKeyBase)
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -525,7 +525,7 @@ let receivedEnvelope = try Envelope(ur: ur)
 
 // Bob checks the signature of the outer envelope, then decrypts the inner envelope.
 guard
-    receivedEnvelope.hasValidSignature(from: Self.alicePeer),
+    receivedEnvelope.hasValidSignature(from: Self.alicePublicKeyBase),
     let plaintext = receivedEnvelope.inner?.plaintext(with: key)
 else {
     XCTFail()
@@ -618,16 +618,16 @@ ur:crypto-envelope/lsadhdhgtpehlsaotpdylpadhddtfpceimbnfxrlfwzmbsftrpjnhshfttdtl
 
 ```swift
 // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
-let envelope = Envelope(plaintext: Self.plaintext, recipients: [Self.bobPeer, Self.carolPeer])
+let envelope = Envelope(plaintext: Self.plaintext, recipients: [Self.bobPublicKeyBase, Self.carolPublicKeyBase])
 
 // Bob decrypts and reads the message.
-XCTAssertEqual(envelope.plaintext(for: Self.bobProfile), Self.plaintext)
+XCTAssertEqual(envelope.plaintext(for: Self.bobPrivateKeyBase), Self.plaintext)
 
 // Carol decrypts and reads the message.
-XCTAssertEqual(envelope.plaintext(for: Self.carolProfile), Self.plaintext)
+XCTAssertEqual(envelope.plaintext(for: Self.carolPrivateKeyBase), Self.plaintext)
 
 // Alice didn't encrypt it to herself, so she can't read it.
-XCTAssertNil(envelope.plaintext(for: Self.aliceProfile))
+XCTAssertNil(envelope.plaintext(for: Self.alicePrivateKeyBase))
 ```
 
 ### Schematic
@@ -783,8 +783,8 @@ ur:crypto-envelope/lsaotpdylpadhddtckesprjoehryctfsressyncpzehkmnhpwktsjyhnbdeyh
 
 ```swift
 // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
-let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.aliceProfile)
-let envelope = Envelope(inner: innerSignedEnvelope, recipients: [Self.bobPeer, Self.carolPeer])
+let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeyBase)
+let envelope = Envelope(inner: innerSignedEnvelope, recipients: [Self.bobPublicKeyBase, Self.carolPublicKeyBase])
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -792,15 +792,15 @@ let ur = envelope.ur
 // Bob receives the envelope.
 let receivedEnvelope = try Envelope(ur: ur)
 
-// Bob decrypts the outer envelope using his profile.
+// Bob decrypts the outer envelope using his private keys.
 guard
-    let innerEnvelope = receivedEnvelope.inner(for: Self.bobProfile)
+    let innerEnvelope = receivedEnvelope.inner(for: Self.bobPrivateKeyBase)
 else {
     XCTFail()
     return
 }
 // Bob validates Alice's signature.
-XCTAssertTrue(innerEnvelope.hasValidSignature(from: Self.alicePeer))
+XCTAssertTrue(innerEnvelope.hasValidSignature(from: Self.alicePublicKeyBase))
 // Bob reads the message.
 XCTAssertEqual(innerEnvelope.plaintext, Self.plaintext)
 ```

@@ -2,11 +2,11 @@ import Foundation
 import CryptoKit
 import WolfBase
 
-/// Holds information used to communicate cryptographically with a remote peer.
+/// Holds information used to communicate cryptographically with a remote entity.
 ///
-/// Includes the peer's public signing key for verifying signatures, and
-/// the peer's public agreement key and salt used for X25519 key agreement.
-public struct Peer: CustomStringConvertible, Hashable {
+/// Includes the entity's public signing key for verifying signatures, and
+/// the entity's public agreement key and salt used for X25519 key agreement.
+public struct PublicKeyBase: CustomStringConvertible, Hashable {
     public let signingPublicKey: SigningPublicKey
     public let agreementPublicKey: AgreementPublicKey
     
@@ -16,11 +16,11 @@ public struct Peer: CustomStringConvertible, Hashable {
     }
     
     public var description: String {
-        "Peer(signingKey: \(signingPublicKey), agreementKey: \(agreementPublicKey)"
+        "PublicKeyBase(signingKey: \(signingPublicKey), agreementKey: \(agreementPublicKey)"
     }
 }
 
-extension Peer {
+extension PublicKeyBase {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let signingKey = signingPublicKey.taggedCBOR
@@ -30,7 +30,7 @@ extension Peer {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.peer.tag, cbor)
+        CBOR.tagged(URType.pubkeys.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -51,7 +51,7 @@ extension Peer {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.peer.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.pubkeys.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
@@ -62,16 +62,22 @@ extension Peer {
     }
 }
 
-extension Peer {
+extension PublicKeyBase {
     public var ur: UR {
-        return try! UR(type: URType.peer.type, cbor: cbor)
+        return try! UR(type: URType.pubkeys.type, cbor: cbor)
     }
     
     public init(ur: UR) throws {
-        guard ur.type == URType.peer.type else {
+        guard ur.type == URType.pubkeys.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
         try self.init(cbor: cbor)
+    }
+}
+
+extension PublicKeyBase: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
     }
 }

@@ -9,10 +9,10 @@ public struct SealedMessage {
     public let message: EncryptedMessage
     public let ephemeralPublicKey: AgreementPublicKey
     
-    public init(plaintext: DataProvider, receiver: Peer, aad: Data? = nil) {
-        let ephemeralSender = Profile()
+    public init(plaintext: DataProvider, receiver: PublicKeyBase, aad: Data? = nil) {
+        let ephemeralSender = PrivateKeyBase()
         let receiverPublicKey = receiver.agreementPublicKey
-        let key = EncryptedMessage.sharedKey(profilePrivateKey: ephemeralSender.agreementPrivateKey, peerPublicKey: receiverPublicKey)
+        let key = EncryptedMessage.sharedKey(agreementPrivateKey: ephemeralSender.agreementPrivateKey, agreementPublicKey: receiverPublicKey)
         self.message = key.encrypt(plaintext: plaintext, aad: aad)
         self.ephemeralPublicKey = ephemeralSender.agreementPrivateKey.publicKey
     }
@@ -22,14 +22,14 @@ public struct SealedMessage {
         self.ephemeralPublicKey = ephemeralPublicKey
     }
     
-    public func plaintext(with profile: Profile) -> Data? {
-        let key = EncryptedMessage.sharedKey(profilePrivateKey: profile.agreementPrivateKey, peerPublicKey: ephemeralPublicKey)
+    public func plaintext(with prvkeys: PrivateKeyBase) -> Data? {
+        let key = EncryptedMessage.sharedKey(agreementPrivateKey: prvkeys.agreementPrivateKey, agreementPublicKey: ephemeralPublicKey)
         return key.decrypt(message: message)
     }
     
-    public static func firstPlaintext(in sealedMessages: [SealedMessage], for profile: Profile) -> Data? {
+    public static func firstPlaintext(in sealedMessages: [SealedMessage], for prvkeys: PrivateKeyBase) -> Data? {
         for sealedMessage in sealedMessages {
-            if let plaintext = sealedMessage.plaintext(with: profile) {
+            if let plaintext = sealedMessage.plaintext(with: prvkeys) {
                 return plaintext
             }
         }
@@ -77,4 +77,8 @@ extension SealedMessage {
     }
 }
 
-// TODO: UR Encoding
+extension SealedMessage: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
+    }
+}

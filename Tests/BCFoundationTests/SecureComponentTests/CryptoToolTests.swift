@@ -26,12 +26,12 @@ class CryptoToolTests: XCTestCase {
 //        let envelope = Envelope(plaintext: message, key: key)
 //        print(envelope.ur)
         
-//        let profile = Profile()
-//        print(profile.ur)
+//        let prvkeys = PrivateKeyBase()
+//        print(prvkeys.ur)
         
-        let ur = try UR(urString: "ur:crypto-profile/lsadhdcxsofssasgpmrfdyrtiavoinbepabseyfnttcnfmdyzcktwnmsbzgsqzfhksiezclagdioeshtqzzmkplamkehpklylejztszowywmztjpme")
-        let profile = try Profile(ur: ur)
-        let peer = profile.peer
-        print(peer.ur)
+        let ur = try UR(urString: "ur:crypto-prvkeys/lsadhdcxsofssasgpmrfdyrtiavoinbepabseyfnttcnfmdyzcktwnmsbzgsqzfhksiezclagdioeshtqzzmkplamkehpklylejztszowywmztjpme")
+        let prvkeys = try PrivateKeyBase(ur: ur)
+        let pubkeys = prvkeys.pubkeys
+        print(pubkeys.ur)
     }
 }

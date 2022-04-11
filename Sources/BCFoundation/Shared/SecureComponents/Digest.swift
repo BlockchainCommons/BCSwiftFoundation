@@ -50,6 +50,12 @@ public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
     }
 }
 
+extension Digest: Comparable {
+    public static func < (lhs: Digest, rhs: Digest) -> Bool {
+        lhs.rawValue.lexicographicallyPrecedes(rhs.rawValue)
+    }
+}
+
 extension Digest {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
@@ -125,5 +131,11 @@ extension Digest {
         }
         let cbor = try CBOR(ur.cbor)
         try self.init(cbor: cbor)
+    }
+}
+
+extension Digest: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
     }
 }

@@ -2,28 +2,28 @@ import Foundation
 import CryptoKit
 import WolfBase
 
-/// Types can conform to `ProfileDataProvider` to indicate that they will provide
+/// Types can conform to `PrivateKeysDataProvider` to indicate that they will provide
 /// unique data from which keys for signing and encryption can be derived.
 ///
 /// Conforming types include `Data`, `Seed`, `HDKey`, and `Password`.
-public protocol ProfileDataProvider {
-    var profileData: Data { get }
+public protocol PrivateKeysDataProvider {
+    var prvkeysData: Data { get }
 }
 
-extension Data: ProfileDataProvider {
-    public var profileData: Data {
+extension Data: PrivateKeysDataProvider {
+    public var prvkeysData: Data {
         self
     }
 }
 
-extension Seed: ProfileDataProvider {
-    public var profileData: Data {
+extension Seed: PrivateKeysDataProvider {
+    public var prvkeysData: Data {
         data
     }
 }
 
-extension HDKey: ProfileDataProvider {
-    public var profileData: Data {
+extension HDKey: PrivateKeysDataProvider {
+    public var prvkeysData: Data {
         keyData
     }
 }
@@ -34,13 +34,13 @@ extension HDKey: ProfileDataProvider {
 /// Derivation is performed used HKDF-SHA512.
 ///
 /// https://datatracker.ietf.org/doc/html/rfc5869
-public struct Profile {
+public struct PrivateKeyBase {
     public let data: Data
     public let salt: Data
     
-    public init(_ provider: ProfileDataProvider, salt: DataProvider? = nil) {
+    public init(_ provider: PrivateKeysDataProvider, salt: DataProvider? = nil) {
         let salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
-        self.data = provider.profileData
+        self.data = provider.prvkeysData
         self.salt = salt
     }
     
@@ -58,16 +58,16 @@ public struct Profile {
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var peer: Peer {
-        Peer(signingPublicKey: signingPrivateKey.schnorrPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
+    public var pubkeys: PublicKeyBase {
+        PublicKeyBase(signingPublicKey: signingPrivateKey.schnorrPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
     
-    public var ecdsaPeer: Peer {
-        Peer(signingPublicKey: signingPrivateKey.ecdsaPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
+    public var ecdsaPeer: PublicKeyBase {
+        PublicKeyBase(signingPublicKey: signingPrivateKey.ecdsaPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
 }
 
-extension Profile {
+extension PrivateKeyBase {
     public var cbor: CBOR {
         let type = CBOR.unsignedInt(1)
         let data = CBOR.data(self.data)
@@ -76,7 +76,7 @@ extension Profile {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.profile.tag, cbor)
+        CBOR.tagged(URType.prvkeys.tag, cbor)
     }
     
     public init(cbor: CBOR) throws {
@@ -90,11 +90,11 @@ extension Profile {
         else {
             throw CBORError.invalidFormat
         }
-        self = Profile(data, salt: salt)
+        self = PrivateKeyBase(data, salt: salt)
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.profile.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.prvkeys.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(cbor: cbor)
@@ -105,16 +105,22 @@ extension Profile {
     }
 }
 
-extension Profile {
+extension PrivateKeyBase {
     public var ur: UR {
-        return try! UR(type: URType.profile.type, cbor: cbor)
+        return try! UR(type: URType.prvkeys.type, cbor: cbor)
     }
     
     public init(ur: UR) throws {
-        guard ur.type == URType.profile.type else {
+        guard ur.type == URType.prvkeys.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
         try self.init(cbor: cbor)
+    }
+}
+
+extension PrivateKeyBase: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
     }
 }

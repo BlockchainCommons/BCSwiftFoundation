@@ -17,39 +17,39 @@ class AddressTests: XCTestCase {
     func testDeriveLegacyAddress() {
         let address = Bitcoin.Address(hdKey: hdKey, type: .payToPubKeyHash)
         XCTAssertEqual(address†, "1JQheacLPdM5ySCkrZkV66G2ApAXe1mqLj")
-        XCTAssertEqual(address.taggedCBOR.encoded, ‡"d90133a301d90131a002000354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(address.taggedCBOR.cborEncode, ‡"d90133a301d90131a002000354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
     }
 
     func testDeriveLegacyAddressTestnet() {
         let address = Bitcoin.Address(hdKey: hdKeyTestnet, type: .payToPubKeyHash)
         XCTAssertEqual(address†, "mnicNaAVzyGdFvDa9VkMrjgNdnr2wHBWxk")
-        XCTAssertEqual(address.taggedCBOR.encoded, ‡"d90133a301d90131a10201020003544efd3ded47d967e4122982422c9d84db60503972")
+        XCTAssertEqual(address.taggedCBOR.cborEncode, ‡"d90133a301d90131a10201020003544efd3ded47d967e4122982422c9d84db60503972")
     }
 
     
     func testDeriveWrappedSegWitAddress() {
         let address = Bitcoin.Address(hdKey: hdKey, type: .payToScriptHashPayToWitnessPubKeyHash)
         XCTAssertEqual(address†, "3DymAvEWH38HuzHZ3VwLus673bNZnYwNXu")
-        XCTAssertEqual(address.taggedCBOR.encoded, ‡"d90133a301d90131a00201035486cc442a97817c245ce90ed0d31d6dbcde3841f9")
+        XCTAssertEqual(address.taggedCBOR.cborEncode, ‡"d90133a301d90131a00201035486cc442a97817c245ce90ed0d31d6dbcde3841f9")
     }
     
     func testDeriveWrappedSegWitAddressTestnet() {
         let address = Bitcoin.Address(hdKey: hdKeyTestnet, type: .payToScriptHashPayToWitnessPubKeyHash)
         XCTAssertEqual(address†, "2N6M3ah9EoggimNz5pnAmQwnpE1Z3ya3V7A")
-        XCTAssertEqual(address.taggedCBOR.encoded, ‡"d90133a301d90131a10201020103548fb371a0195598d96e634b9eddb645fa1f128e11")
+        XCTAssertEqual(address.taggedCBOR.cborEncode, ‡"d90133a301d90131a10201020103548fb371a0195598d96e634b9eddb645fa1f128e11")
     }
     
     
     func testDeriveNativeSegWitAddress() {
         let address = Bitcoin.Address(hdKey: hdKey, type: .payToWitnessPubKeyHash)
         XCTAssertEqual(address†, "bc1qhm6697d9d2224vfyt8mj4kw03ncec7a7fdafvt")
-        XCTAssertEqual(address.taggedCBOR.encoded, ‡"d90133a301d90131a002020354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
+        XCTAssertEqual(address.taggedCBOR.cborEncode, ‡"d90133a301d90131a002020354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
     }
     
     func testDeriveNativeSegWitAddressTestnet() {
         let address = Bitcoin.Address(hdKey: hdKeyTestnet, type: .payToWitnessPubKeyHash)
         XCTAssertEqual(address†, "tb1qfm7nmm28m9n7gy3fsfpze8vymds9qwtjwn4w7y")
-        XCTAssertEqual(address.taggedCBOR.encoded, ‡"d90133a301d90131a10201020203544efd3ded47d967e4122982422c9d84db60503972")
+        XCTAssertEqual(address.taggedCBOR.cborEncode, ‡"d90133a301d90131a10201020203544efd3ded47d967e4122982422c9d84db60503972")
     }
     
     func testParseLegacyAddress() throws {
@@ -59,7 +59,7 @@ class AddressTests: XCTestCase {
         XCTAssertEqual(address.data, ‡"bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
         XCTAssertEqual(address.type, .payToPubKeyHash)
 
-        let cbor = address.taggedCBOR.encoded
+        let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a002000354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
         let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
         XCTAssertEqual(address, address2)
@@ -72,7 +72,7 @@ class AddressTests: XCTestCase {
         XCTAssertEqual(address.data, ‡"86cc442a97817c245ce90ed0d31d6dbcde3841f9")
         XCTAssertEqual(address.type, .payToScriptHash)
 
-        let cbor = address.taggedCBOR.encoded
+        let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a00201035486cc442a97817c245ce90ed0d31d6dbcde3841f9")
         let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
         XCTAssertEqual(address, address2)
@@ -85,7 +85,7 @@ class AddressTests: XCTestCase {
         XCTAssertEqual(address.data, ‡"bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
         XCTAssertEqual(address.type, .payToWitnessPubKeyHash)
 
-        let cbor = address.taggedCBOR.encoded
+        let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a002020354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
         let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
         XCTAssertEqual(address, address2)
@@ -98,7 +98,7 @@ class AddressTests: XCTestCase {
         XCTAssertEqual(address.data, ‡"79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
         XCTAssertEqual(address.type, .taproot)
 
-        let cbor = address.taggedCBOR.encoded
+        let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a0020203582079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
         let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
         XCTAssertEqual(address, address2)

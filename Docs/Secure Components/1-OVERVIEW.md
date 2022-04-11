@@ -42,11 +42,11 @@ The types defined in the Secure Components suite are designed to be minimal, sim
 
 * `EncryptedMessage` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
 
-* `Profile` holds key material such as a Seed belonging to an identifiable entity, and can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
+* `PrivateKeyBase` holds key material such as a Seed belonging to an identifiable entity, and can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
 
-* `Peer` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption.
+* `PublicKeyBase` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption.
 
-* `SealedMessage` is a message that has been one-way encrypted to a specific `Peer`, and is used to implement multi-recipient public key encryption using `Envelope`.
+* `SealedMessage` is a message that has been one-way encrypted to a specific `PublicKeyBase`, and is used to implement multi-recipient public key encryption using `Envelope`.
 
 Many of the types defined herein are assigned CBOR tags for use when encoding these structures. The types in this section may be used embedded within larger structures as tagged CBOR, or as top-level objects in URs. Note that when encoding URs, a top-level CBOR tag is not used, as the UR type provides that information.
 
@@ -54,8 +54,8 @@ Many of the types defined herein are assigned CBOR tags for use when encoding th
 |---|---|---|
 |48|`crypto-msg`|`EncryptedMessage`|
 |49|`crypto-envelope`|`Envelope`|
-|50|`crypto-profile`|`Profile`|
-|51|`crypto-peer`|`Peer`|
+|50|`crypto-prvkeys`|`PrivateKeyBase`|
+|51|`crypto-pubkeys`|`PublicKeyBase`|
 |55|`crypto-sealed`|`SealedMessage`|
 
 ## Tagged Types

@@ -140,3 +140,9 @@ extension SigningPublicKey {
         try? self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
+
+extension SigningPublicKey: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
+    }
+}

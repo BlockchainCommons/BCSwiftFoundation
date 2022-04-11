@@ -77,8 +77,8 @@ public struct EncryptedMessage: CustomStringConvertible, Equatable {
 }
 
 extension EncryptedMessage {
-    public static func sharedKey(profilePrivateKey: AgreementPrivateKey, peerPublicKey: AgreementPublicKey) -> SymmetricKey {
-        let sharedSecret = try! profilePrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: peerPublicKey.cryptoKitForm)
+    public static func sharedKey(agreementPrivateKey: AgreementPrivateKey, agreementPublicKey: AgreementPublicKey) -> SymmetricKey {
+        let sharedSecret = try! agreementPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: agreementPublicKey.cryptoKitForm)
         return SymmetricKey(sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: Data(), sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
     }
 }
@@ -161,5 +161,11 @@ extension EncryptedMessage {
         }
         let cbor = try CBOR(ur.cbor)
         return try Self.decode(cbor: cbor)
+    }
+}
+
+extension EncryptedMessage: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
     }
 }

@@ -87,7 +87,7 @@ extension SSKRShare {
 
 extension SSKRShare {
     public func bytewords(style: Bytewords.Style) -> String {
-        return Bytewords.encode(taggedCBOR.encoded, style: style)
+        return Bytewords.encode(taggedCBOR.cborEncode, style: style)
     }
 
     public init?(bytewords: String) throws {

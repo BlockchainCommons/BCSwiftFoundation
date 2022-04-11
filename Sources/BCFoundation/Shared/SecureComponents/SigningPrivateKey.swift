@@ -82,3 +82,9 @@ extension SigningPrivateKey {
         try? self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
+
+extension SigningPrivateKey: CBOREncodable {
+    public var cborEncode: Data {
+        taggedCBOR.cborEncode
+    }
+}
