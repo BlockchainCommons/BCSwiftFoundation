@@ -52,11 +52,11 @@ struct DescriptorCombo: DescriptorAST {
         "combo(\(key))"
     }
 
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         key.taggedCBOR
     }
     
     var taggedCBOR: CBOR {
-        CBOR.tagged(.outputCombo, cbor)
+        CBOR.tagged(.outputCombo, untaggedCBOR)
     }
 }

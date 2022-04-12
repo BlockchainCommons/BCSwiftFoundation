@@ -5,12 +5,12 @@ import CryptoSwift
 public struct SeedDigest {
     public let digest: Data
     
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.data(digest)
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.seedDigest, cbor)
+        CBOR.tagged(.seedDigest, untaggedCBOR)
     }
     
     public init(digest: Data) throws {

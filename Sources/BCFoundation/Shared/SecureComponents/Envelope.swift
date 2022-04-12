@@ -235,7 +235,7 @@ extension Envelope {
 }
 
 extension Envelope {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         var array: [CBOR] = []
         
         switch self {
@@ -258,7 +258,7 @@ extension Envelope {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.envelope.tag, cbor)
+        CBOR.tagged(URType.envelope.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -301,7 +301,7 @@ extension Envelope {
 }
 
 extension Permit {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         var array: [CBOR] = []
         
         switch self {
@@ -325,7 +325,7 @@ extension Permit {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.permit, cbor)
+        CBOR.tagged(.permit, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -371,7 +371,7 @@ extension Permit {
 
 extension Envelope {
     public var ur: UR {
-        return try! UR(type: URType.envelope.type, cbor: cbor)
+        return try! UR(type: URType.envelope.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {

@@ -50,11 +50,11 @@ struct DescriptorSH: DescriptorAST {
         "sh(\(redeemScript))"
     }
 
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         redeemScript.taggedCBOR
     }
     
     var taggedCBOR: CBOR {
-        CBOR.tagged(.outputScriptHash, cbor)
+        CBOR.tagged(.outputScriptHash, untaggedCBOR)
     }
 }

@@ -41,16 +41,16 @@ public struct OutputDescriptor {
         astRoot.unparsed
     }
     
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         astRoot.taggedCBOR
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.output.tag, cbor)
+        CBOR.tagged(URType.output.tag, untaggedCBOR)
     }
     
     public var ur: UR {
-        return try! UR(type: URType.output.type, cbor: cbor)
+        return try! UR(type: URType.output.type, cbor: untaggedCBOR)
     }
     
     public var checksum: String {

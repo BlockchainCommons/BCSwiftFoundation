@@ -293,19 +293,19 @@ extension PSBT {
     }
     
     public var ur: UR {
-        try! UR(type: URType.psbt.type, cbor: cbor)
+        try! UR(type: URType.psbt.type, cbor: untaggedCBOR)
     }
     
     public var urString: String {
         ur.string
     }
     
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.data(data)
     }
 
     public var taggedCBOR: CBOR {
-        return CBOR.tagged(URType.psbt.tag, cbor)
+        return CBOR.tagged(URType.psbt.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {

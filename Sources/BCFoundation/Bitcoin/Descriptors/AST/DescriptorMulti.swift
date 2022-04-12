@@ -65,7 +65,7 @@ struct DescriptorMulti: DescriptorAST {
         return "\(prefix)(\(threshold),\(keysString))"
     }
 
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         CBOR.orderedMap([
             1: .unsignedInt(UInt64(threshold)),
             2: .array(keys.map({ $0.taggedCBOR }))
@@ -73,6 +73,6 @@ struct DescriptorMulti: DescriptorAST {
     }
     
     var taggedCBOR: CBOR {
-        CBOR.tagged(isSorted ? .outputSortedMultisig : .outputMultisig, cbor)
+        CBOR.tagged(isSorted ? .outputSortedMultisig : .outputMultisig, untaggedCBOR)
     }
 }

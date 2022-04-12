@@ -38,7 +38,7 @@ public struct SealedMessage {
 }
 
 extension SealedMessage {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let message = self.message.taggedCBOR
         let ephemeralPublicKey = self.ephemeralPublicKey.taggedCBOR
@@ -47,7 +47,7 @@ extension SealedMessage {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.sealedMessage.tag, cbor)
+        CBOR.tagged(URType.sealedMessage.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -78,7 +78,7 @@ extension SealedMessage {
 }
 
 extension SealedMessage: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

@@ -42,7 +42,7 @@ extension ChildIndexRange {
 }
 
 extension ChildIndexRange {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.array([
             CBOR.unsignedInt(UInt64(low.value)),
             CBOR.unsignedInt(UInt64(high.value))

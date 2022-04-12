@@ -35,11 +35,11 @@ struct DescriptorPKH: DescriptorAST {
         "pkh(\(key))"
     }
 
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         key.taggedCBOR
     }
     
     var taggedCBOR: CBOR {
-        CBOR.tagged(.outputPublicKeyHash, cbor)
+        CBOR.tagged(.outputPublicKeyHash, untaggedCBOR)
     }
 }

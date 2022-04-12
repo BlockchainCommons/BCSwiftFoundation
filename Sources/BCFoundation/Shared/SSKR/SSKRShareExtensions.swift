@@ -62,12 +62,12 @@ extension SSKRShare: Hashable {
 }
 
 extension SSKRShare {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.data(Data(data))
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.sskrShare.tag, cbor)
+        CBOR.tagged(URType.sskrShare.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -100,7 +100,7 @@ extension SSKRShare {
 
 extension SSKRShare {
     public var ur: UR {
-        return try! UR(type: URType.sskrShare.type, cbor: cbor)
+        return try! UR(type: URType.sskrShare.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {

@@ -47,14 +47,14 @@ public struct SigningPrivateKey: CustomStringConvertible, Hashable {
 }
 
 extension SigningPrivateKey {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let key = CBOR.data(self.data)
         return CBOR.array([type, key])
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.signingPrivateKey, cbor)
+        CBOR.tagged(.signingPrivateKey, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -84,7 +84,7 @@ extension SigningPrivateKey {
 }
 
 extension SigningPrivateKey: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

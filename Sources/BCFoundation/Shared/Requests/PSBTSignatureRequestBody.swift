@@ -17,12 +17,12 @@ public struct PSBTSignatureRequestBody {
         self.isRawPSBT = isRawPSBT
     }
     
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.orderedMap([1: psbt.taggedCBOR])
     }
 
     public var taggedCBOR: CBOR {
-        return CBOR.tagged(.psbtSignatureRequestBody, cbor)
+        return CBOR.tagged(.psbtSignatureRequestBody, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {

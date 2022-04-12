@@ -111,6 +111,6 @@ extension DerivationStep: CustomStringConvertible {
 
 extension DerivationStep {
     var array: [CBOR] {
-        [childIndexSpec.cbor, CBOR.boolean(isHardened)]
+        [childIndexSpec.untaggedCBOR, CBOR.boolean(isHardened)]
     }
 }

@@ -46,7 +46,7 @@ extension Signature: Equatable {
 }
 
 extension Signature {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         switch self {
         case .schnorr(let data, let tag):
             let type = CBOR.unsignedInt(1)
@@ -61,7 +61,7 @@ extension Signature {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.signature, cbor)
+        CBOR.tagged(.signature, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -109,7 +109,13 @@ extension Signature {
 }
 
 extension Signature: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
+    }
+}
+
+extension Signature: CBORDecodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> Signature {
+        try Signature(taggedCBOR: cbor)
     }
 }

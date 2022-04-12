@@ -62,13 +62,13 @@ public struct PrivateKeyBase {
         PublicKeyBase(signingPublicKey: signingPrivateKey.schnorrPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
     
-    public var ecdsaPeer: PublicKeyBase {
+    public var ecdsaPubkeys: PublicKeyBase {
         PublicKeyBase(signingPublicKey: signingPrivateKey.ecdsaPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
 }
 
 extension PrivateKeyBase {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let data = CBOR.data(self.data)
         let salt = CBOR.data(self.salt)
@@ -76,7 +76,7 @@ extension PrivateKeyBase {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.prvkeys.tag, cbor)
+        CBOR.tagged(URType.prvkeys.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -107,7 +107,7 @@ extension PrivateKeyBase {
 
 extension PrivateKeyBase {
     public var ur: UR {
-        return try! UR(type: URType.prvkeys.type, cbor: cbor)
+        return try! UR(type: URType.prvkeys.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {
@@ -120,7 +120,7 @@ extension PrivateKeyBase {
 }
 
 extension PrivateKeyBase: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

@@ -66,7 +66,7 @@ extension Asset: CustomStringConvertible {
 }
 
 extension Asset {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.unsignedInt(UInt64(rawValue))
     }
     

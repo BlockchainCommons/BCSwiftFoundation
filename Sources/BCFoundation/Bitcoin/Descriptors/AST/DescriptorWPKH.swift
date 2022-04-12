@@ -35,11 +35,11 @@ struct DescriptorWPKH: DescriptorAST {
         "wpkh(\(key))"
     }
 
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         key.taggedCBOR
     }
     
     var taggedCBOR: CBOR {
-        CBOR.tagged(.outputWitnessPublicKeyHash, cbor)
+        CBOR.tagged(.outputWitnessPublicKeyHash, untaggedCBOR)
     }
 }

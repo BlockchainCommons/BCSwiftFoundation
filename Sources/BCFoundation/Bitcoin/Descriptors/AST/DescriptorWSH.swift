@@ -46,11 +46,11 @@ struct DescriptorWSH: DescriptorAST {
         "wsh(\(redeemScript))"
     }
 
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         redeemScript.taggedCBOR
     }
     
     var taggedCBOR: CBOR {
-        CBOR.tagged(.outputWitnessScriptHash, cbor)
+        CBOR.tagged(.outputWitnessScriptHash, untaggedCBOR)
     }
 }

@@ -28,8 +28,8 @@ struct DescriptorAddress: DescriptorAST {
         "addr(\(address))"
     }
     
-    var cbor: CBOR {
-        address.cbor
+    var untaggedCBOR: CBOR {
+        address.untaggedCBOR
     }
     
     var taggedCBOR: CBOR {

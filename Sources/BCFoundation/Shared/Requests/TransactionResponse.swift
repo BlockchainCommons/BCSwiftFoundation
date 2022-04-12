@@ -23,7 +23,7 @@ public struct TransactionResponse {
         self.body = body
     }
 
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         var a: OrderedMap = [
             1: id.taggedCBOR
         ]
@@ -41,10 +41,10 @@ public struct TransactionResponse {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.transactionResponse.tag, cbor)
+        CBOR.tagged(URType.transactionResponse.tag, untaggedCBOR)
     }
 
     public var ur: UR {
-        try! UR(type: URType.transactionResponse.type, cbor: cbor)
+        try! UR(type: URType.transactionResponse.type, cbor: untaggedCBOR)
     }
 }

@@ -26,16 +26,16 @@ The unit tests define a common plaintext, and three separate `PrivateKeyBase` ob
   static let plaintext = "Some mysteries aren't meant to be solved.".utf8Data
 
   static let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
-  static let alicePrivateKeyBase = PrivateKeyBase(aliceSeed, salt: "Salt")
-  static let alicePublicKeyBase = PublicKeyBase(prvkeys: alicePrivateKeyBase)
+  static let alicePrivateKeys = PrivateKeyBase(aliceSeed, salt: "Salt")
+  static let alicePublicKeyBase = PublicKeyBase(prvkeys: alicePrivateKeys)
 
   static let bobSeed = Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!
-  static let bobPrivateKeyBase = PrivateKeyBase(bobSeed, salt: "Salt")
-  static let bobPublicKeyBase = PublicKeyBase(prvkeys: bobPrivateKeyBase)
+  static let bobPrivateKeys = PrivateKeyBase(bobSeed, salt: "Salt")
+  static let bobPublicKeyBase = PublicKeyBase(prvkeys: bobPrivateKeys)
 
   static let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
-  static let carolPrivateKeyBase = PrivateKeyBase(carolSeed, salt: "Salt")
-  static let carolPublicKeyBase = PublicKeyBase(prvkeys: carolPrivateKeyBase)
+  static let carolPrivateKeys = PrivateKeyBase(carolSeed, salt: "Salt")
+  static let carolPublicKeyBase = PublicKeyBase(prvkeys: carolPrivateKeys)
 ```
 
 A `PrivateKeyBase` is derived from a source of key material such as a `Seed`, an `HDKey`, or a `Password` that produces key material using the Scrypt algorithm, and also includes a random `Salt`.
@@ -113,7 +113,7 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 
 ```swift
 // Alice sends a signed plaintext message to Bob.
-let envelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeyBase)
+let envelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeys)
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -201,7 +201,7 @@ ur:crypto-envelope/lsadhddtgujljnihcxjnkkjkjyihjpinihjkcxhsjpihjtdijycxjnihhsjtj
 
 ```swift
 // Alice and Carol jointly send a signed plaintext message to Bob.
-let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.alicePrivateKeyBase, Self.carolPrivateKeyBase])
+let envelope = Envelope(plaintext: Self.plaintext, signers: [Self.alicePrivateKeys, Self.carolPrivateKeys])
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -401,7 +401,7 @@ ur:crypto-envelope/lsaotpdylpadhddtwpnepelypebnkejtdiynidhtbglnyltlrnbejelajnhny
 let key = SymmetricKey()
 
 // Alice signs a plaintext message, then encrypts it.
-let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeyBase)
+let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeys)
 let envelope = Envelope(inner: innerSignedEnvelope, key: key)
 let ur = envelope.ur
 
@@ -515,7 +515,7 @@ let key = SymmetricKey()
 
 // Alice encrypts a message, then signs it.
 let innerEncryptedEnvelope = Envelope(plaintext: Self.plaintext, key: key)
-let envelope = Envelope(inner: innerEncryptedEnvelope, signer: Self.alicePrivateKeyBase)
+let envelope = Envelope(inner: innerEncryptedEnvelope, signer: Self.alicePrivateKeys)
 let ur = envelope.ur
 
 // ➡️ ☁️ ➡️
@@ -621,13 +621,13 @@ ur:crypto-envelope/lsadhdhgtpehlsaotpdylpadhddtfpceimbnfxrlfwzmbsftrpjnhshfttdtl
 let envelope = Envelope(plaintext: Self.plaintext, recipients: [Self.bobPublicKeyBase, Self.carolPublicKeyBase])
 
 // Bob decrypts and reads the message.
-XCTAssertEqual(envelope.plaintext(for: Self.bobPrivateKeyBase), Self.plaintext)
+XCTAssertEqual(envelope.plaintext(for: Self.bobPrivateKeys), Self.plaintext)
 
 // Carol decrypts and reads the message.
-XCTAssertEqual(envelope.plaintext(for: Self.carolPrivateKeyBase), Self.plaintext)
+XCTAssertEqual(envelope.plaintext(for: Self.carolPrivateKeys), Self.plaintext)
 
 // Alice didn't encrypt it to herself, so she can't read it.
-XCTAssertNil(envelope.plaintext(for: Self.alicePrivateKeyBase))
+XCTAssertNil(envelope.plaintext(for: Self.alicePrivateKeys))
 ```
 
 ### Schematic
@@ -783,7 +783,7 @@ ur:crypto-envelope/lsaotpdylpadhddtckesprjoehryctfsressyncpzehkmnhpwktsjyhnbdeyh
 
 ```swift
 // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
-let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeyBase)
+let innerSignedEnvelope = Envelope(plaintext: Self.plaintext, signer: Self.alicePrivateKeys)
 let envelope = Envelope(inner: innerSignedEnvelope, recipients: [Self.bobPublicKeyBase, Self.carolPublicKeyBase])
 let ur = envelope.ur
 
@@ -794,7 +794,7 @@ let receivedEnvelope = try Envelope(ur: ur)
 
 // Bob decrypts the outer envelope using his private keys.
 guard
-    let innerEnvelope = receivedEnvelope.inner(for: Self.bobPrivateKeyBase)
+    let innerEnvelope = receivedEnvelope.inner(for: Self.bobPrivateKeys)
 else {
     XCTFail()
     return

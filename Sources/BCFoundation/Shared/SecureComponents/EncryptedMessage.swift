@@ -84,7 +84,7 @@ extension EncryptedMessage {
 }
 
 extension EncryptedMessage {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let ciphertext = CBOR.data(self.ciphertext)
         let aad = CBOR.data(self.aad)
@@ -95,7 +95,7 @@ extension EncryptedMessage {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.message.tag, cbor)
+        CBOR.tagged(URType.message.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -144,7 +144,7 @@ extension EncryptedMessage {
 
 extension EncryptedMessage {
     public var ur: UR {
-        return try! UR(type: URType.message.type, cbor: cbor)
+        return try! UR(type: URType.message.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {
@@ -165,7 +165,7 @@ extension EncryptedMessage {
 }
 
 extension EncryptedMessage: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

@@ -55,7 +55,7 @@ extension ChildIndex {
 }
 
 extension ChildIndex {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.unsignedInt(UInt64(value))
     }
     

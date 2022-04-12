@@ -28,14 +28,14 @@ public struct AgreementPublicKey: CustomStringConvertible, Hashable {
 }
 
 extension AgreementPublicKey {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let key = CBOR.data(self.data)
         return CBOR.array([type, key])
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.agreementPublicKey, cbor)
+        CBOR.tagged(.agreementPublicKey, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -65,7 +65,7 @@ extension AgreementPublicKey {
 }
 
 extension AgreementPublicKey: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

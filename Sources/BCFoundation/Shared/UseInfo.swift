@@ -69,22 +69,22 @@ extension UseInfo {
 }
 
 extension UseInfo {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         var a: OrderedMap = [:]
         
         if asset != .btc {
-            a.append(1, asset.cbor)
+            a.append(1, asset.untaggedCBOR)
         }
         
         if network != .mainnet {
-            a.append(2, network.cbor)
+            a.append(2, network.untaggedCBOR)
         }
         
         return CBOR.orderedMap(a)
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.useInfo.tag, cbor)
+        CBOR.tagged(URType.useInfo.tag, untaggedCBOR)
     }
 
     public init(cbor: CBOR) throws {

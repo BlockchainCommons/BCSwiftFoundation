@@ -248,7 +248,7 @@ extension DerivationPath {
 }
 
 extension DerivationPath {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         var a: OrderedMap = [1: .array(steps.flatMap { $0.array } )]
         
         if case let .fingerprint(sourceFingerprint) = origin {
@@ -263,7 +263,7 @@ extension DerivationPath {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.derivationPath.tag, cbor)
+        CBOR.tagged(URType.derivationPath.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {

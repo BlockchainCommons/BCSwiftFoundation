@@ -9,12 +9,12 @@ import Foundation
 @_exported import URKit
 
 extension UUID {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.data(serialized)
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.uuid, cbor)
+        CBOR.tagged(.uuid, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {

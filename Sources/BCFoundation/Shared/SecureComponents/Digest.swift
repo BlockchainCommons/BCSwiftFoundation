@@ -57,7 +57,7 @@ extension Digest: Comparable {
 }
 
 extension Digest {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let digest = CBOR.data(self.rawValue)
         
@@ -65,7 +65,7 @@ extension Digest {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.digest.tag, cbor)
+        CBOR.tagged(URType.digest.tag, untaggedCBOR)
     }
     
     public static func optionalTaggedCBOR(_ digest: Digest?) -> CBOR {
@@ -122,7 +122,7 @@ extension Digest {
 
 extension Digest {
     public var ur: UR {
-        return try! UR(type: URType.digest.type, cbor: cbor)
+        return try! UR(type: URType.digest.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {
@@ -135,7 +135,7 @@ extension Digest {
 }
 
 extension Digest: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

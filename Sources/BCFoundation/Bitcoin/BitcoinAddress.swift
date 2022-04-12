@@ -168,7 +168,7 @@ extension Bitcoin {
             case p2sh
             case p2wpkh
 
-            public var cbor: CBOR {
+            public var untaggedCBOR: CBOR {
                 CBOR.unsignedInt(UInt64(rawValue))
             }
 
@@ -189,7 +189,7 @@ extension Bitcoin {
 }
 
 extension Bitcoin.Address {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
         CBOR.orderedMap([
             1: useInfo.taggedCBOR,
@@ -199,7 +199,7 @@ extension Bitcoin.Address {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.address.tag, cbor)
+        CBOR.tagged(URType.address.tag, untaggedCBOR)
     }
     
     public init(taggedCBOR: CBOR) throws {

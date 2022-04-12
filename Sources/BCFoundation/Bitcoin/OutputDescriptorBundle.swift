@@ -39,7 +39,7 @@ public struct OutputDescriptorBundle {
         self.descriptorsByOutputType = descriptorsByOutputType
     }
     
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md#cddl
         CBOR.orderedMap([
             1: .unsignedInt(UInt64(masterKey.keyFingerprint)),
@@ -48,10 +48,10 @@ public struct OutputDescriptorBundle {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.account.tag, cbor)
+        CBOR.tagged(URType.account.tag, untaggedCBOR)
     }
     
     public var ur: UR {
-        try! UR(type: URType.account.type, cbor: cbor)
+        try! UR(type: URType.account.type, cbor: untaggedCBOR)
     }
 }

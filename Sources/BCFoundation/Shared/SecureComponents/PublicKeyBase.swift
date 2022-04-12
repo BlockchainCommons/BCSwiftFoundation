@@ -21,7 +21,7 @@ public struct PublicKeyBase: CustomStringConvertible, Hashable {
 }
 
 extension PublicKeyBase {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let signingKey = signingPublicKey.taggedCBOR
         let agreementKey = agreementPublicKey.taggedCBOR
@@ -30,7 +30,7 @@ extension PublicKeyBase {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.pubkeys.tag, cbor)
+        CBOR.tagged(URType.pubkeys.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -64,7 +64,7 @@ extension PublicKeyBase {
 
 extension PublicKeyBase {
     public var ur: UR {
-        return try! UR(type: URType.pubkeys.type, cbor: cbor)
+        return try! UR(type: URType.pubkeys.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {
@@ -77,7 +77,7 @@ extension PublicKeyBase {
 }
 
 extension PublicKeyBase: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

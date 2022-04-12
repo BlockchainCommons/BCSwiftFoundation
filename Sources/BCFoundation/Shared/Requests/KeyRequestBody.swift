@@ -14,7 +14,7 @@ public struct KeyRequestBody {
     public let useInfo: UseInfo
     public let isDerivable: Bool
     
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         var a: OrderedMap = [
             1: .boolean(keyType.isPrivate),
             2: path.taggedCBOR
@@ -32,7 +32,7 @@ public struct KeyRequestBody {
     }
     
     public var taggedCBOR: CBOR {
-        return CBOR.tagged(.keyRequestBody, cbor)
+        return CBOR.tagged(.keyRequestBody, untaggedCBOR)
     }
 
     public init(keyType: KeyType, path: DerivationPath, useInfo: UseInfo, isDerivable: Bool = true) {

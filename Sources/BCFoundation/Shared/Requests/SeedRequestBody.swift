@@ -16,12 +16,12 @@ public struct SeedRequestBody {
         seedDigest.digest
     }
     
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         CBOR.orderedMap([1: seedDigest.taggedCBOR])
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.seedRequestBody, cbor)
+        CBOR.tagged(.seedRequestBody, untaggedCBOR)
     }
     
     public init(seedDigest: SeedDigest) {

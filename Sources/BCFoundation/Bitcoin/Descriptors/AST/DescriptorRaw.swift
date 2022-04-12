@@ -28,11 +28,11 @@ struct DescriptorRaw: DescriptorAST {
         "raw(\(script.hex))"
     }
     
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         CBOR.data(script.data)
     }
     
     var taggedCBOR: CBOR {
-        CBOR.tagged(.outputRawScript, cbor)
+        CBOR.tagged(.outputRawScript, untaggedCBOR)
     }
 }

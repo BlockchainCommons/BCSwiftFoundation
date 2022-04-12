@@ -21,7 +21,7 @@ public protocol ECKey {
     
     var `public`: ECPublicKey { get }
     
-    var cbor: CBOR { get }
+    var untaggedCBOR: CBOR { get }
     var taggedCBOR: CBOR { get }
 }
 
@@ -35,7 +35,7 @@ extension ECKey {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.ecKey.tag, cbor)
+        CBOR.tagged(URType.ecKey.tag, untaggedCBOR)
     }
 }
 
@@ -87,7 +87,7 @@ public struct ECPrivateKey: ECKey {
         Wally.encodeWIF(key: data, network: .mainnet, isPublicKeyCompressed: true)
     }
 
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
         CBOR.orderedMap([
             2: .boolean(true),
@@ -175,7 +175,7 @@ public struct ECPublicKey: ECPublicKeyProtocol, Hashable {
         data.hash160
     }
 
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
         CBOR.orderedMap([3: .data(data)])
     }
@@ -215,7 +215,7 @@ public struct ECUncompressedPublicKey: ECPublicKeyProtocol {
         self.compressed
     }
 
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-008-eckey.md#cddl
         CBOR.orderedMap([3: .data(data)])
     }

@@ -61,12 +61,12 @@ extension ChildIndexSpec {
 }
 
 extension ChildIndexSpec {
-    var cbor: CBOR {
+    var untaggedCBOR: CBOR {
         switch self {
         case .index(let index):
-            return index.cbor
+            return index.untaggedCBOR
         case .indexRange(let indexRange):
-            return indexRange.cbor
+            return indexRange.untaggedCBOR
         case .indexWildcard:
             return CBOR.array([])
         default:

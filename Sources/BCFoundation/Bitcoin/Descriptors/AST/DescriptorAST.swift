@@ -12,7 +12,7 @@ protocol DescriptorAST: CustomStringConvertible {
     func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey?
     var requiresWildcardChildNum: Bool { get }
     var unparsed: String { get }
-    var cbor: CBOR { get }
+    var untaggedCBOR: CBOR { get }
     var taggedCBOR: CBOR { get }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST?

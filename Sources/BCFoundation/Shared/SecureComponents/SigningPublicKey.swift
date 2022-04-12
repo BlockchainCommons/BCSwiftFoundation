@@ -82,7 +82,7 @@ extension SigningPublicKey: Hashable {
 }
 
 extension SigningPublicKey {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         switch self {
         case .schnorr(let data):
             let type = CBOR.unsignedInt(1)
@@ -96,7 +96,7 @@ extension SigningPublicKey {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(.signingPublicKey, cbor)
+        CBOR.tagged(.signingPublicKey, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -142,7 +142,7 @@ extension SigningPublicKey {
 }
 
 extension SigningPublicKey: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

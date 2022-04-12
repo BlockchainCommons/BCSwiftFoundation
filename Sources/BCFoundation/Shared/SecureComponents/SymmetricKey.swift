@@ -51,14 +51,14 @@ public struct SymmetricKey: CustomStringConvertible, Equatable, Hashable, DataPr
 }
 
 extension SymmetricKey {
-    public var cbor: CBOR {
+    public var untaggedCBOR: CBOR {
         let type = CBOR.unsignedInt(1)
         let key = CBOR.data(self.data)
         return CBOR.array([type, key])
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.symmetricKey.tag, cbor)
+        CBOR.tagged(URType.symmetricKey.tag, untaggedCBOR)
     }
     
     public init(cbor: CBOR) throws {
@@ -89,7 +89,7 @@ extension SymmetricKey {
 
 extension SymmetricKey {
     public var ur: UR {
-        return try! UR(type: URType.symmetricKey.type, cbor: cbor)
+        return try! UR(type: URType.symmetricKey.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {
@@ -102,7 +102,7 @@ extension SymmetricKey {
 }
 
 extension SymmetricKey: CBOREncodable {
-    public var cborEncode: Data {
-        taggedCBOR.cborEncode
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }
