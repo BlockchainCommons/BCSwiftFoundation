@@ -2,6 +2,8 @@ import Foundation
 import URKit
 import WolfBase
 
+public typealias SCID = UUID
+
 public struct Simplex {
     public let subject: Subject
     public let assertions: [Assertion]
@@ -197,7 +199,7 @@ extension Simplex {
 public enum Subject {
     case plaintext(CBOR, Digest)
     case encrypted(EncryptedMessage, Digest)
-    case reference(Identifier)
+    case reference(Reference)
 }
 
 extension Subject {
@@ -270,48 +272,48 @@ extension Subject {
             guard elements.count == 2 else {
                 throw CBORError.invalidFormat
             }
-            self = try .reference(Identifier(untaggedCBOR: elements[1]))
+            self = try .reference(Reference(untaggedCBOR: elements[1]))
         default:
             throw CBORError.invalidFormat
         }
     }
 }
 
-public enum Identifier {
+public enum Reference {
     case digest(Digest)
-    case uuid(UUID, Digest)
+    case scid(SCID, Digest)
     
     public init(digest: Digest) {
         self = .digest(digest)
     }
     
-    public init(uuid: UUID) {
-        self = .uuid(uuid, Digest(uuid.serialized))
+    public init(uuid: SCID) {
+        self = .scid(uuid, Digest(uuid.serialized))
     }
     
     public var digest: Digest {
         switch self {
         case .digest(let digest):
             return digest
-        case .uuid(_, let digest):
+        case .scid(_, let digest):
             return digest
         }
     }
 }
 
-extension Identifier: Equatable {
-    public static func ==(lhs: Identifier, rhs: Identifier) -> Bool {
+extension Reference: Equatable {
+    public static func ==(lhs: Reference, rhs: Reference) -> Bool {
         lhs.digest == rhs.digest
     }
 }
 
-extension Identifier {
+extension Reference {
     var untaggedCBOR: CBOR {
         switch self {
         case .digest(let digest):
             return digest.taggedCBOR
-        case .uuid(let uuid, _):
-            return uuid.taggedCBOR
+        case .scid(let scid, _):
+            return scid.taggedCBOR
         }
     }
     
@@ -322,20 +324,20 @@ extension Identifier {
 
 public enum Assertion {
     case declare(predicate: Simplex, object: Simplex, digest: Digest)
-    case amend(assertion: Identifier, object: Simplex, digest: Digest)
-    case revoke(assertion: Identifier, digest: Digest)
+    case amend(assertion: Reference, object: Simplex, digest: Digest)
+    case revoke(assertion: Reference, digest: Digest)
     
     public init(predicate: Simplex, object: Simplex) {
         let digest = Digest("declare".utf8Data + predicate.digest.rawValue + object.digest.rawValue)
         self = .declare(predicate: predicate, object: object, digest: digest)
     }
     
-    public init(amend assertion: Identifier, object: Simplex) {
+    public init(amend assertion: Reference, object: Simplex) {
         let digest = Digest("amend".utf8Data + assertion.digest.rawValue + object.digest.rawValue)
         self = .amend(assertion: assertion, object: object, digest: digest)
     }
     
-    public init(revoke assertion: Identifier) {
+    public init(revoke assertion: Reference) {
         let digest = Digest("revoke".utf8Data + assertion.digest.rawValue)
         self = .revoke(assertion: assertion, digest: digest)
     }
@@ -399,14 +401,14 @@ extension Assertion {
             guard elements.count == 3 else {
                 throw CBORError.invalidFormat
             }
-            let assertion = try Identifier(untaggedCBOR: elements[1])
+            let assertion = try Reference(untaggedCBOR: elements[1])
             let object = try Simplex(untaggedCBOR: elements[2])
             self.init(amend: assertion, object: object)
         case 3:
             guard elements.count == 2 else {
                 throw CBORError.invalidFormat
             }
-            let assertion = try Identifier(untaggedCBOR: elements[1])
+            let assertion = try Reference(untaggedCBOR: elements[1])
             self.init(revoke: assertion)
         default:
             throw CBORError.invalidFormat
