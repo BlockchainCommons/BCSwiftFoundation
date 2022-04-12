@@ -57,9 +57,9 @@ extension SigningPrivateKey {
         CBOR.tagged(.signingPrivateKey, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = cbor,
+            case let CBOR.array(elements) = untaggedCBOR,
             elements.count == 2,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
@@ -75,7 +75,7 @@ extension SigningPrivateKey {
         guard case let CBOR.tagged(.signingPrivateKey, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
     public init?(taggedCBOR: Data) {

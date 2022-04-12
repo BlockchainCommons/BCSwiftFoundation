@@ -266,8 +266,8 @@ extension DerivationPath {
         CBOR.tagged(URType.derivationPath.tag, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR
         else {
             throw DerivationPathError.invalidDerivationPath
         }
@@ -321,6 +321,6 @@ extension DerivationPath {
         guard case let CBOR.tagged(URType.derivationPath.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }

@@ -138,11 +138,11 @@ extension SeedProtocol {
 
     public init(cborData: Data) throws {
         let cbor = try CBOR(cborData)
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR else {
             // CBOR doesn't contain a map.
             throw CBORError.invalidFormat
         }
@@ -196,7 +196,7 @@ extension SeedProtocol {
         guard case let CBOR.tagged(tag, content) = cbor, tag == URType.seed.tag else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: content)
+        try self.init(untaggedCBOR: content)
     }
 }
 

@@ -172,9 +172,9 @@ extension Bitcoin {
                 CBOR.unsignedInt(UInt64(rawValue))
             }
 
-            public init(cbor: CBOR) throws {
+            public init(untaggedCBOR: CBOR) throws {
                 guard
-                    case let CBOR.unsignedInt(r) = cbor,
+                    case let CBOR.unsignedInt(r) = untaggedCBOR,
                     let a = CBORType(rawValue: Int(r)) else {
                         throw CBORError.invalidFormat
                     }
@@ -206,11 +206,11 @@ extension Bitcoin.Address {
         guard case let CBOR.tagged(URType.address.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
         
@@ -226,7 +226,7 @@ extension Bitcoin.Address {
         else {
             throw CBORError.invalidFormat
         }
-        let cborType = try CBORType(cbor: typeItem)
+        let cborType = try CBORType(untaggedCBOR: typeItem)
 
         guard
             let dataItem = pairs[3],

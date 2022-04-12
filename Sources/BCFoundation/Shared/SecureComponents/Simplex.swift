@@ -140,15 +140,15 @@ extension Simplex {
         CBOR.tagged(URType.simplex.tag, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = cbor,
+            case let CBOR.array(elements) = untaggedCBOR,
             (1...2).contains(elements.count)
         else {
             throw CBORError.invalidFormat
         }
         
-        let subject = try Subject(cbor: elements[0])
+        let subject = try Subject(untaggedCBOR: elements[0])
         
         let assertions: [Assertion]
         if elements.count == 2 {
@@ -159,7 +159,7 @@ extension Simplex {
                 throw CBORError.invalidFormat
             }
             assertions = try assertionElements.map {
-                try Assertion(cbor: $0)
+                try Assertion(untaggedCBOR: $0)
             }
         } else {
             assertions = []
@@ -172,7 +172,7 @@ extension Simplex {
         guard case let CBOR.tagged(URType.simplex.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }
 
@@ -186,7 +186,7 @@ extension Simplex {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
     public init?(taggedCBOR: Data) {
@@ -246,9 +246,9 @@ extension Subject {
         }
     }
     
-    init(cbor: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = cbor,
+            case let CBOR.array(elements) = untaggedCBOR,
             elements.count >= 2,
             case let CBOR.unsignedInt(type) = elements[0]
         else {
@@ -270,7 +270,7 @@ extension Subject {
             guard elements.count == 2 else {
                 throw CBORError.invalidFormat
             }
-            self = try .reference(Identifier(cbor: elements[1]))
+            self = try .reference(Identifier(untaggedCBOR: elements[1]))
         default:
             throw CBORError.invalidFormat
         }
@@ -315,7 +315,7 @@ extension Identifier {
         }
     }
     
-    init(cbor: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         todo()
     }
 }
@@ -378,9 +378,9 @@ extension Assertion {
         }
     }
     
-    init(cbor: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = cbor,
+            case let CBOR.array(elements) = untaggedCBOR,
             elements.count >= 2,
             case let CBOR.unsignedInt(type) = elements[0]
         else {
@@ -392,21 +392,21 @@ extension Assertion {
             guard elements.count == 3 else {
                 throw CBORError.invalidFormat
             }
-            let predicate = try Simplex(cbor: elements[1])
-            let object = try Simplex(cbor: elements[2])
+            let predicate = try Simplex(untaggedCBOR: elements[1])
+            let object = try Simplex(untaggedCBOR: elements[2])
             self.init(predicate: predicate, object: object)
         case 2:
             guard elements.count == 3 else {
                 throw CBORError.invalidFormat
             }
-            let assertion = try Identifier(cbor: elements[1])
-            let object = try Simplex(cbor: elements[2])
+            let assertion = try Identifier(untaggedCBOR: elements[1])
+            let object = try Simplex(untaggedCBOR: elements[2])
             self.init(amend: assertion, object: object)
         case 3:
             guard elements.count == 2 else {
                 throw CBORError.invalidFormat
             }
-            let assertion = try Identifier(cbor: elements[1])
+            let assertion = try Identifier(untaggedCBOR: elements[1])
             self.init(revoke: assertion)
         default:
             throw CBORError.invalidFormat

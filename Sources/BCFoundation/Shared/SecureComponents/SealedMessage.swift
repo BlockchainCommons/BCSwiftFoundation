@@ -50,9 +50,9 @@ extension SealedMessage {
         CBOR.tagged(URType.sealedMessage.tag, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = cbor,
+            case let CBOR.array(elements) = untaggedCBOR,
             elements.count == 3,
             case let CBOR.unsignedInt(type) = elements[0],
             type == 1,
@@ -69,7 +69,7 @@ extension SealedMessage {
         guard case let CBOR.tagged(URType.sealedMessage.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
     public init?(taggedCBOR: Data) {

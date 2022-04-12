@@ -70,8 +70,8 @@ extension SSKRShare {
         CBOR.tagged(URType.sskrShare.tag, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.data(data) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.data(data) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
         self = SSKRShare(data: data.bytes)
@@ -81,7 +81,7 @@ extension SSKRShare {
         guard case let CBOR.tagged(URType.sskrShare.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }
 
@@ -108,7 +108,7 @@ extension SSKRShare {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
-        self = try SSKRShare(cbor: cbor)
+        self = try SSKRShare(untaggedCBOR: cbor)
     }
     
     public var urString: String {

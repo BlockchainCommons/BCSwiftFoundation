@@ -42,8 +42,8 @@ public struct KeyRequestBody {
         self.isDerivable = isDerivable
     }
 
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
         guard let boolItem = pairs[1], case let CBOR.boolean(isPrivate) = boolItem else {
@@ -81,6 +81,6 @@ public struct KeyRequestBody {
         guard case let CBOR.tagged(.keyRequestBody, cbor) = taggedCBOR else {
             return nil
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }

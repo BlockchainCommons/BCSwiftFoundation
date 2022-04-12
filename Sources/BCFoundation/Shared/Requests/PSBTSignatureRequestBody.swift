@@ -25,8 +25,8 @@ public struct PSBTSignatureRequestBody {
         return CBOR.tagged(.psbtSignatureRequestBody, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
         guard let taggedCBORItem = pairs[1] else {
@@ -40,6 +40,6 @@ public struct PSBTSignatureRequestBody {
         guard case let CBOR.tagged(.psbtSignatureRequestBody, cbor) = taggedCBOR else {
             return nil
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }

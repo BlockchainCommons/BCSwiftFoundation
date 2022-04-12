@@ -509,8 +509,8 @@ extension HDKeyProtocol {
 }
 
 extension HDKeyProtocol {
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR
         else {
             // Doesn't contain a map.
             throw CBORError.invalidFormat
@@ -623,7 +623,7 @@ extension HDKeyProtocol {
             // Tag (303) not found
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }
 

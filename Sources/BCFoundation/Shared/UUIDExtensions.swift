@@ -17,9 +17,9 @@ extension UUID {
         CBOR.tagged(.uuid, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.data(bytes) = cbor,
+            case let CBOR.data(bytes) = untaggedCBOR,
             bytes.count == MemoryLayout<uuid_t>.size
         else {
             throw CBORError.invalidFormat
@@ -33,6 +33,6 @@ extension UUID {
         guard case let CBOR.tagged(.uuid, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }

@@ -87,21 +87,21 @@ extension UseInfo {
         CBOR.tagged(URType.useInfo.tag, untaggedCBOR)
     }
 
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
         
         let asset: Asset
         if let rawAsset = pairs[1] {
-            asset = try Asset(cbor: rawAsset)
+            asset = try Asset(untaggedCBOR: rawAsset)
         } else {
             asset = .btc
         }
         
         let network: Network
         if let rawNetwork = pairs[2] {
-            network = try Network(cbor: rawNetwork)
+            network = try Network(untaggedCBOR: rawNetwork)
         } else {
             network = .mainnet
         }
@@ -113,6 +113,6 @@ extension UseInfo {
         guard case let CBOR.tagged(URType.useInfo.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }

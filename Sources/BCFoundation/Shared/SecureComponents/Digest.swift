@@ -75,8 +75,8 @@ extension Digest {
         return digest.taggedCBOR
     }
     
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.array(elements) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.array(elements) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
         
@@ -105,7 +105,7 @@ extension Digest {
         guard case let CBOR.tagged(URType.digest.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
     public init?(taggedCBOR: Data) {
@@ -130,7 +130,7 @@ extension Digest {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }
 

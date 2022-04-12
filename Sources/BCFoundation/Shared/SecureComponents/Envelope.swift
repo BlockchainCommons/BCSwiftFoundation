@@ -261,9 +261,9 @@ extension Envelope {
         CBOR.tagged(URType.envelope.tag, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = cbor,
+            case let CBOR.array(elements) = untaggedCBOR,
             elements.count >= 1,
             case let CBOR.unsignedInt(type) = elements[0]
         else {
@@ -296,7 +296,7 @@ extension Envelope {
         guard case let CBOR.tagged(URType.envelope.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }
 
@@ -328,9 +328,9 @@ extension Permit {
         CBOR.tagged(.permit, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = cbor,
+            case let CBOR.array(elements) = untaggedCBOR,
             elements.count >= 1,
             case let CBOR.unsignedInt(type) = elements[0]
         else {
@@ -361,7 +361,7 @@ extension Permit {
         guard case let CBOR.tagged(.permit, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
     public init?(taggedCBOR: Data) {
@@ -379,7 +379,7 @@ extension Envelope {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
     public init?(taggedCBOR: Data) {

@@ -70,9 +70,9 @@ extension Asset {
         CBOR.unsignedInt(UInt64(rawValue))
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.unsignedInt(r) = cbor,
+            case let CBOR.unsignedInt(r) = untaggedCBOR,
             let a = Asset(rawValue: UInt32(r)) else {
                 throw CBORError.invalidFormat
             }

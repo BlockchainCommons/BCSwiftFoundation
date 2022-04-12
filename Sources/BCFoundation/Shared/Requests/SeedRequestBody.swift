@@ -32,8 +32,8 @@ public struct SeedRequestBody {
         self.seedDigest = try SeedDigest(digest: digest)
     }
     
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.map(pairs) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.map(pairs) = untaggedCBOR else {
             // Seed request doesn't contain map
             throw CBORError.invalidFormat
         }
@@ -53,6 +53,6 @@ public struct SeedRequestBody {
         guard case let CBOR.tagged(.seedRequestBody, cbor) = taggedCBOR else {
             return nil
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }

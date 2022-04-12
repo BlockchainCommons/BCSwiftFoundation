@@ -267,7 +267,7 @@ extension PSBT {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
     
     public init(urString: String) throws {
@@ -308,9 +308,9 @@ extension PSBT {
         return CBOR.tagged(URType.psbt.tag, untaggedCBOR)
     }
     
-    public init(cbor: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.data(bytes) = cbor
+            case let CBOR.data(bytes) = untaggedCBOR
         else {
             throw CBORError.invalidFormat
         }
@@ -325,6 +325,6 @@ extension PSBT {
         guard case let CBOR.tagged(URType.psbt.tag, cbor) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }

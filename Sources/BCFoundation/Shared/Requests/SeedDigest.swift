@@ -20,8 +20,8 @@ public struct SeedDigest {
         self.digest = digest
     }
     
-    public init(cbor: CBOR) throws {
-        guard case let CBOR.data(bytes) = cbor else {
+    public init(untaggedCBOR: CBOR) throws {
+        guard case let CBOR.data(bytes) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
         try self.init(digest: bytes.data)
@@ -31,6 +31,6 @@ public struct SeedDigest {
         guard case let CBOR.tagged(.seedDigest, cbor) = taggedCBOR else {
             return nil
         }
-        try self.init(cbor: cbor)
+        try self.init(untaggedCBOR: cbor)
     }
 }
