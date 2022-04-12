@@ -209,8 +209,8 @@ extension Subject {
             return digest
         case .encrypted(_, let digest):
             return digest
-        case .reference(let identifier):
-            return identifier.digest
+        case .reference(let reference):
+            return reference.digest
         }
     }
 }
@@ -282,7 +282,9 @@ extension Subject {
 public enum Reference {
     case digest(Digest)
     case scid(SCID, Digest)
-    
+}
+
+extension Reference {
     public init(digest: Digest) {
         self = .digest(digest)
     }
@@ -326,7 +328,9 @@ public enum Assertion {
     case declare(predicate: Simplex, object: Simplex, digest: Digest)
     case amend(assertion: Reference, object: Simplex, digest: Digest)
     case revoke(assertion: Reference, digest: Digest)
-    
+}
+
+extension Assertion {
     public init(predicate: Simplex, object: Simplex) {
         let digest = Digest("declare".utf8Data + predicate.digest.rawValue + object.digest.rawValue)
         self = .declare(predicate: predicate, object: object, digest: digest)
