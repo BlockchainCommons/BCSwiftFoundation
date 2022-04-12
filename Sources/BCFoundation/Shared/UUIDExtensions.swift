@@ -30,9 +30,9 @@ extension UUID {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.uuid, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.uuid, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }

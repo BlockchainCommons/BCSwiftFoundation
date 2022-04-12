@@ -318,9 +318,9 @@ extension DerivationPath {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.derivationPath.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.derivationPath.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }

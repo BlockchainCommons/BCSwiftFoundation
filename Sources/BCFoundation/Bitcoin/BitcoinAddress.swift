@@ -203,10 +203,10 @@ extension Bitcoin.Address {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.address.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.address.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
     
     public init(untaggedCBOR: CBOR) throws {

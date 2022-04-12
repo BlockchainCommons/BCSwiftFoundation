@@ -28,9 +28,9 @@ public struct SeedDigest {
     }
     
     public init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.seedDigest, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.seedDigest, untaggedCBOR) = taggedCBOR else {
             return nil
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }

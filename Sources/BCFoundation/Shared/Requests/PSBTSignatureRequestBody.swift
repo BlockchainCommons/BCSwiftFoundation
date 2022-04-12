@@ -37,9 +37,9 @@ public struct PSBTSignatureRequestBody {
     }
     
     public init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.psbtSignatureRequestBody, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.psbtSignatureRequestBody, untaggedCBOR) = taggedCBOR else {
             return nil
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }

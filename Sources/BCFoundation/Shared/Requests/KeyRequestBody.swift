@@ -78,9 +78,9 @@ public struct KeyRequestBody {
     }
 
     public init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.keyRequestBody, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.keyRequestBody, untaggedCBOR) = taggedCBOR else {
             return nil
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }

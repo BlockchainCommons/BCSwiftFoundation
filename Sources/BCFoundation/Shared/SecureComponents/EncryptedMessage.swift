@@ -104,10 +104,10 @@ extension EncryptedMessage {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.message.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.message.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
     
     public init?(taggedCBOR: Data) {
@@ -135,10 +135,10 @@ extension EncryptedMessage {
     }
     
     public static func decode(taggedCBOR: CBOR) throws -> (ciphertext: Data, aad: Data, nonce: Nonce, auth: Auth) {
-        guard case let CBOR.tagged(URType.message.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.message.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        return try decode(cbor: cbor)
+        return try decode(cbor: untaggedCBOR)
     }
 }
 

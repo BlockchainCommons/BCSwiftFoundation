@@ -76,10 +76,10 @@ extension SymmetricKey {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.symmetricKey.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.symmetricKey.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
     
     public init?(taggedCBOR: Data) {

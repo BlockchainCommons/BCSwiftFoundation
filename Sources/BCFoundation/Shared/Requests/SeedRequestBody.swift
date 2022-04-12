@@ -50,9 +50,9 @@ public struct SeedRequestBody {
     }
     
     public init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.seedRequestBody, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.seedRequestBody, untaggedCBOR) = taggedCBOR else {
             return nil
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }

@@ -97,10 +97,10 @@ extension Signature {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.signature, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.signature, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
     
     public init(taggedCBOR: Data) throws {

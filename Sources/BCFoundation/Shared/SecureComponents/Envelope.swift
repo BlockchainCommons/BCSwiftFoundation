@@ -293,10 +293,10 @@ extension Envelope {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.envelope.tag, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.envelope.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }
 
@@ -358,10 +358,10 @@ extension Permit {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.permit, cbor) = taggedCBOR else {
+        guard case let CBOR.tagged(.permit, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: cbor)
+        try self.init(untaggedCBOR: untaggedCBOR)
     }
     
     public init?(taggedCBOR: Data) {
