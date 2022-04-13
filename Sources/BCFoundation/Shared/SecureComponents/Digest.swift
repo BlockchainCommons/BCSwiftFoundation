@@ -48,6 +48,12 @@ public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
         }
         return digest.validate(data)
     }
+
+    public static func tryValidate(_ data: DataProvider, digest: Digest?) throws {
+        if !Self.validate(data, digest: digest) {
+            throw CBORError.invalidDigest
+        }
+    }
 }
 
 extension Digest: Comparable {

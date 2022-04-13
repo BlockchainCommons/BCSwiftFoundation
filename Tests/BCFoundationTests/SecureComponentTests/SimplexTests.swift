@@ -28,7 +28,7 @@ class SimplexTests: XCTestCase {
 
         // ➡️ ☁️ ➡️
 
-        // Bob receives the envelope.
+        // Bob receives the container.
         let receivedContainer = try Simplex(ur: ur)
         // Bob reads the message.
         try XCTAssertEqual(receivedContainer.plaintext(String.self), plaintext)
@@ -45,7 +45,7 @@ class SimplexTests: XCTestCase {
 
         // ➡️ ☁️ ➡️
 
-        // Bob receives the envelope.
+        // Bob receives the container.
         let receivedContainer = try Simplex(ur: ur)
         // Bob receives the message and verifies that it was signed by Alice.
         try XCTAssertTrue(receivedContainer.hasValidSignature(from: alicePublicKeys))
@@ -58,5 +58,53 @@ class SimplexTests: XCTestCase {
 
         // Bob reads the message.
         try XCTAssertEqual(receivedContainer.plaintext(String.self), plaintext)
+    }
+    
+    func testMultisignedPlaintext() throws {
+        // Alice and Carol jointly send a signed plaintext message to Bob.
+        let container = Simplex(plaintext: plaintext, schnorrSigners: [alicePrivateKeys, carolPrivateKeys])
+        let ur = container.ur
+
+//        print(container.taggedCBOR.diag)
+//        print(container.taggedCBOR.dump)
+//        print(container.ur)
+
+        // ➡️ ☁️ ➡️
+
+        // Bob receives the container.
+        let receivedContainer = try Simplex(ur: ur)
+
+        // Bob verifies the message was signed by both Alice and Carol.
+        try XCTAssertTrue(receivedContainer.hasValidSignatures(from: [alicePublicKeys, carolPublicKeys]))
+
+        // Bob reads the message.
+        try XCTAssertEqual(receivedContainer.plaintext(String.self), plaintext)
+    }
+    
+    func testSymmetricEncryption() throws {
+        // Alice and Bob have agreed to use this key.
+        let key = SymmetricKey()
+
+        // Alice sends a message encrypted with the key to Bob.
+        let container = Simplex(plaintext: plaintext, key: key)
+        let ur = container.ur
+
+//        print(container.taggedCBOR.diag)
+//        print(container.taggedCBOR.dump)
+//        print(container.ur)
+
+        // ➡️ ☁️ ➡️
+
+        // Bob receives the container.
+        let receivedContainer = try Simplex(ur: ur)
+
+        // Bob decrypts and reads the message.
+        try XCTAssertEqual(receivedContainer.plaintext(String.self, with: key), plaintext)
+
+        // Can't read with no key.
+        try XCTAssertThrowsError(receivedContainer.plaintext(String.self))
+        
+        // Can't read with incorrect key.
+        try XCTAssertThrowsError(receivedContainer.plaintext(String.self, with: SymmetricKey()))
     }
 }
