@@ -107,4 +107,13 @@ class SimplexTests: XCTestCase {
         // Can't read with incorrect key.
         try XCTAssertThrowsError(receivedContainer.plaintext(String.self, with: SymmetricKey()))
     }
+    
+    func testEncryptDecrypt() throws {
+        let key = SymmetricKey()
+        let plaintextContainer = Simplex(plaintext: plaintext)
+        let encryptedContainer = try plaintextContainer.encrypted(with: key)
+        XCTAssertEqual(plaintextContainer, encryptedContainer)
+        let plaintextContainer2 = try encryptedContainer.decrypted(with: key)
+        XCTAssertEqual(encryptedContainer, plaintextContainer2)
+    }
 }

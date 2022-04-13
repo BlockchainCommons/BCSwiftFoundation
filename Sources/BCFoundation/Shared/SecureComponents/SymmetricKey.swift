@@ -27,10 +27,10 @@ public struct SymmetricKey: CustomStringConvertible, Equatable, Hashable, DataPr
         data.description.flanked("Key(", ")")
     }
     
-    public func encrypt(plaintext: DataProvider, aad: Data? = nil, nonce: EncryptedMessage.Nonce? = nil) -> EncryptedMessage {
+    public func encrypt(plaintext: DataProvider, aad: Data? = nil, nonce: Nonce? = nil) -> EncryptedMessage {
         let plaintext = plaintext.providedData
         let aad = aad ?? Data()
-        let nonce = nonce ?? EncryptedMessage.Nonce()
+        let nonce = nonce ?? Nonce()
         let (ciphertext, auth) = try! AEADChaCha20Poly1305.encrypt(plaintext.bytes, key: self.bytes, iv: nonce.bytes, authenticationHeader: aad.bytes)
         return EncryptedMessage(ciphertext: Data(ciphertext), aad: aad, nonce: nonce, auth: EncryptedMessage.Auth(rawValue: Data(auth))!)!
     }

@@ -20,7 +20,7 @@ extension Envelope {
         self = .encrypted(message, .symmetric, digest)
     }
     
-    public init(plaintext: DataProvider, key: SymmetricKey, aad: Data? = nil, nonce: EncryptedMessage.Nonce? = nil, includeDigest: Bool = true) {
+    public init(plaintext: DataProvider, key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil, includeDigest: Bool = true) {
         let digest = Digest(plaintext, includeDigest: includeDigest)
         self.init(message: key.encrypt(plaintext: plaintext, aad: aad, nonce: nonce), digest: digest)
     }

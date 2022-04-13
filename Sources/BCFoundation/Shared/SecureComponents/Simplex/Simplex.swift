@@ -1,16 +1,15 @@
 import Foundation
 import URKit
 import WolfBase
-
-public typealias SCID = UUID
-
-// MARK: - Simplex
+import CryptoKit
 
 public struct Simplex {
     public let subject: Subject
     public let assertions: [Assertion]
     public let digest: Digest
+}
 
+extension Simplex {
     public init(subject: Subject, assertions: [Assertion] = []) {
         self.subject = subject
         let sortedAssertions = assertions.sorted()
@@ -39,7 +38,7 @@ extension Simplex {
 }
 
 extension Simplex {
-    public init(plaintext: CBOREncodable, assertions: [Assertion] = [], key: SymmetricKey, aad: Data? = nil, nonce: EncryptedMessage.Nonce? = nil) {
+    public init(plaintext: CBOREncodable, assertions: [Assertion] = [], key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) {
         let subject = Subject(plaintext: plaintext, key: key, aad: aad, nonce: nonce)
         self.init(subject: subject, assertions: assertions)
     }
@@ -90,20 +89,6 @@ extension Simplex {
 }
 
 extension Simplex {
-    public init(plaintext: CBOREncodable, ecdsaSigners: [PrivateKeyBase]) {
-        let subject = Subject(plaintext: plaintext)
-        let signatures = ecdsaSigners.map {
-            $0.signingPrivateKey.ecdsaSign(plaintext.cbor.cborEncode)
-        }
-        self.init(subject: subject, signatures: signatures)
-    }
-    
-    public init(plaintext: CBOREncodable, ecdsaSigner: PrivateKeyBase) {
-        self.init(plaintext: plaintext, ecdsaSigners: [ecdsaSigner])
-    }
-}
-
-extension Simplex {
     public var signatures: [Signature] {
         get throws {
             try assertions
@@ -144,6 +129,36 @@ extension Simplex {
     
     public func hasValidSignatures(from publicKeysArray: [PublicKeyBase], threshold: Int? = nil) throws -> Bool {
         try hasValidSignatures(with: publicKeysArray.map { $0.signingPublicKey }, threshold: threshold)
+    }
+}
+
+extension Simplex {
+    public init(plaintext: CBOREncodable, ecdsaSigners: [PrivateKeyBase]) {
+        let subject = Subject(plaintext: plaintext)
+        let signatures = ecdsaSigners.map {
+            $0.signingPrivateKey.ecdsaSign(plaintext.cbor.cborEncode)
+        }
+        self.init(subject: subject, signatures: signatures)
+    }
+    
+    public init(plaintext: CBOREncodable, ecdsaSigner: PrivateKeyBase) {
+        self.init(plaintext: plaintext, ecdsaSigners: [ecdsaSigner])
+    }
+}
+
+extension Simplex {
+    public func encrypted(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Simplex {
+        let subject = try self.subject.encrypted(with: key, aad: aad, nonce: nonce)
+        let result = Simplex(subject: subject, assertions: assertions)
+        assert(digest == result.digest)
+        return result
+    }
+    
+    public func decrypted(with key: SymmetricKey) throws -> Simplex? {
+        let subject = try self.subject.decrypted(with: key)
+        let result = Simplex(subject: subject, assertions: assertions)
+        assert(digest == result.digest)
+        return result
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import URKit
 
 public enum Subject {
     case plaintext(CBOR, Digest)
@@ -39,7 +40,7 @@ extension Subject {
         return plaintext
     }
     
-    init(plaintext: CBOREncodable, key: SymmetricKey, aad: Data? = nil, nonce: EncryptedMessage.Nonce? = nil) {
+    init(plaintext: CBOREncodable, key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) {
         let encodedCBOR = plaintext.cbor.cborEncode
         let encryptedMessage = key.encrypt(plaintext: encodedCBOR, aad: aad, nonce: nonce)
         self = .encrypted(encryptedMessage, Digest(encodedCBOR))
@@ -47,12 +48,18 @@ extension Subject {
     
     func plaintext(with key: SymmetricKey) throws -> CBOR {
         guard
-            case let .encrypted(encryptedMessage, digest) = self,
+            case let .encrypted(encryptedMessage, digest) = self
+        else {
+            throw SimplexError.invalidOperation
+        }
+        guard
             let data = key.decrypt(message: encryptedMessage)
         else {
-            throw CBORError.invalidFormat
+            throw SimplexError.invalidKey
         }
-        try Digest.tryValidate(data, digest: digest)
+        guard Digest.validate(data, digest: digest) else {
+            throw SimplexError.invalidDigest
+        }
         return try CBOR(data)
     }
 }
@@ -97,5 +104,38 @@ extension Subject {
         default:
             throw CBORError.invalidFormat
         }
+    }
+}
+
+extension Subject {
+    public func encrypted(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Subject {
+        guard case let .plaintext(cbor, digest) = self else {
+            throw SimplexError.invalidOperation
+        }
+        
+        let result = Subject(plaintext: cbor, key: key, aad: aad, nonce: nonce)
+        assert(digest == result.digest)
+        return result
+    }
+    
+    public func decrypted(with key: SymmetricKey) throws -> Subject {
+        guard
+            case let .encrypted(encryptedMessage, digest) = self
+        else {
+            throw SimplexError.invalidOperation
+        }
+        
+        guard
+            let data = key.decrypt(message: encryptedMessage)
+        else {
+            throw SimplexError.invalidKey
+        }
+        
+        guard Digest.validate(data, digest: digest) else {
+            throw SimplexError.invalidDigest
+        }
+        
+        let cbor = try CBOR(data)
+        return .plaintext(cbor, digest)
     }
 }
