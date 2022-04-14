@@ -50,6 +50,12 @@ extension Assertion: Comparable {
 }
 
 extension Assertion {
+    public static func authenticatedBy(signature: Signature) -> Assertion {
+        Assertion(predicate: Simplex(predicate: .authenticatedBy), object: Simplex(plaintext: signature))
+    }
+}
+
+extension Assertion {
     var untaggedCBOR: CBOR {
         switch self {
         case .declare(let predicate, let object, _):
@@ -96,10 +102,10 @@ extension Assertion {
         }
     }
     
-    public var predicate: Simplex {
+    public var predicate: Predicate? {
         switch self {
         case .declare(let predicate, _, _):
-            return predicate
+            return predicate.predicate
         default:
             todo()
         }

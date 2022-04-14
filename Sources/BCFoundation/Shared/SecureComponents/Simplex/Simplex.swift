@@ -25,6 +25,10 @@ extension Simplex {
         self.init(subject: Subject(plaintext: plaintext), assertions: assertions)
     }
     
+    public init(predicate: Predicate, assertions: [Assertion] = []) {
+        self.init(subject: Subject(predicate: predicate), assertions: assertions)
+    }
+    
     public func plaintext<T>(_ type: T.Type) throws -> T where T: CBORDecodable {
         guard let cbor = self.plaintext else {
             throw CBORError.invalidFormat
@@ -34,6 +38,19 @@ extension Simplex {
     
     public var plaintext: CBOR? {
         subject.plaintext
+    }
+    
+    public var predicate: Predicate? {
+        guard
+            let plaintext = plaintext,
+            case let CBOR.tagged(.predicate, value) = plaintext,
+            case let CBOR.unsignedInt(rawValue) = value,
+            let predicate = Predicate(rawValue: rawValue)
+        else {
+            return nil
+        }
+        
+        return predicate
     }
 }
 
@@ -68,7 +85,7 @@ extension Simplex: ExpressibleByIntegerLiteral {
 extension Simplex {
     public init(subject: Subject, signatures: [Signature]) {
         let assertions = signatures.map {
-            Predicate.authenticatedBy(signature: $0)
+            Assertion.authenticatedBy(signature: $0)
         }
         self.init(subject: subject, assertions: assertions)
     }
@@ -106,7 +123,8 @@ extension Simplex {
     }
     
     public func hasValidSignature(key: SigningPublicKey) throws -> Bool {
-        try signatures.contains { isValidSignature($0, key: key) }
+        let sigs = try signatures
+        return sigs.contains { isValidSignature($0, key: key) }
     }
     
     public func hasValidSignature(from publicKeys: PublicKeyBase) throws -> Bool {
@@ -154,7 +172,7 @@ extension Simplex {
         return result
     }
     
-    public func decrypted(with key: SymmetricKey) throws -> Simplex? {
+    public func decrypted(with key: SymmetricKey) throws -> Simplex {
         let subject = try self.subject.decrypted(with: key)
         let result = Simplex(subject: subject, assertions: assertions)
         assert(digest == result.digest)

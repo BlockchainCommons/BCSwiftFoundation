@@ -33,6 +33,10 @@ extension Subject {
         self = .plaintext(cbor, Digest(encodedCBOR))
     }
     
+    init(predicate: Predicate) {
+        self.init(plaintext: CBOR.tagged(.predicate, CBOR.unsignedInt(predicate.rawValue)))
+    }
+    
     var plaintext: CBOR? {
         guard case let .plaintext(plaintext, _) = self else {
             return nil

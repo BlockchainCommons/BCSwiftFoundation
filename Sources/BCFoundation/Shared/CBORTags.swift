@@ -74,4 +74,5 @@ extension CBOR.Tag {
     public static let signingPrivateKey = CBOR.Tag(705)
     public static let signingPublicKey = CBOR.Tag(706)
     public static let signature = CBOR.Tag(707)
+    public static let predicate = CBOR.Tag(56)
 }

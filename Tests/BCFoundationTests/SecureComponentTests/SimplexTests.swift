@@ -17,6 +17,11 @@ fileprivate let carolPrivateKeys = PrivateKeyBase(carolSeed, salt: "Salt")
 fileprivate let carolPublicKeys = carolPrivateKeys.pubkeys
 
 class SimplexTests: XCTestCase {
+    func testPredicate() {
+        let container = Simplex(predicate: .authenticatedBy)
+        XCTAssertEqual(container.format, "authenticatedBy")
+    }
+    
     func testPlaintext() throws {
         // Alice sends a plaintext message to Bob.
         let container = Simplex(plaintext: plaintext)
@@ -25,6 +30,8 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.diag)
 //        print(container.taggedCBOR.dump)
 //        print(ur)
+
+        XCTAssertEqual(container.format, #""Hello.""#)
 
         // ➡️ ☁️ ➡️
 
@@ -42,6 +49,14 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.diag)
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
+
+        let expectedFormat =
+        """
+        "Hello." [
+           authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
 
         // ➡️ ☁️ ➡️
 
@@ -69,6 +84,15 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
+        let expectedFormat =
+        """
+        "Hello." [
+           authenticatedBy: Signature
+           authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+
         // ➡️ ☁️ ➡️
 
         // Bob receives the container.
@@ -93,6 +117,8 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
+        XCTAssertEqual(container.format, #"<encrypted>"#)
+
         // ➡️ ☁️ ➡️
 
         // Bob receives the container.
@@ -111,9 +137,12 @@ class SimplexTests: XCTestCase {
     func testEncryptDecrypt() throws {
         let key = SymmetricKey()
         let plaintextContainer = Simplex(plaintext: plaintext)
+        print(plaintextContainer.format)
         let encryptedContainer = try plaintextContainer.encrypted(with: key)
+        print(encryptedContainer.format)
         XCTAssertEqual(plaintextContainer, encryptedContainer)
         let plaintextContainer2 = try encryptedContainer.decrypted(with: key)
+        print(plaintextContainer2.format)
         XCTAssertEqual(encryptedContainer, plaintextContainer2)
     }
 }
