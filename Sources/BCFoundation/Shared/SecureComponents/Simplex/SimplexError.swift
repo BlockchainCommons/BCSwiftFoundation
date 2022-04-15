@@ -4,4 +4,6 @@ public enum SimplexError: Error {
     case invalidOperation
     case invalidKey
     case invalidDigest
+    case invalidSignature
+    case invalidFormat
 }

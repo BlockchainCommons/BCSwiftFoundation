@@ -51,7 +51,7 @@ extension Assertion: Comparable {
 
 extension Assertion {
     public static func authenticatedBy(signature: Signature) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .authenticatedBy), object: Simplex(plaintext: signature))
+        Assertion(predicate: Simplex(predicate: .authenticatedBy), object: Simplex(enclose: signature))
     }
 }
 

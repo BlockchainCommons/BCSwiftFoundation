@@ -43,29 +43,6 @@ extension Subject {
         }
         return plaintext
     }
-    
-    init(plaintext: CBOREncodable, key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) {
-        let encodedCBOR = plaintext.cbor.cborEncode
-        let encryptedMessage = key.encrypt(plaintext: encodedCBOR, aad: aad, nonce: nonce)
-        self = .encrypted(encryptedMessage, Digest(encodedCBOR))
-    }
-    
-    func plaintext(with key: SymmetricKey) throws -> CBOR {
-        guard
-            case let .encrypted(encryptedMessage, digest) = self
-        else {
-            throw SimplexError.invalidOperation
-        }
-        guard
-            let data = key.decrypt(message: encryptedMessage)
-        else {
-            throw SimplexError.invalidKey
-        }
-        guard Digest.validate(data, digest: digest) else {
-            throw SimplexError.invalidDigest
-        }
-        return try CBOR(data)
-    }
 }
 
 extension Subject {
@@ -112,17 +89,19 @@ extension Subject {
 }
 
 extension Subject {
-    public func encrypted(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Subject {
+    public func encrypt(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Subject {
         guard case let .plaintext(cbor, digest) = self else {
             throw SimplexError.invalidOperation
         }
         
-        let result = Subject(plaintext: cbor, key: key, aad: aad, nonce: nonce)
+        let encodedCBOR = cbor.cborEncode
+        let encryptedMessage = key.encrypt(plaintext: encodedCBOR, aad: aad, nonce: nonce)
+        let result = Subject.encrypted(encryptedMessage, Digest(encodedCBOR))
         assert(digest == result.digest)
         return result
     }
     
-    public func decrypted(with key: SymmetricKey) throws -> Subject {
+    public func decrypt(with key: SymmetricKey) throws -> Subject {
         guard
             case let .encrypted(encryptedMessage, digest) = self
         else {

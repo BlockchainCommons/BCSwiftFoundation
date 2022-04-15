@@ -20,8 +20,20 @@ extension Simplex {
     }
 }
 
+extension Simplex: CBOREncodable {
+    public var cbor: CBOR {
+        taggedCBOR
+    }
+}
+
+extension Simplex: CBORDecodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> Simplex {
+        try Simplex(taggedCBOR: cbor)
+    }
+}
+
 extension Simplex {
-    public init(plaintext: CBOREncodable, assertions: [Assertion] = []) {
+    public init(enclose plaintext: CBOREncodable, assertions: [Assertion] = []) {
         self.init(subject: Subject(plaintext: plaintext), assertions: assertions)
     }
     
@@ -29,7 +41,7 @@ extension Simplex {
         self.init(subject: Subject(predicate: predicate), assertions: assertions)
     }
     
-    public func plaintext<T>(_ type: T.Type) throws -> T where T: CBORDecodable {
+    public func extract<T>(_ type: T.Type) throws -> T where T: CBORDecodable {
         guard let cbor = self.plaintext else {
             throw CBORError.invalidFormat
         }
@@ -52,21 +64,18 @@ extension Simplex {
         
         return predicate
     }
-}
-
-extension Simplex {
-    public init(plaintext: CBOREncodable, assertions: [Assertion] = [], key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) {
-        let subject = Subject(plaintext: plaintext, key: key, aad: aad, nonce: nonce)
-        self.init(subject: subject, assertions: assertions)
+    
+    public func enclose() -> Simplex {
+        Simplex(subject: Subject(plaintext: self))
     }
     
-    public func plaintext<T>(_ type: T.Type, with key: SymmetricKey) throws -> T where T: CBORDecodable {
-        let cbor = try self.plaintext(with: key)
-        return try T.cborDecode(cbor)
-    }
-    
-    public func plaintext(with key: SymmetricKey) throws -> CBOR {
-        try subject.plaintext(with: key)
+    public func extract() throws -> Simplex {
+        guard
+            let plaintext = plaintext
+        else {
+            throw SimplexError.invalidFormat
+        }
+        return try Simplex(taggedCBOR: plaintext)
     }
 }
 
@@ -78,30 +87,27 @@ extension Simplex: Equatable {
 
 extension Simplex: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
-        self.init(plaintext: value)
+        self.init(enclose: value)
     }
 }
 
 extension Simplex {
-    public init(subject: Subject, signatures: [Signature]) {
-        let assertions = signatures.map {
-            Assertion.authenticatedBy(signature: $0)
-        }
-        self.init(subject: subject, assertions: assertions)
-    }
-}
-
-extension Simplex {
-    public init(plaintext: CBOREncodable, schnorrSigners: [PrivateKeyBase], tag: Data = Data()) {
-        let subject = Subject(plaintext: plaintext)
-        let signatures = schnorrSigners.map {
-            $0.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
-        }
-        self.init(subject: subject, signatures: signatures)
+    public func addingAssertion(_ assertion: Assertion) -> Simplex {
+        Simplex(subject: self.subject, assertions: assertions.appending(assertion))
     }
     
-    public init(plaintext: CBOREncodable, schnorrSigner: PrivateKeyBase, tag: Data = Data()) {
-        self.init(plaintext: plaintext, schnorrSigners: [schnorrSigner], tag: tag)
+    public func sign(with privateKeys: PrivateKeyBase, tag: Data = Data()) -> Simplex {
+        let signature = privateKeys.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
+        let assertion = Assertion.authenticatedBy(signature: signature)
+        return addingAssertion(assertion)
+    }
+    
+    public func sign(with privateKeys: [PrivateKeyBase], tag: Data = Data()) -> Simplex {
+        var result = self
+        for keys in privateKeys {
+            result = result.sign(with: keys)
+        }
+        return result
     }
 }
 
@@ -110,7 +116,7 @@ extension Simplex {
         get throws {
             try assertions
                 .filter { $0.predicate == Predicate.authenticatedBy }
-                .map { try $0.object.plaintext(Signature.self) }
+                .map { try $0.object.extract(Signature.self) }
         }
     }
     
@@ -118,8 +124,19 @@ extension Simplex {
         return key.isValidSignature(signature, for: subject.digest)
     }
     
+    public func validateSignature(_ signature: Signature, key: SigningPublicKey) throws -> Simplex {
+        guard isValidSignature(signature, key: key) else {
+            throw SimplexError.invalidSignature
+        }
+        return self
+    }
+    
     public func isValidSignature(_ signature: Signature, publicKeys: PublicKeyBase) -> Bool {
         isValidSignature(signature, key: publicKeys.signingPublicKey)
+    }
+    
+    public func validateSignature(_ signature: Signature, publicKeys: PublicKeyBase) throws -> Simplex {
+        try validateSignature(signature, key: publicKeys.signingPublicKey)
     }
     
     public func hasValidSignature(key: SigningPublicKey) throws -> Bool {
@@ -127,8 +144,19 @@ extension Simplex {
         return sigs.contains { isValidSignature($0, key: key) }
     }
     
+    public func validateSignature(key: SigningPublicKey) throws -> Simplex {
+        guard try hasValidSignature(key: key) else {
+            throw SimplexError.invalidSignature
+        }
+        return self
+    }
+    
     public func hasValidSignature(from publicKeys: PublicKeyBase) throws -> Bool {
         try hasValidSignature(key: publicKeys.signingPublicKey)
+    }
+    
+    public func validateSignature(from publicKeys: PublicKeyBase) throws -> Simplex {
+        try validateSignature(key: publicKeys.signingPublicKey)
     }
     
     public func hasValidSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) throws -> Bool {
@@ -144,36 +172,33 @@ extension Simplex {
         }
         return false
     }
-    
+
+    public func validateSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) throws -> Simplex {
+        guard try hasValidSignatures(with: keys, threshold: threshold) else {
+            throw SimplexError.invalidSignature
+        }
+        return self
+    }
+
     public func hasValidSignatures(from publicKeysArray: [PublicKeyBase], threshold: Int? = nil) throws -> Bool {
         try hasValidSignatures(with: publicKeysArray.map { $0.signingPublicKey }, threshold: threshold)
     }
-}
 
-extension Simplex {
-    public init(plaintext: CBOREncodable, ecdsaSigners: [PrivateKeyBase]) {
-        let subject = Subject(plaintext: plaintext)
-        let signatures = ecdsaSigners.map {
-            $0.signingPrivateKey.ecdsaSign(plaintext.cbor.cborEncode)
-        }
-        self.init(subject: subject, signatures: signatures)
-    }
-    
-    public init(plaintext: CBOREncodable, ecdsaSigner: PrivateKeyBase) {
-        self.init(plaintext: plaintext, ecdsaSigners: [ecdsaSigner])
+    public func validateSignatures(from publicKeysArray: [PublicKeyBase], threshold: Int? = nil) throws -> Simplex {
+        try validateSignatures(with: publicKeysArray.map { $0.signingPublicKey }, threshold: threshold)
     }
 }
 
 extension Simplex {
-    public func encrypted(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Simplex {
-        let subject = try self.subject.encrypted(with: key, aad: aad, nonce: nonce)
+    public func encrypt(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Simplex {
+        let subject = try self.subject.encrypt(with: key, aad: aad, nonce: nonce)
         let result = Simplex(subject: subject, assertions: assertions)
         assert(digest == result.digest)
         return result
     }
     
-    public func decrypted(with key: SymmetricKey) throws -> Simplex {
-        let subject = try self.subject.decrypted(with: key)
+    public func decrypt(with key: SymmetricKey) throws -> Simplex {
+        let subject = try self.subject.decrypt(with: key)
         let result = Simplex(subject: subject, assertions: assertions)
         assert(digest == result.digest)
         return result
