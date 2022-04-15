@@ -20,7 +20,7 @@ fileprivate let carolPublicKeys = carolPrivateKeys.pubkeys
 class SealedMessageTests: XCTestCase {
     func testSealedMessage() {
         // Alice constructs a message for Bob's eyes only.
-        let sealedMessage = SealedMessage(plaintext: plaintext, receiver: bobPublicKeys)
+        let sealedMessage = SealedMessage(plaintext: plaintext, recipient: bobPublicKeys)
         
         // Bob decrypts and reads the message.
         XCTAssertEqual(sealedMessage.plaintext(with: bobPrivateKeys), plaintext)

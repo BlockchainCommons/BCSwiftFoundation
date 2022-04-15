@@ -92,14 +92,14 @@ extension Simplex: ExpressibleByIntegerLiteral {
 }
 
 extension Simplex {
-    public func addingAssertion(_ assertion: Assertion) -> Simplex {
+    public func addAssertion(_ assertion: Assertion) -> Simplex {
         Simplex(subject: self.subject, assertions: assertions.appending(assertion))
     }
     
     public func sign(with privateKeys: PrivateKeyBase, tag: Data = Data()) -> Simplex {
         let signature = privateKeys.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
         let assertion = Assertion.authenticatedBy(signature: signature)
-        return addingAssertion(assertion)
+        return addAssertion(assertion)
     }
     
     public func sign(with privateKeys: [PrivateKeyBase], tag: Data = Data()) -> Simplex {
@@ -108,6 +108,10 @@ extension Simplex {
             result = result.sign(with: keys)
         }
         return result
+    }
+    
+    public func addRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Simplex {
+        addAssertion(Assertion.hasRecipient(recipient, contentKey: contentKey))
     }
 }
 
@@ -202,6 +206,28 @@ extension Simplex {
         let result = Simplex(subject: subject, assertions: assertions)
         assert(digest == result.digest)
         return result
+    }
+}
+
+extension Simplex {
+    public var recipients: [SealedMessage] {
+        get throws {
+            try assertions
+                .filter { $0.predicate == Predicate.hasRecipient }
+                .map { try $0.object.extract(SealedMessage.self) }
+        }
+    }
+    
+    public func decrypt(to recipient: PrivateKeyBase) throws -> Simplex {
+        guard
+            let contentKeyData = try SealedMessage.firstPlaintext(in: recipients, for: recipient)
+        else {
+            throw SimplexError.invalidRecipient
+        }
+        
+        let cbor = try CBOR(contentKeyData)
+        let contentKey = try SymmetricKey(taggedCBOR: cbor)
+        return try decrypt(with: contentKey)
     }
 }
 

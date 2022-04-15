@@ -6,4 +6,5 @@ public enum SimplexError: Error {
     case invalidDigest
     case invalidSignature
     case invalidFormat
+    case invalidRecipient
 }

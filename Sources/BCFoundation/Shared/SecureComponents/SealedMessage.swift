@@ -1,5 +1,6 @@
 import Foundation
 import WolfBase
+import URKit
 
 /// An encrypted message that can only be opened by its intended recipient.
 ///
@@ -9,10 +10,10 @@ public struct SealedMessage {
     public let message: EncryptedMessage
     public let ephemeralPublicKey: AgreementPublicKey
     
-    public init(plaintext: DataProvider, receiver: PublicKeyBase, aad: Data? = nil) {
+    public init(plaintext: DataProvider, recipient: PublicKeyBase, aad: Data? = nil) {
         let ephemeralSender = PrivateKeyBase()
-        let receiverPublicKey = receiver.agreementPublicKey
-        let key = EncryptedMessage.sharedKey(agreementPrivateKey: ephemeralSender.agreementPrivateKey, agreementPublicKey: receiverPublicKey)
+        let recipientPublicKey = recipient.agreementPublicKey
+        let key = EncryptedMessage.sharedKey(agreementPrivateKey: ephemeralSender.agreementPrivateKey, agreementPublicKey: recipientPublicKey)
         self.message = key.encrypt(plaintext: plaintext, aad: aad)
         self.ephemeralPublicKey = ephemeralSender.agreementPrivateKey.publicKey
     }
@@ -80,5 +81,11 @@ extension SealedMessage {
 extension SealedMessage: CBOREncodable {
     public var cbor: CBOR {
         taggedCBOR
+    }
+}
+
+extension SealedMessage: CBORDecodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> SealedMessage {
+        try SealedMessage(taggedCBOR: cbor)
     }
 }

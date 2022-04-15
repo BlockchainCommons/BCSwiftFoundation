@@ -53,6 +53,11 @@ extension Assertion {
     public static func authenticatedBy(signature: Signature) -> Assertion {
         Assertion(predicate: Simplex(predicate: .authenticatedBy), object: Simplex(enclose: signature))
     }
+    
+    public static func hasRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Assertion {
+        let sealedMessage = SealedMessage(plaintext: contentKey.taggedCBOR, recipient: recipient)
+        return Assertion(predicate: Simplex(predicate: .hasRecipient), object: Simplex(enclose: sealedMessage))
+    }
 }
 
 extension Assertion {

@@ -43,6 +43,8 @@ extension CBOR: SimplexFormat {
             return .item(predicate†)
         case CBOR.tagged(.signature, _):
             return .item("Signature")
+        case CBOR.tagged(URType.sealedMessage.tag, _):
+            return .item("SealedMessage")
         case .utf8String(let string):
             return .item(string.flanked(.quote))
         default:

@@ -164,9 +164,9 @@ class SimplexTests: XCTestCase {
         
         XCTAssertEqual(container.format, "<encrypted>")
 
-//        print(outerEncryptedContainer.taggedCBOR.diag)
-//        print(outerEncryptedContainer.taggedCBOR.dump)
-//        print(outerEncryptedContainer.ur)
+//        print(container.taggedCBOR.diag)
+//        print(container.taggedCBOR.dump)
+//        print(container.ur)
 
         // ➡️ ☁️ ➡️
 
@@ -202,6 +202,12 @@ class SimplexTests: XCTestCase {
         //
         // The end result is the same: the `subject` is encrypted and the signature can be
         // checked before or after decryption.
+        //
+        // The main difference between this order of operations and the sign-then-encrypt
+        // order of operations is that with sign-then-encrypt, the decryption *must*
+        // be performed first before the presence of signatures can be known or checked.
+        // With this order of operations, the presence of signatures is known before
+        // decryption, and may be checked before or after decryption.
         let container = try Simplex(enclose: plaintext)
             .encrypt(with: key)
             .sign(with: alicePrivateKeys)
@@ -216,8 +222,8 @@ class SimplexTests: XCTestCase {
         XCTAssertEqual(container.format, expectedFormat)
 
 //        print(container.taggedCBOR.diag)
-//        print(outerSignedContainer.taggedCBOR.dump)
-//        print(outerSignedContainer.ur)
+//        print(container.taggedCBOR.dump)
+//        print(container.ur)
 
         // ➡️ ☁️ ➡️
 
@@ -228,5 +234,48 @@ class SimplexTests: XCTestCase {
             .extract(String.self)
         // Bob reads the message.
         XCTAssertEqual(receivedPlaintext, plaintext)
+    }
+    
+    func testMultiRecipient() throws {
+        // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
+        let contentKey = SymmetricKey()
+        let container = try Simplex(enclose: plaintext)
+            .encrypt(with: contentKey)
+            .addRecipient(bobPublicKeys, contentKey: contentKey)
+            .addRecipient(carolPublicKeys, contentKey: contentKey)
+        let ur = container.ur
+
+        let expectedFormat =
+        """
+        <encrypted> [
+           hasRecipient: SealedMessage
+           hasRecipient: SealedMessage
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+
+//        print(container.taggedCBOR.diag)
+//        print(container.taggedCBOR.dump)
+//        print(container.ur)
+
+        // ➡️ ☁️ ➡️
+
+        // The container is received
+        let receivedContainer = try Simplex(ur: ur)
+        
+        // Bob decrypts and reads the message
+        let bobReceivedPlaintext = try receivedContainer
+            .decrypt(to: bobPrivateKeys)
+            .extract(String.self)
+        XCTAssertEqual(bobReceivedPlaintext, plaintext)
+
+        // Alice decrypts and reads the message
+        let carolReceivedPlaintext = try receivedContainer
+            .decrypt(to: carolPrivateKeys)
+            .extract(String.self)
+        XCTAssertEqual(carolReceivedPlaintext, plaintext)
+        
+        // Alice didn't encrypt it to herself, so she can't read it.
+        XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
     }
 }

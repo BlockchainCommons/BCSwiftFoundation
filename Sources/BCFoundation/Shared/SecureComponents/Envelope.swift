@@ -140,7 +140,7 @@ extension Envelope {
     public init(plaintext: DataProvider, recipients: [PublicKeyBase], contentKey: SymmetricKey = .init(), includeDigest: Bool = true) {
         let message = contentKey.encrypt(plaintext: plaintext)
         let sealedMessages = recipients.map { pubkeys in
-            SealedMessage(plaintext: contentKey, receiver: pubkeys)
+            SealedMessage(plaintext: contentKey, recipient: pubkeys)
         }
         let digest = includeDigest ? Digest(plaintext) : nil
         self = .encrypted(message, .recipients(sealedMessages), digest)
