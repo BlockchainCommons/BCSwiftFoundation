@@ -278,4 +278,51 @@ class SimplexTests: XCTestCase {
         // Alice didn't encrypt it to herself, so she can't read it.
         XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
     }
+    
+    func testSignedMultiRecipient() throws {
+        // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
+        let contentKey = SymmetricKey()
+        let container = try Simplex(enclose: plaintext)
+            .sign(with: alicePrivateKeys)
+            .encrypt(with: contentKey)
+            .addRecipient(bobPublicKeys, contentKey: contentKey)
+            .addRecipient(carolPublicKeys, contentKey: contentKey)
+        let ur = container.ur
+        
+        let expectedFormat =
+        """
+        <encrypted> [
+           authenticatedBy: Signature
+           hasRecipient: SealedMessage
+           hasRecipient: SealedMessage
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+
+//        print(container.taggedCBOR.diag)
+//        print(container.taggedCBOR.dump)
+//        print(container.ur)
+
+        // ➡️ ☁️ ➡️
+
+        // The container is received
+        let receivedContainer = try Simplex(ur: ur)
+
+        // Bob decrypts and reads the message
+        let bobReceivedPlaintext = try receivedContainer
+            .validateSignature(from: alicePublicKeys)
+            .decrypt(to: bobPrivateKeys)
+            .extract(String.self)
+        XCTAssertEqual(bobReceivedPlaintext, plaintext)
+
+        // Alice decrypts and reads the message
+        let carolReceivedPlaintext = try receivedContainer
+            .validateSignature(from: alicePublicKeys)
+            .decrypt(to: carolPrivateKeys)
+            .extract(String.self)
+        XCTAssertEqual(carolReceivedPlaintext, plaintext)
+
+        // Alice didn't encrypt it to herself, so she can't read it.
+        XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
+    }
 }

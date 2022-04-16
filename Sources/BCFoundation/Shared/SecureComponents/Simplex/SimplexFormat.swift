@@ -88,7 +88,7 @@ extension Simplex: SimplexFormat {
         if assertions.isEmpty {
             return subject.formatItem
         } else {
-            let assertionsItems = assertions.map { [$0.formatItem] }
+            let assertionsItems = assertions.map { [$0.formatItem] }.sorted()
             let joinedAssertionsItems = Array(assertionsItems.joined(separator: [.separator]))
             return .list([
                 .begin("{"),
@@ -105,7 +105,7 @@ extension Simplex: SimplexFormat {
     }
 }
 
-enum SimplexFormatItem {
+public enum SimplexFormatItem {
     case begin(String)
     case end(String)
     case item(String)
@@ -158,5 +158,57 @@ enum SimplexFormatItem {
             lines.append(currentLine)
         }
         return lines.joined()
+    }
+}
+
+extension SimplexFormatItem: Equatable {
+    public static func ==(lhs: SimplexFormatItem, rhs: SimplexFormatItem) -> Bool {
+        if case let .begin(l) = lhs, case let .begin(r) = rhs, l == r { return true }
+        if case let .end(l) = lhs, case let .end(r) = rhs, l == r { return true }
+        if case let .item(l) = lhs, case let .item(r) = rhs, l == r { return true }
+        if case .separator = lhs, case .separator = rhs { return true }
+        if case let .list(l) = lhs, case let .list(r) = rhs, l == r { return true }
+        return false
+    }
+}
+
+extension SimplexFormatItem {
+    var index: Int {
+        switch self {
+        case .begin:
+            return 1
+        case .end:
+            return 2
+        case .item:
+            return 3
+        case .separator:
+            return 4
+        case .list:
+            return 5
+        }
+    }
+}
+
+extension SimplexFormatItem: Comparable {
+    public static func <(lhs: SimplexFormatItem, rhs: SimplexFormatItem) -> Bool {
+        let lIndex = lhs.index
+        let rIndex = rhs.index
+        if lIndex < rIndex {
+            return true
+        } else if rIndex < lIndex {
+            return false
+        }
+        if case let .begin(l) = lhs, case let .begin(r) = rhs, l < r { return true }
+        if case let .end(l) = lhs, case let .end(r) = rhs, l < r { return true }
+        if case let .item(l) = lhs, case let .item(r) = rhs, l < r { return true }
+        if case .separator = lhs, case .separator = rhs { return false }
+        if case let .list(l) = lhs, case let .list(r) = rhs, l.lexicographicallyPrecedes(r) { return true }
+        return false
+    }
+}
+
+extension Array: Comparable where Element == SimplexFormatItem {
+    public static func < (lhs: Array<SimplexFormatItem>, rhs: Array<SimplexFormatItem>) -> Bool {
+        lhs.lexicographicallyPrecedes(rhs)
     }
 }
