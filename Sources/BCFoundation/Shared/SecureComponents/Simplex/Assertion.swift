@@ -1,5 +1,6 @@
 import Foundation
 import WolfBase
+import SSKR
 
 public enum Assertion {
     case declare(predicate: Simplex, object: Simplex, digest: Digest)
@@ -57,6 +58,10 @@ extension Assertion {
     public static func hasRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Assertion {
         let sealedMessage = SealedMessage(plaintext: contentKey.taggedCBOR, recipient: recipient)
         return Assertion(predicate: Simplex(predicate: .hasRecipient), object: Simplex(enclose: sealedMessage))
+    }
+    
+    public static func sskrShare(_ share: SSKRShare) -> Assertion {
+        Assertion(predicate: Simplex(predicate: .sskrShare), object: Simplex(enclose: share))
     }
 }
 

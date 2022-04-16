@@ -2,6 +2,7 @@ import Foundation
 import URKit
 import WolfBase
 import CryptoKit
+import SSKR
 
 public struct Simplex {
     public let subject: Subject
@@ -112,6 +113,50 @@ extension Simplex {
     
     public func addRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Simplex {
         addAssertion(Assertion.hasRecipient(recipient, contentKey: contentKey))
+    }
+    
+    public func addSSKRShare(_ share: SSKRShare) -> Simplex {
+        addAssertion(Assertion.sskrShare(share))
+    }
+    
+    public func split(groupThreshold: Int, groups: [(Int, Int)], contentKey: SymmetricKey) -> [[Simplex]] {
+        let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: contentKey)
+        return shares.map { groupShares in
+            groupShares.map { share in
+                self.addSSKRShare(share)
+            }
+        }
+    }
+    
+    public static func shares(in containers: [Simplex]) throws -> [UInt16: [SSKRShare]] {
+        var result: [UInt16: [SSKRShare]] = [:]
+        for container in containers {
+            try container.assertions
+                .filter { $0.predicate == Predicate.sskrShare }
+                .forEach {
+                    let share = try $0.object.extract(SSKRShare.self)
+                    let identifier = share.identifier
+                    if result[identifier] == nil {
+                        result[identifier] = []
+                    }
+                    result[identifier]!.append(share)
+                }
+        }
+        return result
+    }
+
+    public init(shares containers: [Simplex]) throws {
+        guard !containers.isEmpty else {
+            throw SimplexError.invalidShares
+        }
+        for shares in try Self.shares(in: containers).values {
+            guard let contentKey = try? SymmetricKey(SSKRCombine(shares: shares)) else {
+                continue
+            }
+            self = try containers.first!.decrypt(with: contentKey)
+            return
+        }
+        throw SimplexError.invalidShares
     }
 }
 

@@ -191,17 +191,32 @@ extension SeedProtocol {
         self.init(data: data, name: name, note: note, creationDate: creationDate)!
     }
 
-    public init(taggedCBOR: Data) throws {
-        let cbor = try CBOR(taggedCBOR)
-        guard case let CBOR.tagged(tag, content) = cbor, tag == URType.seed.tag else {
+    public init(taggedCBOR: CBOR) throws {
+        guard case let CBOR.tagged(tag, content) = taggedCBOR, tag == URType.seed.tag else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: content)
+    }
+
+    public init(taggedCBOR: Data) throws {
+        try self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
 
 extension SeedProtocol {
     public var identityDigestSource: Data {
         data
+    }
+}
+
+extension Seed: CBOREncodable {
+    public var cbor: CBOR {
+        taggedCBOR
+    }
+}
+
+extension Seed: CBORDecodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> Seed {
+        try Seed(taggedCBOR: cbor)
     }
 }

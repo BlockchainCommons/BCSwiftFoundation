@@ -7,4 +7,5 @@ public enum SimplexError: Error {
     case invalidSignature
     case invalidFormat
     case invalidRecipient
+    case invalidShares
 }

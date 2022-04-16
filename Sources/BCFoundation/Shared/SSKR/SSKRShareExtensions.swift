@@ -128,3 +128,15 @@ extension SSKRShare: CustomStringConvertible {
         "SSKRShare(\(identifierHex) \(groupIndex + 1)-\(memberIndex + 1))"
     }
 }
+
+extension SSKRShare: CBOREncodable {
+    public var cbor: CBOR {
+        taggedCBOR
+    }
+}
+
+extension SSKRShare: CBORDecodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> SSKRShare {
+        try SSKRShare(taggedCBOR: cbor)
+    }
+}

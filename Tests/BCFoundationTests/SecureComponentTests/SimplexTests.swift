@@ -279,7 +279,7 @@ class SimplexTests: XCTestCase {
         XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
     }
     
-    func testSignedMultiRecipient() throws {
+    func testVisibleSignatureMultiRecipient() throws {
         // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
         let contentKey = SymmetricKey()
         let container = try Simplex(enclose: plaintext)
@@ -308,14 +308,14 @@ class SimplexTests: XCTestCase {
         // The container is received
         let receivedContainer = try Simplex(ur: ur)
 
-        // Bob decrypts and reads the message
+        // Bob validates Alice's signature, then decrypts and reads the message
         let bobReceivedPlaintext = try receivedContainer
             .validateSignature(from: alicePublicKeys)
             .decrypt(to: bobPrivateKeys)
             .extract(String.self)
         XCTAssertEqual(bobReceivedPlaintext, plaintext)
 
-        // Alice decrypts and reads the message
+        // Carol validates Alice's signature, then decrypts and reads the message
         let carolReceivedPlaintext = try receivedContainer
             .validateSignature(from: alicePublicKeys)
             .decrypt(to: carolPrivateKeys)
@@ -324,5 +324,112 @@ class SimplexTests: XCTestCase {
 
         // Alice didn't encrypt it to herself, so she can't read it.
         XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
+    }
+    
+    func testHiddenSignatureMultiRecipient() throws {
+        // Alice signs a message, and then encloses it in another container before encrypting it so that it can only be decrypted by Bob or Carol. This hides Alice's signature, and requires recipients to decrypt the subject before they are able to validate the signature.
+        let contentKey = SymmetricKey()
+        let container = try Simplex(enclose: plaintext)
+            .sign(with: alicePrivateKeys)
+            .enclose()
+            .encrypt(with: contentKey)
+            .addRecipient(bobPublicKeys, contentKey: contentKey)
+            .addRecipient(carolPublicKeys, contentKey: contentKey)
+        let ur = container.ur
+        
+        let expectedFormat =
+        """
+        <encrypted> [
+           hasRecipient: SealedMessage
+           hasRecipient: SealedMessage
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+
+//        print(container.taggedCBOR.diag)
+//        print(container.taggedCBOR.dump)
+//        print(container.ur)
+
+        // ➡️ ☁️ ➡️
+
+        // The container is received
+        let receivedContainer = try Simplex(ur: ur)
+
+        // Bob decrypts the container, then extracts the inner container and validates Alice's signature, then reads the message
+        let bobReceivedPlaintext = try receivedContainer
+            .decrypt(to: bobPrivateKeys)
+            .extract()
+            .validateSignature(from: alicePublicKeys)
+            .extract(String.self)
+        XCTAssertEqual(bobReceivedPlaintext, plaintext)
+
+        // Carol decrypts the container, then extracts the inner container and validates Alice's signature, then reads the message
+        let carolReceivedPlaintext = try receivedContainer
+            .decrypt(to: carolPrivateKeys)
+            .extract()
+            .validateSignature(from: alicePublicKeys)
+            .extract(String.self)
+        XCTAssertEqual(carolReceivedPlaintext, plaintext)
+
+        // Alice didn't encrypt it to herself, so she can't read it.
+        XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
+    }
+    
+    func testSSKR() throws {
+        // Dan has a cryptographic seed he wants to backup using a social recovery scheme.
+        // The seed includes metadata he wants to back up also, making it too large to fit
+        // into a basic SSKR share.
+        var danSeed = Seed(data: ‡"59f2293a5bce7d4de59e71b4207ac5d2")!
+        danSeed.name = "Dark Purple Aqua Love"
+        danSeed.creationDate = try! Date("2021-02-24T00:00:00Z", strategy: .iso8601)
+        danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+
+        // Dan encrypts the seed and then splits the content key into a single group
+        // 2-of-3. This returns an array of arrays of Simplex, the outer arrays
+        // representing SSKR groups and the inner array elements each holding the encrypted
+        // seed and a single share.
+        let contentKey = SymmetricKey()
+        let containers = try Simplex(enclose: danSeed)
+            .encrypt(with: contentKey)
+            .split(groupThreshold: 1, groups: [(2, 3)], contentKey: contentKey)
+        
+        // Flattening the array of arrays gives just a single array of all the containers
+        // to be distributed.
+        let sentContainers = containers.flatMap { $0 }
+        let sentURs = sentContainers.map { $0.ur }
+
+        let expectedFormat =
+        """
+        <encrypted> [
+           sskrShare: SSKRShare
+        ]
+        """
+        XCTAssertEqual(sentContainers[0].format, expectedFormat)
+        
+        // Dan sends one container to each of Alice, Bob, and Carol.
+
+//        print(sentContainers[0].taggedCBOR.diag)
+//        print(sentContainers[0].taggedCBOR.dump)
+//        print(sentContainers[0].ur)
+
+        // ➡️ ☁️ ➡️
+
+        // let aliceEnvelope = Envelope(ur: sentURs[0]) // UNRECOVERED
+        let bobContainer = try Simplex(ur: sentURs[1])
+        let carolContainer = try Simplex(ur: sentURs[2])
+
+        // At some future point, Dan retrieves two of the three containers so he can recover his seed.
+        let recoveredContainers = [bobContainer, carolContainer]
+        let recoveredSeed = try Simplex(shares: recoveredContainers)
+            .extract(Seed.self)
+
+        // The recovered seed is correct.
+        XCTAssertEqual(danSeed.data, recoveredSeed.data)
+        XCTAssertEqual(danSeed.creationDate, recoveredSeed.creationDate)
+        XCTAssertEqual(danSeed.name, recoveredSeed.name)
+        XCTAssertEqual(danSeed.note, recoveredSeed.note)
+
+        // Attempting to recover with only one of the envelopes won't work.
+        XCTAssertThrowsError(try Simplex(shares: [bobContainer]))
     }
 }
