@@ -52,16 +52,16 @@ extension Assertion: Comparable {
 
 extension Assertion {
     public static func authenticatedBy(signature: Signature) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .authenticatedBy), object: Simplex(enclose: signature))
+        Assertion(predicate: Simplex(predicate: .authenticatedBy), object: Simplex(signature))
     }
     
     public static func hasRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Assertion {
         let sealedMessage = SealedMessage(plaintext: contentKey.taggedCBOR, recipient: recipient)
-        return Assertion(predicate: Simplex(predicate: .hasRecipient), object: Simplex(enclose: sealedMessage))
+        return Assertion(predicate: Simplex(predicate: .hasRecipient), object: Simplex(sealedMessage))
     }
     
     public static func sskrShare(_ share: SSKRShare) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .sskrShare), object: Simplex(enclose: share))
+        Assertion(predicate: Simplex(predicate: .sskrShare), object: Simplex(share))
     }
     
     public static func isA(_ object: Simplex) -> Assertion {
@@ -69,7 +69,7 @@ extension Assertion {
     }
     
     public static func id(_ id: SCID) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .id), object: Simplex(enclose: id))
+        Assertion(predicate: Simplex(predicate: .id), object: Simplex(id))
     }
 }
 

@@ -34,7 +34,7 @@ extension Simplex: CBORDecodable {
 }
 
 extension Simplex {
-    public init(enclose plaintext: CBOREncodable) {
+    public init(_ plaintext: CBOREncodable) {
         self.init(subject: Subject(plaintext: plaintext))
     }
     
@@ -88,7 +88,7 @@ extension Simplex: Equatable {
 
 extension Simplex: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
-        self.init(enclose: value)
+        self.init(value)
     }
 }
 
@@ -106,7 +106,7 @@ extension Simplex {
     }
     
     public func addAssertion(predicate: CBOREncodable, object: CBOREncodable) -> Simplex {
-        addAssertion(predicate: Simplex(enclose: predicate), object: Simplex(enclose: object))
+        addAssertion(predicate: Simplex(predicate), object: Simplex(object))
     }
 }
 
@@ -201,12 +201,12 @@ extension Simplex {
 
 extension Simplex {
     public var digestReference: Simplex {
-        Simplex(enclose: digest)
+        Simplex(digest)
     }
     
     public var idReference: Simplex {
         get throws {
-            try Simplex(enclose: id)
+            try Simplex(id)
         }
     }
 }

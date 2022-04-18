@@ -24,7 +24,7 @@ class SimplexTests: XCTestCase {
     
     func testPlaintext() throws {
         // Alice sends a plaintext message to Bob.
-        let container = Simplex(enclose: plaintext)
+        let container = Simplex(plaintext)
         let ur = container.ur
         
 //        print(container.taggedCBOR.diag)
@@ -43,7 +43,7 @@ class SimplexTests: XCTestCase {
 
     func testSignedPlaintext() throws {
         // Alice sends a signed plaintext message to Bob.
-        let container = Simplex(enclose: plaintext)
+        let container = Simplex(plaintext)
             .sign(with: alicePrivateKeys)
         let ur = container.ur
 
@@ -78,7 +78,7 @@ class SimplexTests: XCTestCase {
     
     func testMultisignedPlaintext() throws {
         // Alice and Carol jointly send a signed plaintext message to Bob.
-        let container = Simplex(enclose: plaintext)
+        let container = Simplex(plaintext)
             .sign(with: [alicePrivateKeys, carolPrivateKeys])
         let ur = container.ur
 
@@ -111,7 +111,7 @@ class SimplexTests: XCTestCase {
         let key = SymmetricKey()
 
         // Alice sends a message encrypted with the key to Bob.
-        let container = try Simplex(enclose: plaintext)
+        let container = try Simplex(plaintext)
             .encrypt(with: key)
         let ur = container.ur
 
@@ -141,7 +141,7 @@ class SimplexTests: XCTestCase {
     
     func testEncryptDecrypt() throws {
         let key = SymmetricKey()
-        let plaintextContainer = Simplex(enclose: plaintext)
+        let plaintextContainer = Simplex(plaintext)
         print(plaintextContainer.format)
         let encryptedContainer = try plaintextContainer.encrypt(with: key)
         print(encryptedContainer.format)
@@ -156,7 +156,7 @@ class SimplexTests: XCTestCase {
         let key = SymmetricKey()
 
         // Alice signs a plaintext message, then encrypts it.
-        let container = try Simplex(enclose: plaintext)
+        let container = try Simplex(plaintext)
             .sign(with: alicePrivateKeys)
             .enclose()
             .encrypt(with: key)
@@ -208,7 +208,7 @@ class SimplexTests: XCTestCase {
         // be performed first before the presence of signatures can be known or checked.
         // With this order of operations, the presence of signatures is known before
         // decryption, and may be checked before or after decryption.
-        let container = try Simplex(enclose: plaintext)
+        let container = try Simplex(plaintext)
             .encrypt(with: key)
             .sign(with: alicePrivateKeys)
         let ur = container.ur
@@ -239,7 +239,7 @@ class SimplexTests: XCTestCase {
     func testMultiRecipient() throws {
         // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
         let contentKey = SymmetricKey()
-        let container = try Simplex(enclose: plaintext)
+        let container = try Simplex(plaintext)
             .encrypt(with: contentKey)
             .addRecipient(bobPublicKeys, contentKey: contentKey)
             .addRecipient(carolPublicKeys, contentKey: contentKey)
@@ -282,7 +282,7 @@ class SimplexTests: XCTestCase {
     func testVisibleSignatureMultiRecipient() throws {
         // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
         let contentKey = SymmetricKey()
-        let container = try Simplex(enclose: plaintext)
+        let container = try Simplex(plaintext)
             .sign(with: alicePrivateKeys)
             .encrypt(with: contentKey)
             .addRecipient(bobPublicKeys, contentKey: contentKey)
@@ -329,7 +329,7 @@ class SimplexTests: XCTestCase {
     func testHiddenSignatureMultiRecipient() throws {
         // Alice signs a message, and then encloses it in another container before encrypting it so that it can only be decrypted by Bob or Carol. This hides Alice's signature, and requires recipients to decrypt the subject before they are able to validate the signature.
         let contentKey = SymmetricKey()
-        let container = try Simplex(enclose: plaintext)
+        let container = try Simplex(plaintext)
             .sign(with: alicePrivateKeys)
             .enclose()
             .encrypt(with: contentKey)
@@ -389,7 +389,7 @@ class SimplexTests: XCTestCase {
         // representing SSKR groups and the inner array elements each holding the encrypted
         // seed and a single share.
         let contentKey = SymmetricKey()
-        let containers = try Simplex(enclose: danSeed)
+        let containers = try Simplex(danSeed)
             .encrypt(with: contentKey)
             .split(groupThreshold: 1, groups: [(2, 3)], contentKey: contentKey)
         
@@ -435,7 +435,7 @@ class SimplexTests: XCTestCase {
     
     func testIDAndDigest() throws {
         let id = SCID(‡"3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1")!
-        let container = try Simplex(enclose: "Hello, world!")
+        let container = try Simplex("Hello, world!")
             .setID(id)
         let expectedFormat =
         """
@@ -447,37 +447,95 @@ class SimplexTests: XCTestCase {
         XCTAssertEqual(container.digest.rawValue, ‡"54adf5794f448e9a0781006b1413838b65384b84beac8cd5cebda8389e2b80ea")
     }
     
-    func testReference() throws {
-        let id = SCID(‡"3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1")!
-        let container = try Simplex(enclose: "Hello, world!")
-            .setID(id)
-        print(container.digestReference.taggedCBOR.diag)
-        print(container.digestReference.format)
+//    func testReference() throws {
+//        let id = SCID(‡"3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1")!
+//        let container = try Simplex("Hello, world!")
+//            .setID(id)
+//        print(container.digestReference.taggedCBOR.diag)
+//        print(container.digestReference.format)
+//    }
+    
+    func testAssertionsOnAllPartsOfContainer() throws {
+        let predicate = Simplex("predicate")
+            .addAssertion(predicate: "predicate-predicate", object: "predicate-object")
+        let object = Simplex("object")
+            .addAssertion(predicate: "object-predicate", object: "object-object")
+        let container = Simplex("subject")
+            .addAssertion(predicate: predicate, object: object)
+        
+        let expectedFormat =
+        """
+        "subject" [
+           {
+              "predicate" [
+                 "predicate-predicate": "predicate-object"
+              ]
+           }
+           : {
+              "object" [
+                 "object-predicate": "object-object"
+              ]
+           }
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
     }
     
     func testComplexMetadata() throws {
-        let book = "This is the entire book “Atlas Shrugged” in EPUB format."
-        let bookDigest = Digest(book)
-        
-        let author = Simplex(enclose: SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
+        let author = Simplex(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
             .addAssertion(predicate: "dereferenceVia", object: "LibraryOfCongress")
             .addAssertion(predicate: "name", object: "Ayn Rand")
         
-        let title_en = Simplex(enclose: "Atlas Shrugged")
+        let title_en = Simplex("Atlas Shrugged")
             .addAssertion(predicate: "language", object: "en")
 
-        let title_es = Simplex(enclose: "La rebelión de Atlas")
+        let title_es = Simplex("La rebelión de Atlas")
             .addAssertion(predicate: "language", object: "es")
-
-        let bookMetadata = Simplex(enclose: bookDigest)
+        
+        let work = Simplex(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
             .addAssertion(predicate: "isA", object: "novel")
-            .addAssertion(predicate: "format", object: "EPUB")
             .addAssertion(predicate: "isbn", object: "9780451191144")
-            .addAssertion(predicate: "dereferenceVia", object: "IPFS")
             .addAssertion(predicate: "author", object: author)
+            .addAssertion(predicate: "dereferenceVia", object: "LibraryOfCongress")
             .addAssertion(predicate: "title", object: title_en)
             .addAssertion(predicate: "title", object: title_es)
-        print(bookMetadata.formatItem.flatten)
-        print(bookMetadata.format)
+
+        let bookData = "This is the entire book “Atlas Shrugged” in EPUB format."
+        let bookMetadata = Simplex(Digest(bookData))
+            .addAssertion(predicate: "work", object: work)
+            .addAssertion(predicate: "format", object: "EPUB")
+            .addAssertion(predicate: "dereferenceVia", object: "IPFS")
+        
+        let expectedFormat =
+        """
+        Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
+           "dereferenceVia": "IPFS"
+           "format": "EPUB"
+           "work": {
+              SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
+                 "author": {
+                    SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
+                       "dereferenceVia": "LibraryOfCongress"
+                       "name": "Ayn Rand"
+                    ]
+                 }
+                 "dereferenceVia": "LibraryOfCongress"
+                 "isA": "novel"
+                 "isbn": "9780451191144"
+                 "title": {
+                    "Atlas Shrugged" [
+                       "language": "en"
+                    ]
+                 }
+                 "title": {
+                    "La rebelión de Atlas" [
+                       "language": "es"
+                    ]
+                 }
+              ]
+           }
+        ]
+        """
+        XCTAssertEqual(bookMetadata.format, expectedFormat)
     }
 }
