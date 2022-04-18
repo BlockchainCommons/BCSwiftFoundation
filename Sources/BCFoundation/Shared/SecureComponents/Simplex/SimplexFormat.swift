@@ -168,7 +168,7 @@ extension SimplexFormatItem {
     }
     
     func indent(_ level: Int) -> String {
-        String(repeating: " ", count: level * 3)
+        String(repeating: " ", count: level * 4)
     }
     
     private func addSpaceAtEndIfNeeded(_ s: String) -> String {

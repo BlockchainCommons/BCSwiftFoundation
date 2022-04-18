@@ -42,7 +42,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         {
-           "Hello"
+            "Hello"
         }
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -56,9 +56,9 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         {
-           {
-              "Hello"
-           }
+            {
+                "Hello"
+            }
         }
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -70,7 +70,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         "Hello" [
-           authenticatedBy: Signature
+            authenticatedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -83,9 +83,9 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         {
-           "Hello"
+            "Hello"
         } [
-           authenticatedBy: Signature
+            authenticatedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -98,9 +98,9 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         {
-           "Hello" [
-              authenticatedBy: Signature
-           ]
+            "Hello" [
+                authenticatedBy: Signature
+            ]
         }
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -117,12 +117,12 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         "subject" [
-           "predicate" [
-              "predicate-predicate": "predicate-object"
-           ]
-           : "object" [
-              "object-predicate": "object-object"
-           ]
+            "predicate" [
+                "predicate-predicate": "predicate-object"
+            ]
+            : "object" [
+                "object-predicate": "object-object"
+            ]
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -160,7 +160,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         "Hello." [
-           authenticatedBy: Signature
+            authenticatedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -195,8 +195,8 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         "Hello." [
-           authenticatedBy: Signature
-           authenticatedBy: Signature
+            authenticatedBy: Signature
+            authenticatedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -322,7 +322,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         EncryptedMessage [
-           authenticatedBy: Signature
+            authenticatedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -354,8 +354,8 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         EncryptedMessage [
-           hasRecipient: SealedMessage
-           hasRecipient: SealedMessage
+            hasRecipient: SealedMessage
+            hasRecipient: SealedMessage
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -399,9 +399,9 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         EncryptedMessage [
-           authenticatedBy: Signature
-           hasRecipient: SealedMessage
-           hasRecipient: SealedMessage
+            authenticatedBy: Signature
+            hasRecipient: SealedMessage
+            hasRecipient: SealedMessage
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -448,8 +448,8 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         EncryptedMessage [
-           hasRecipient: SealedMessage
-           hasRecipient: SealedMessage
+            hasRecipient: SealedMessage
+            hasRecipient: SealedMessage
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -510,7 +510,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         EncryptedMessage [
-           sskrShare: SSKRShare
+            sskrShare: SSKRShare
         ]
         """
         XCTAssertEqual(sentContainers[0].format, expectedFormat)
@@ -575,27 +575,27 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
-           "format": "EPUB"
-           "work": {
-              SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
-                 "author": {
-                    SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
-                       dereferenceVia: "LibraryOfCongress"
-                       hasName: "Ayn Rand"
+            "format": "EPUB"
+            "work": {
+                SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
+                    "author": {
+                        SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
+                            dereferenceVia: "LibraryOfCongress"
+                            hasName: "Ayn Rand"
+                        ]
+                    }
+                    "isbn": "9780451191144"
+                    dereferenceVia: "LibraryOfCongress"
+                    hasName: "Atlas Shrugged" [
+                        language: "en"
                     ]
-                 }
-                 "isbn": "9780451191144"
-                 dereferenceVia: "LibraryOfCongress"
-                 hasName: "Atlas Shrugged" [
-                    language: "en"
-                 ]
-                 hasName: "La rebelión de Atlas" [
-                    language: "es"
-                 ]
-                 isA: "novel"
-              ]
-           }
-           dereferenceVia: "IPFS"
+                    hasName: "La rebelión de Atlas" [
+                        language: "es"
+                    ]
+                    isA: "novel"
+                ]
+            }
+            dereferenceVia: "IPFS"
         ]
         """
         XCTAssertEqual(bookMetadata.format, expectedFormat)
@@ -618,14 +618,14 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         {
-           SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
-              controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
-              publicKeys: PublicKeyBase
-           ]
+            SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
+                controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+                publicKeys: PublicKeyBase
+            ]
         } [
-           authenticatedBy: Signature [
-              madeBy: "Alice"
-           ]
+            authenticatedBy: Signature [
+                madeBy: "Alice"
+            ]
         ]
         """
         XCTAssertEqual(aliceSignedDocument.format, expectedFormat)
@@ -660,20 +660,20 @@ class SimplexTests: XCTestCase {
         let expectedRegistrationFormat =
         """
         SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
-           authenticatedBy: Signature [
-              madeBy: "ExampleLedger"
-           ]
-           dereferenceVia: URI(https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
-           entity: {
-              SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
-                 controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
-                 publicKeys: PublicKeyBase
-              ]
-           } [
-              authenticatedBy: Signature [
-                 madeBy: "Alice"
-              ]
-           ]
+            authenticatedBy: Signature [
+                madeBy: "ExampleLedger"
+            ]
+            dereferenceVia: URI(https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+            entity: {
+                SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
+                    controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+                    publicKeys: PublicKeyBase
+                ]
+            } [
+                authenticatedBy: Signature [
+                    madeBy: "Alice"
+                ]
+            ]
         ]
         """
         XCTAssertEqual(aliceRegistration.format, expectedRegistrationFormat)
