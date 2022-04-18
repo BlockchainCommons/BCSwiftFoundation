@@ -9,7 +9,7 @@ public enum Assertion {
 }
 
 extension Assertion {
-    public init(predicate: Simplex, object: Simplex) {
+    public init(_ predicate: Simplex, _ object: Simplex) {
         let digest = Digest("declare".utf8Data + predicate.digest.rawValue + object.digest.rawValue)
         self = .declare(predicate: predicate, object: object, digest: digest)
     }
@@ -52,24 +52,24 @@ extension Assertion: Comparable {
 
 extension Assertion {
     public static func authenticatedBy(signature: Signature) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .authenticatedBy), object: Simplex(signature))
+        Assertion(Simplex(predicate: .authenticatedBy), Simplex(signature))
     }
     
     public static func hasRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Assertion {
         let sealedMessage = SealedMessage(plaintext: contentKey.taggedCBOR, recipient: recipient)
-        return Assertion(predicate: Simplex(predicate: .hasRecipient), object: Simplex(sealedMessage))
+        return Assertion(Simplex(predicate: .hasRecipient), Simplex(sealedMessage))
     }
     
     public static func sskrShare(_ share: SSKRShare) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .sskrShare), object: Simplex(share))
+        Assertion(Simplex(predicate: .sskrShare), Simplex(share))
     }
     
     public static func isA(_ object: Simplex) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .isA), object: object)
+        Assertion(Simplex(predicate: .isA), object)
     }
     
     public static func id(_ id: SCID) -> Assertion {
-        Assertion(predicate: Simplex(predicate: .id), object: Simplex(id))
+        Assertion(Simplex(predicate: .id), Simplex(id))
     }
 }
 
@@ -101,7 +101,7 @@ extension Assertion {
             }
             let predicate = try Simplex(untaggedCBOR: elements[1])
             let object = try Simplex(untaggedCBOR: elements[2])
-            self.init(predicate: predicate, object: object)
+            self.init(predicate, object)
         case 2:
             guard elements.count == 3 else {
                 throw CBORError.invalidFormat

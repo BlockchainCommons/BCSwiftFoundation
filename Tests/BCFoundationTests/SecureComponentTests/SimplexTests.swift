@@ -119,7 +119,7 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
-        XCTAssertEqual(container.format, "<encrypted>")
+        XCTAssertEqual(container.format, "EncryptedMessage")
 
         // ➡️ ☁️ ➡️
 
@@ -162,7 +162,7 @@ class SimplexTests: XCTestCase {
             .encrypt(with: key)
         let ur = container.ur
         
-        XCTAssertEqual(container.format, "<encrypted>")
+        XCTAssertEqual(container.format, "EncryptedMessage")
 
 //        print(container.taggedCBOR.diag)
 //        print(container.taggedCBOR.dump)
@@ -215,7 +215,7 @@ class SimplexTests: XCTestCase {
 
         let expectedFormat =
         """
-        <encrypted> [
+        EncryptedMessage [
            authenticatedBy: Signature
         ]
         """
@@ -247,7 +247,7 @@ class SimplexTests: XCTestCase {
 
         let expectedFormat =
         """
-        <encrypted> [
+        EncryptedMessage [
            hasRecipient: SealedMessage
            hasRecipient: SealedMessage
         ]
@@ -291,7 +291,7 @@ class SimplexTests: XCTestCase {
         
         let expectedFormat =
         """
-        <encrypted> [
+        EncryptedMessage [
            authenticatedBy: Signature
            hasRecipient: SealedMessage
            hasRecipient: SealedMessage
@@ -339,7 +339,7 @@ class SimplexTests: XCTestCase {
         
         let expectedFormat =
         """
-        <encrypted> [
+        EncryptedMessage [
            hasRecipient: SealedMessage
            hasRecipient: SealedMessage
         ]
@@ -400,7 +400,7 @@ class SimplexTests: XCTestCase {
 
         let expectedFormat =
         """
-        <encrypted> [
+        EncryptedMessage [
            sskrShare: SSKRShare
         ]
         """
@@ -457,25 +457,21 @@ class SimplexTests: XCTestCase {
     
     func testAssertionsOnAllPartsOfContainer() throws {
         let predicate = Simplex("predicate")
-            .addAssertion(predicate: "predicate-predicate", object: "predicate-object")
+            .addAssertion("predicate-predicate", "predicate-object")
         let object = Simplex("object")
-            .addAssertion(predicate: "object-predicate", object: "object-object")
+            .addAssertion("object-predicate", "object-object")
         let container = Simplex("subject")
-            .addAssertion(predicate: predicate, object: object)
+            .addAssertion(predicate, object)
         
         let expectedFormat =
         """
         "subject" [
-           {
-              "predicate" [
-                 "predicate-predicate": "predicate-object"
-              ]
-           }
-           : {
-              "object" [
-                 "object-predicate": "object-object"
-              ]
-           }
+           "predicate" [
+              "predicate-predicate": "predicate-object"
+           ]
+           : "object" [
+              "object-predicate": "object-object"
+           ]
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -483,44 +479,41 @@ class SimplexTests: XCTestCase {
     
     func testComplexMetadata() throws {
         let author = Simplex(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
-            .addAssertion(predicate: "dereferenceVia", object: "LibraryOfCongress")
-            .addAssertion(predicate: "name", object: "Ayn Rand")
+            .addAssertion(.dereferenceVia, "LibraryOfCongress")
+            .addAssertion("name", "Ayn Rand")
         
         let title_en = Simplex("Atlas Shrugged")
-            .addAssertion(predicate: "language", object: "en")
+            .addAssertion("language", "en")
 
         let title_es = Simplex("La rebelión de Atlas")
-            .addAssertion(predicate: "language", object: "es")
+            .addAssertion("language", "es")
         
         let work = Simplex(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
-            .addAssertion(predicate: "isA", object: "novel")
-            .addAssertion(predicate: "isbn", object: "9780451191144")
-            .addAssertion(predicate: "author", object: author)
-            .addAssertion(predicate: "dereferenceVia", object: "LibraryOfCongress")
-            .addAssertion(predicate: "title", object: title_en)
-            .addAssertion(predicate: "title", object: title_es)
+            .addAssertion(.isA, "novel")
+            .addAssertion("isbn", "9780451191144")
+            .addAssertion("author", author)
+            .addAssertion(.dereferenceVia, "LibraryOfCongress")
+            .addAssertion("title", title_en)
+            .addAssertion("title", title_es)
 
         let bookData = "This is the entire book “Atlas Shrugged” in EPUB format."
         let bookMetadata = Simplex(Digest(bookData))
-            .addAssertion(predicate: "work", object: work)
-            .addAssertion(predicate: "format", object: "EPUB")
-            .addAssertion(predicate: "dereferenceVia", object: "IPFS")
+            .addAssertion("work", work)
+            .addAssertion("format", "EPUB")
+            .addAssertion(.dereferenceVia, "IPFS")
         
         let expectedFormat =
         """
         Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
-           "dereferenceVia": "IPFS"
            "format": "EPUB"
            "work": {
               SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
                  "author": {
                     SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
-                       "dereferenceVia": "LibraryOfCongress"
                        "name": "Ayn Rand"
+                       dereferenceVia: "LibraryOfCongress"
                     ]
                  }
-                 "dereferenceVia": "LibraryOfCongress"
-                 "isA": "novel"
                  "isbn": "9780451191144"
                  "title": {
                     "Atlas Shrugged" [
@@ -532,10 +525,89 @@ class SimplexTests: XCTestCase {
                        "language": "es"
                     ]
                  }
+                 dereferenceVia: "LibraryOfCongress"
+                 isA: "novel"
               ]
            }
+           dereferenceVia: "IPFS"
         ]
         """
         XCTAssertEqual(bookMetadata.format, expectedFormat)
+    }
+    
+    func testNesting() {
+        let doc1 = Simplex("Hello")
+        
+        let doc1Expected =
+        """
+        "Hello"
+        """
+        XCTAssertEqual(doc1.format, doc1Expected)
+        
+        let doc2 = doc1.enclose()
+        let doc2Expected =
+        """
+        {
+           "Hello"
+        }
+        """
+        XCTAssertEqual(doc2.format, doc2Expected)
+
+        let doc3 = doc1.sign(with: alicePrivateKeys)
+        let doc3Expected =
+        """
+        "Hello" [
+           authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(doc3.format, doc3Expected)
+
+        let doc4 = doc2.sign(with: alicePrivateKeys)
+        let doc4Expected =
+        """
+        {
+           "Hello"
+        } [
+           authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(doc4.format, doc4Expected)
+
+        let doc5 = doc3.enclose()
+        let doc5Expected =
+        """
+        {
+           "Hello" [
+              authenticatedBy: Signature
+           ]
+        }
+        """
+        XCTAssertEqual(doc5.format, doc5Expected)
+    }
+    
+    func testIdentifier() throws {
+        let aliceIdentifier = SCID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
+        let aliceDocument = Simplex(aliceIdentifier)
+            .addAssertion(.controller, aliceIdentifier)
+            .addAssertion(.publicKeys, alicePublicKeys)
+            .addAssertion(.dereferenceVia, "ExampleLedger")
+            .enclose()
+            .sign(with: alicePrivateKeys)
+        
+        let expectedFormat =
+        """
+        {
+           SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
+              controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+              dereferenceVia: "ExampleLedger"
+              publicKeys: PublicKeyBase
+           ]
+        } [
+           authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(aliceDocument.format, expectedFormat)
+        
+        try aliceDocument.validateSignature(from: alicePublicKeys)
     }
 }

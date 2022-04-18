@@ -50,6 +50,8 @@ extension CBOR: SimplexFormat {
                 return .item("SealedMessage")
             case CBOR.tagged(URType.sskrShare.tag, _):
                 return .item("SSKRShare")
+            case CBOR.tagged(URType.pubkeys.tag, _):
+                return .item("PublicKeyBase")
             case CBOR.tagged(URType.digest.tag, _):
                 return try .item(Digest(taggedCBOR: self)†)
             case CBOR.tagged(URType.scid.tag, _):
@@ -69,7 +71,7 @@ extension Subject: SimplexFormat {
         case .plaintext(let cbor, _):
             return cbor.formatItem
         case .encrypted(_, _):
-            return .item("<encrypted>")
+            return .item("EncryptedMessage")
         case .reference(let reference):
             return reference.formatItem
         }
@@ -95,23 +97,37 @@ extension Simplex: SimplexFormat {
     }
     
     var formatItem: SimplexFormatItem {
-        if assertions.isEmpty {
-            return subject.formatItem
+        let assertionsItems = assertions.map { [$0.formatItem] }.sorted()
+        let joinedAssertionsItems = Array(assertionsItems.joined(separator: [.separator]))
+        let hasAssertions = !joinedAssertionsItems.isEmpty
+        var items: [SimplexFormatItem] = []
+        let subjectItem = subject.formatItem
+        let isList: Bool
+        if case .list(_) = subjectItem {
+            isList = true
         } else {
-            let assertionsItems = assertions.map { [$0.formatItem] }.sorted()
-            let joinedAssertionsItems = Array(assertionsItems.joined(separator: [.separator]))
-            return .list([
-                .begin("{"),
-                subject.formatItem,
-                .item(" "),
-                .list([
-                    .begin("["),
-                    .list(joinedAssertionsItems),
-                    .end("]")
-                ]),
-                .end("}")
-            ])
+            isList = false
         }
+        if isList {
+            items.append(.begin("{"))
+        }
+        items.append(subjectItem)
+        if isList {
+            if hasAssertions {
+                items.append(.end("} ["))
+                items.append(.begin(""))
+            } else {
+                items.append(.end("}"))
+            }
+        }
+        if hasAssertions {
+            if !isList {
+                items.append(.begin("["))
+            }
+            items.append(.list(joinedAssertionsItems))
+            items.append(.end("]"))
+        }
+        return .list(items)
     }
 }
 
@@ -121,7 +137,26 @@ public enum SimplexFormatItem {
     case item(String)
     case separator
     case list([SimplexFormatItem])
-    
+}
+
+extension SimplexFormatItem: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .begin(let string):
+            return ".begin(\(string))"
+        case .end(let string):
+            return ".end(\(string))"
+        case .item(let string):
+            return ".item(\(string))"
+        case .separator:
+            return ".separator"
+        case .list(let array):
+            return ".array(\(array))"
+        }
+    }
+}
+
+extension SimplexFormatItem {
     var flatten: [SimplexFormatItem] {
         if case let .list(items) = self {
             return items.map { $0.flatten }.flatMap { $0 }
@@ -134,18 +169,29 @@ public enum SimplexFormatItem {
         String(repeating: " ", count: level * 3)
     }
     
+    private func addSpaceAtEndIfNeeded(_ s: String) -> String {
+        guard !s.isEmpty else {
+            return " "
+        }
+        if s.last! == " " {
+            return s
+        } else {
+            return s + " "
+        }
+    }
+    
     var format: String {
         var lines: [String] = []
         var level = 0
         var currentLine = ""
-        var items = flatten
-        if case .begin(_) = items[0] {
-            items = items.dropFirst().dropLast()
-        }
+        let items = flatten
         for item in items {
             switch item {
             case .begin(let string):
-                lines.append(indent(level) + currentLine + string + .newline)
+                if !string.isEmpty {
+                    let c = currentLine.isEmpty ? string : addSpaceAtEndIfNeeded(currentLine) + string
+                    lines.append(indent(level) + c + .newline)
+                }
                 level += 1
                 currentLine = ""
             case .end(let string):

@@ -101,12 +101,20 @@ extension Simplex {
         }
     }
     
-    public func addAssertion(predicate: Simplex, object: Simplex) -> Simplex {
-        addAssertion(Assertion(predicate: predicate, object: object))
+    public func addAssertion(_ predicate: Simplex, _ object: Simplex) -> Simplex {
+        addAssertion(Assertion(predicate, object))
     }
     
-    public func addAssertion(predicate: CBOREncodable, object: CBOREncodable) -> Simplex {
-        addAssertion(predicate: Simplex(predicate), object: Simplex(object))
+    public func addAssertion(_ predicate: CBOREncodable, _ object: CBOREncodable) -> Simplex {
+        addAssertion(Simplex(predicate), Simplex(object))
+    }
+    
+    public func addAssertion(_ predicate: Predicate, _ object: Simplex) -> Simplex {
+        addAssertion(Simplex(predicate: predicate), object)
+    }
+
+    public func addAssertion(_ predicate: Predicate, _ object: CBOREncodable) -> Simplex {
+        addAssertion(Simplex(predicate: predicate), Simplex(object))
     }
 }
 
