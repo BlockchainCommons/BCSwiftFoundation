@@ -95,22 +95,22 @@ extension Envelope {
 }
 
 extension Envelope {
-    public init(plaintext: DataProvider, schnorrSigners: [PrivateKeyBase], tag: Data = Data()) {
+    public init(plaintext: DataProvider, schnorrSigners: [PrivateKeyBase], tag: Data? = nil) {
         let signatures = schnorrSigners.map {
             $0.signingPrivateKey.schnorrSign(plaintext, tag: tag)
         }
         self.init(plaintext: plaintext, signatures: signatures)
     }
     
-    public init(inner: Envelope, schnorrSigners: [PrivateKeyBase], tag: Data = Data()) {
+    public init(inner: Envelope, schnorrSigners: [PrivateKeyBase], tag: Data? = nil) {
         self.init(plaintext: inner.taggedCBOR, schnorrSigners: schnorrSigners, tag: tag)
     }
     
-    public init(plaintext: DataProvider, schnorrSigner: PrivateKeyBase, tag: Data = Data()) {
+    public init(plaintext: DataProvider, schnorrSigner: PrivateKeyBase, tag: Data? = nil) {
         self.init(plaintext: plaintext, schnorrSigners: [schnorrSigner], tag: tag)
     }
     
-    public init(inner: Envelope, schnorrSigner: PrivateKeyBase, tag: Data = Data()) {
+    public init(inner: Envelope, schnorrSigner: PrivateKeyBase, tag: Data? = nil) {
         self.init(plaintext: inner.taggedCBOR, schnorrSigner: schnorrSigner, tag: tag)
     }
 }

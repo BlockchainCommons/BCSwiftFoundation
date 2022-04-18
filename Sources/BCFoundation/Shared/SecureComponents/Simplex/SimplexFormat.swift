@@ -52,6 +52,8 @@ extension CBOR: SimplexFormat {
                 return .item("SSKRShare")
             case CBOR.tagged(URType.pubkeys.tag, _):
                 return .item("PublicKeyBase")
+            case CBOR.tagged(.uri, _):
+                return try .item(URL(taggedCBOR: self)†.flanked("URI(", ")"))
             case CBOR.tagged(URType.digest.tag, _):
                 return try .item(Digest(taggedCBOR: self)†)
             case CBOR.tagged(URType.scid.tag, _):

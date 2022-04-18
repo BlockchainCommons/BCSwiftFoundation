@@ -67,6 +67,7 @@ extension CBOR.Tag {
     public static let seedDigest = CBOR.Tag(600)
 }
 
+/// Tags for subtypes specific to Secure Components
 extension CBOR.Tag {
     public static let password = CBOR.Tag(701)
     public static let permit = CBOR.Tag(702)

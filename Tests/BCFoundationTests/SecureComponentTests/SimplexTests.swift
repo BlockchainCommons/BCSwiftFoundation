@@ -16,12 +16,118 @@ fileprivate let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
 fileprivate let carolPrivateKeys = PrivateKeyBase(carolSeed, salt: "Salt")
 fileprivate let carolPublicKeys = carolPrivateKeys.pubkeys
 
+fileprivate let exampleLedgerSeed = Seed(data: ‡"d6737ab34e4e8bb05b6ac035f9fba81a")!
+fileprivate let exampleLedgerPrivateKeys = PrivateKeyBase(exampleLedgerSeed, salt: "Salt")
+fileprivate let exampleLedgerPublicKeys = exampleLedgerPrivateKeys.pubkeys
+
 class SimplexTests: XCTestCase {
     func testPredicate() {
         let container = Simplex(predicate: .authenticatedBy)
         XCTAssertEqual(container.format, "authenticatedBy")
     }
+
+    func testNestingPlaintext() {
+        let container = Simplex("Hello")
+        
+        let expectedFormat =
+        """
+        "Hello"
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+    }
     
+    func testNestingOnce() {
+        let container = Simplex("Hello")
+            .enclose()
+        let expectedFormat =
+        """
+        {
+           "Hello"
+        }
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+    }
+    
+    func testNestingTwice() {
+        let container = Simplex("Hello")
+            .enclose()
+            .enclose()
+        
+        let expectedFormat =
+        """
+        {
+           {
+              "Hello"
+           }
+        }
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+    }
+    
+    func testNestingSigned() {
+        let container = Simplex("Hello")
+            .sign(with: alicePrivateKeys)
+        let expectedFormat =
+        """
+        "Hello" [
+           authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+    }
+    
+    func testNestingEncloseThenSign() {
+        let container = Simplex("Hello")
+            .enclose()
+            .sign(with: alicePrivateKeys)
+        let expectedFormat =
+        """
+        {
+           "Hello"
+        } [
+           authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+    }
+    
+    func testNestingSignThenEnclose() {
+        let container = Simplex("Hello")
+            .sign(with: alicePrivateKeys)
+            .enclose()
+        let expectedFormat =
+        """
+        {
+           "Hello" [
+              authenticatedBy: Signature
+           ]
+        }
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+    }
+
+    func testAssertionsOnAllPartsOfContainer() throws {
+        let predicate = Simplex("predicate")
+            .addAssertion("predicate-predicate", "predicate-object")
+        let object = Simplex("object")
+            .addAssertion("object-predicate", "object-object")
+        let container = Simplex("subject")
+            .addAssertion(predicate, object)
+        
+        let expectedFormat =
+        """
+        "subject" [
+           "predicate" [
+              "predicate-predicate": "predicate-object"
+           ]
+           : "object" [
+              "object-predicate": "object-object"
+           ]
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+    }
+
     func testPlaintext() throws {
         // Alice sends a plaintext message to Bob.
         let container = Simplex(plaintext)
@@ -33,7 +139,7 @@ class SimplexTests: XCTestCase {
 
         XCTAssertEqual(container.format, #""Hello.""#)
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container and reads the message.
         let receivedPlaintext = try Simplex(ur: ur)
@@ -59,7 +165,7 @@ class SimplexTests: XCTestCase {
         """
         XCTAssertEqual(container.format, expectedFormat)
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container.
         let receivedContainer = try Simplex(ur: ur)
@@ -95,7 +201,7 @@ class SimplexTests: XCTestCase {
         """
         XCTAssertEqual(container.format, expectedFormat)
 
-        // ➡️ ☁️ ➡️
+        // Alice & Carol ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container and verifies the message was signed by both Alice and Carol.
         let receivedPlaintext = try Simplex(ur: ur)
@@ -121,7 +227,7 @@ class SimplexTests: XCTestCase {
 
         XCTAssertEqual(container.format, "EncryptedMessage")
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container.
         let receivedContainer = try Simplex(ur: ur)
@@ -168,7 +274,7 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container, decrypts it using the shared key, and then validates Alice's signature.
         let receivedPlaintext = try Simplex(ur: ur)
@@ -225,7 +331,7 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container, validates Alice's signature, then decrypts the message.
         let receivedPlaintext = try Simplex(ur: ur)
@@ -258,7 +364,8 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
+        // Alice ➡️ ☁️ ➡️ Carol
 
         // The container is received
         let receivedContainer = try Simplex(ur: ur)
@@ -303,7 +410,8 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
+        // Alice ➡️ ☁️ ➡️ Carol
 
         // The container is received
         let receivedContainer = try Simplex(ur: ur)
@@ -350,7 +458,8 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
-        // ➡️ ☁️ ➡️
+        // Alice ➡️ ☁️ ➡️ Bob
+        // Alice ➡️ ☁️ ➡️ Carol
 
         // The container is received
         let receivedContainer = try Simplex(ur: ur)
@@ -412,7 +521,9 @@ class SimplexTests: XCTestCase {
 //        print(sentContainers[0].taggedCBOR.dump)
 //        print(sentContainers[0].ur)
 
-        // ➡️ ☁️ ➡️
+        // Dan ➡️ ☁️ ➡️ Alice
+        // Dan ➡️ ☁️ ➡️ Bob
+        // Dan ➡️ ☁️ ➡️ Carol
 
         // let aliceEnvelope = Envelope(ur: sentURs[0]) // UNRECOVERED
         let bobContainer = try Simplex(ur: sentURs[1])
@@ -432,71 +543,30 @@ class SimplexTests: XCTestCase {
         // Attempting to recover with only one of the envelopes won't work.
         XCTAssertThrowsError(try Simplex(shares: [bobContainer]))
     }
-    
-    func testIDAndDigest() throws {
-        let id = SCID(‡"3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1")!
-        let container = try Simplex("Hello, world!")
-            .setID(id)
-        let expectedFormat =
-        """
-        "Hello, world!" [
-           id: SCID(3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1)
-        ]
-        """
-        XCTAssertEqual(container.format, expectedFormat)
-        XCTAssertEqual(container.digest.rawValue, ‡"54adf5794f448e9a0781006b1413838b65384b84beac8cd5cebda8389e2b80ea")
-    }
-    
-//    func testReference() throws {
-//        let id = SCID(‡"3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1")!
-//        let container = try Simplex("Hello, world!")
-//            .setID(id)
-//        print(container.digestReference.taggedCBOR.diag)
-//        print(container.digestReference.format)
-//    }
-    
-    func testAssertionsOnAllPartsOfContainer() throws {
-        let predicate = Simplex("predicate")
-            .addAssertion("predicate-predicate", "predicate-object")
-        let object = Simplex("object")
-            .addAssertion("object-predicate", "object-object")
-        let container = Simplex("subject")
-            .addAssertion(predicate, object)
-        
-        let expectedFormat =
-        """
-        "subject" [
-           "predicate" [
-              "predicate-predicate": "predicate-object"
-           ]
-           : "object" [
-              "object-predicate": "object-object"
-           ]
-        ]
-        """
-        XCTAssertEqual(container.format, expectedFormat)
-    }
-    
+
     func testComplexMetadata() throws {
+        // Assertions made about an SCID are considered part of a distributed set. Which assertions are returned depends on who resolves the SCID and when it is resolved. In other words, the referent of an SCID is mutable.
         let author = Simplex(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
             .addAssertion(.dereferenceVia, "LibraryOfCongress")
-            .addAssertion("name", "Ayn Rand")
+            .addAssertion(.hasName, "Ayn Rand")
         
-        let title_en = Simplex("Atlas Shrugged")
-            .addAssertion("language", "en")
+        // Assertions made on a literal value are considered part of the same set of assertions made on the digest of that value.
+        let name_en = Simplex("Atlas Shrugged")
+            .addAssertion(.language, "en")
 
-        let title_es = Simplex("La rebelión de Atlas")
-            .addAssertion("language", "es")
+        let name_es = Simplex("La rebelión de Atlas")
+            .addAssertion(.language, "es")
         
         let work = Simplex(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
             .addAssertion(.isA, "novel")
             .addAssertion("isbn", "9780451191144")
             .addAssertion("author", author)
             .addAssertion(.dereferenceVia, "LibraryOfCongress")
-            .addAssertion("title", title_en)
-            .addAssertion("title", title_es)
+            .addAssertion(.hasName, name_en)
+            .addAssertion(.hasName, name_es)
 
         let bookData = "This is the entire book “Atlas Shrugged” in EPUB format."
+        // Assertions made on a digest are considered associated with that specific binary object and no other. In other words, the referent of a Digest is immutable.
         let bookMetadata = Simplex(Digest(bookData))
             .addAssertion("work", work)
             .addAssertion("format", "EPUB")
@@ -510,22 +580,18 @@ class SimplexTests: XCTestCase {
               SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
                  "author": {
                     SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
-                       "name": "Ayn Rand"
                        dereferenceVia: "LibraryOfCongress"
+                       hasName: "Ayn Rand"
                     ]
                  }
                  "isbn": "9780451191144"
-                 "title": {
-                    "Atlas Shrugged" [
-                       "language": "en"
-                    ]
-                 }
-                 "title": {
-                    "La rebelión de Atlas" [
-                       "language": "es"
-                    ]
-                 }
                  dereferenceVia: "LibraryOfCongress"
+                 hasName: "Atlas Shrugged" [
+                    language: "en"
+                 ]
+                 hasName: "La rebelión de Atlas" [
+                    language: "es"
+                 ]
                  isA: "novel"
               ]
            }
@@ -535,79 +601,86 @@ class SimplexTests: XCTestCase {
         XCTAssertEqual(bookMetadata.format, expectedFormat)
     }
     
-    func testNesting() {
-        let doc1 = Simplex("Hello")
-        
-        let doc1Expected =
-        """
-        "Hello"
-        """
-        XCTAssertEqual(doc1.format, doc1Expected)
-        
-        let doc2 = doc1.enclose()
-        let doc2Expected =
-        """
-        {
-           "Hello"
-        }
-        """
-        XCTAssertEqual(doc2.format, doc2Expected)
-
-        let doc3 = doc1.sign(with: alicePrivateKeys)
-        let doc3Expected =
-        """
-        "Hello" [
-           authenticatedBy: Signature
-        ]
-        """
-        XCTAssertEqual(doc3.format, doc3Expected)
-
-        let doc4 = doc2.sign(with: alicePrivateKeys)
-        let doc4Expected =
-        """
-        {
-           "Hello"
-        } [
-           authenticatedBy: Signature
-        ]
-        """
-        XCTAssertEqual(doc4.format, doc4Expected)
-
-        let doc5 = doc3.enclose()
-        let doc5Expected =
-        """
-        {
-           "Hello" [
-              authenticatedBy: Signature
-           ]
-        }
-        """
-        XCTAssertEqual(doc5.format, doc5Expected)
-    }
-    
     func testIdentifier() throws {
+        // An analogue of a DID document, which identifies a self-sovereign entity. The
+        // document itself can be referred to by its SCID, while the signed document
+        // can be referred to by its digest.
+        
         let aliceIdentifier = SCID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
-        let aliceDocument = Simplex(aliceIdentifier)
+        let aliceUnsignedDocument = Simplex(aliceIdentifier)
             .addAssertion(.controller, aliceIdentifier)
             .addAssertion(.publicKeys, alicePublicKeys)
-            .addAssertion(.dereferenceVia, "ExampleLedger")
+        
+        let aliceSignedDocument = aliceUnsignedDocument
             .enclose()
-            .sign(with: alicePrivateKeys)
+            .sign(with: alicePrivateKeys, name: "Alice")
         
         let expectedFormat =
         """
         {
            SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
               controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
-              dereferenceVia: "ExampleLedger"
               publicKeys: PublicKeyBase
            ]
         } [
-           authenticatedBy: Signature
+           authenticatedBy: Signature [
+              madeBy: "Alice"
+           ]
         ]
         """
-        XCTAssertEqual(aliceDocument.format, expectedFormat)
+        XCTAssertEqual(aliceSignedDocument.format, expectedFormat)
         
-        try aliceDocument.validateSignature(from: alicePublicKeys)
+        // Signatures have a random component, so anything with a signature will have a
+        // non-deterministic digest. Therefore, the two results of signing the same object
+        // twice with the same private key will not compare as equal. This means that each
+        // signing is a particular event that can never be repeated.
+
+        let aliceSignedDocument2 = aliceUnsignedDocument
+            .enclose()
+            .sign(with: alicePrivateKeys, name: "Alice")
+
+        XCTAssertNotEqual(aliceSignedDocument, aliceSignedDocument2)
+        
+        // ➡️ ☁️ ➡️
+
+        // A registrar checks the signature on Alice's submitted identifier document,
+        // performs any other necessary validity checks, and then extracts her SCID from
+        // it.
+        let aliceSCID = try aliceSignedDocument.validateSignature(from: alicePublicKeys)
+            .extract()
+            // other validity checks here
+            .extract(SCID.self)
+        
+        // The registrar creates its own registration document using Alice's SCID as the subject, incorporating Alice's signed document, and adding its own signature.
+        let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.rawValue.hex)")!
+        let aliceRegistration = Simplex(aliceSCID)
+            .addAssertion(.entity, aliceSignedDocument)
+            .addAssertion(.dereferenceVia, aliceURL)
+            .sign(with: exampleLedgerPrivateKeys, name: "ExampleLedger")
+        let expectedRegistrationFormat =
+        """
+        SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
+           authenticatedBy: Signature [
+              madeBy: "ExampleLedger"
+           ]
+           dereferenceVia: URI(https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+           entity: {
+              SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
+                 controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+                 publicKeys: PublicKeyBase
+              ]
+           } [
+              authenticatedBy: Signature [
+                 madeBy: "Alice"
+              ]
+           ]
+        ]
+        """
+        XCTAssertEqual(aliceRegistration.format, expectedRegistrationFormat)
+        
+        // Alice can now introduce herself to Bob using a much shorter introducer.
+        
+//        let aliceIntroducer = Simplex(aliceSCID)
+//            .addAssertion(<#T##assertion: Assertion##Assertion#>)
     }
 }

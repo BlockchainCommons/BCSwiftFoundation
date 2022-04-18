@@ -119,12 +119,12 @@ extension Simplex {
 }
 
 extension Simplex {
-    public func sign(with privateKeys: PrivateKeyBase, tag: Data = Data()) -> Simplex {
+    public func sign(with privateKeys: PrivateKeyBase, name: String? = nil, tag: Data? = nil) -> Simplex {
         let signature = privateKeys.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
-        return addAssertion(.authenticatedBy(signature: signature))
+        return addAssertion(.authenticatedBy(signature: signature, name: name))
     }
     
-    public func sign(with privateKeys: [PrivateKeyBase], tag: Data = Data()) -> Simplex {
+    public func sign(with privateKeys: [PrivateKeyBase], tag: Data? = nil) -> Simplex {
         var result = self
         for keys in privateKeys {
             result = result.sign(with: keys)
@@ -182,44 +182,6 @@ extension Simplex {
 }
 
 extension Simplex {
-    private var ids: [Assertion] {
-        assertions.filter { $0.predicate == Predicate.id }
-    }
-    
-    public var id: SCID {
-        get throws {
-            guard ids.count == 1 else {
-                throw SimplexError.invalidFormat
-            }
-            return try ids.first!.object.extract(SCID.self)
-        }
-    }
-    
-    public var hasID: Bool {
-        !ids.isEmpty
-    }
-    
-    public func setID(_ id: SCID) throws -> Simplex {
-        guard !hasID else {
-            throw SimplexError.invalidFormat
-        }
-        return addAssertion(.id(id))
-    }
-}
-
-extension Simplex {
-    public var digestReference: Simplex {
-        Simplex(digest)
-    }
-    
-    public var idReference: Simplex {
-        get throws {
-            try Simplex(id)
-        }
-    }
-}
-
-extension Simplex {
     public var signatures: [Signature] {
         get throws {
             try assertions
@@ -232,6 +194,7 @@ extension Simplex {
         return key.isValidSignature(signature, for: subject.digest)
     }
     
+    @discardableResult
     public func validateSignature(_ signature: Signature, key: SigningPublicKey) throws -> Simplex {
         guard isValidSignature(signature, key: key) else {
             throw SimplexError.invalidSignature
@@ -243,6 +206,7 @@ extension Simplex {
         isValidSignature(signature, key: publicKeys.signingPublicKey)
     }
     
+    @discardableResult
     public func validateSignature(_ signature: Signature, publicKeys: PublicKeyBase) throws -> Simplex {
         try validateSignature(signature, key: publicKeys.signingPublicKey)
     }
@@ -252,6 +216,7 @@ extension Simplex {
         return sigs.contains { isValidSignature($0, key: key) }
     }
     
+    @discardableResult
     public func validateSignature(key: SigningPublicKey) throws -> Simplex {
         guard try hasValidSignature(key: key) else {
             throw SimplexError.invalidSignature
@@ -263,6 +228,7 @@ extension Simplex {
         try hasValidSignature(key: publicKeys.signingPublicKey)
     }
     
+    @discardableResult
     public func validateSignature(from publicKeys: PublicKeyBase) throws -> Simplex {
         try validateSignature(key: publicKeys.signingPublicKey)
     }
@@ -281,6 +247,7 @@ extension Simplex {
         return false
     }
 
+    @discardableResult
     public func validateSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) throws -> Simplex {
         guard try hasValidSignatures(with: keys, threshold: threshold) else {
             throw SimplexError.invalidSignature
@@ -292,6 +259,7 @@ extension Simplex {
         try hasValidSignatures(with: publicKeysArray.map { $0.signingPublicKey }, threshold: threshold)
     }
 
+    @discardableResult
     public func validateSignatures(from publicKeysArray: [PublicKeyBase], threshold: Int? = nil) throws -> Simplex {
         try validateSignatures(with: publicKeysArray.map { $0.signingPublicKey }, threshold: threshold)
     }
