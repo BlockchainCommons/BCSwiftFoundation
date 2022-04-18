@@ -3,7 +3,7 @@ import WolfBase
 
 public enum Reference {
     case digest(Digest)
-    case scid(SCID, Digest)
+    case id(SCID, Digest)
 }
 
 extension Reference {
@@ -11,15 +11,15 @@ extension Reference {
         self = .digest(digest)
     }
     
-    public init(uuid: SCID) {
-        self = .scid(uuid, Digest(uuid.serialized))
+    public init(id: SCID) {
+        self = .id(id, Digest(id.rawValue))
     }
     
     public var digest: Digest {
         switch self {
         case .digest(let digest):
             return digest
-        case .scid(_, let digest):
+        case .id(_, let digest):
             return digest
         }
     }
@@ -36,8 +36,8 @@ extension Reference {
         switch self {
         case .digest(let digest):
             return digest.taggedCBOR
-        case .scid(let scid, _):
-            return scid.taggedCBOR
+        case .id(let id, _):
+            return id.taggedCBOR
         }
     }
     

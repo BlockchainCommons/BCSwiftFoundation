@@ -1,5 +1,5 @@
 import XCTest
-import BCFoundation
+@testable import BCFoundation
 import WolfBase
 
 fileprivate let plaintext = "Hello."
@@ -431,5 +431,53 @@ class SimplexTests: XCTestCase {
 
         // Attempting to recover with only one of the envelopes won't work.
         XCTAssertThrowsError(try Simplex(shares: [bobContainer]))
+    }
+    
+    func testIDAndDigest() throws {
+        let id = SCID(‡"3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1")!
+        let container = try Simplex(enclose: "Hello, world!")
+            .setID(id)
+        let expectedFormat =
+        """
+        "Hello, world!" [
+           id: SCID(3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1)
+        ]
+        """
+        XCTAssertEqual(container.format, expectedFormat)
+        XCTAssertEqual(container.digest.rawValue, ‡"54adf5794f448e9a0781006b1413838b65384b84beac8cd5cebda8389e2b80ea")
+    }
+    
+    func testReference() throws {
+        let id = SCID(‡"3e507f4b9a1438aa2ff5ef41aa15cae1c98f793b6937e524c8bafd1054b1a4c1")!
+        let container = try Simplex(enclose: "Hello, world!")
+            .setID(id)
+        print(container.digestReference.taggedCBOR.diag)
+        print(container.digestReference.format)
+    }
+    
+    func testComplexMetadata() throws {
+        let book = "This is the entire book “Atlas Shrugged” in EPUB format."
+        let bookDigest = Digest(book)
+        
+        let author = Simplex(enclose: SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
+            .addAssertion(predicate: "dereferenceVia", object: "LibraryOfCongress")
+            .addAssertion(predicate: "name", object: "Ayn Rand")
+        
+        let title_en = Simplex(enclose: "Atlas Shrugged")
+            .addAssertion(predicate: "language", object: "en")
+
+        let title_es = Simplex(enclose: "La rebelión de Atlas")
+            .addAssertion(predicate: "language", object: "es")
+
+        let bookMetadata = Simplex(enclose: bookDigest)
+            .addAssertion(predicate: "isA", object: "novel")
+            .addAssertion(predicate: "format", object: "EPUB")
+            .addAssertion(predicate: "isbn", object: "9780451191144")
+            .addAssertion(predicate: "dereferenceVia", object: "IPFS")
+            .addAssertion(predicate: "author", object: author)
+            .addAssertion(predicate: "title", object: title_en)
+            .addAssertion(predicate: "title", object: title_es)
+        print(bookMetadata.formatItem.flatten)
+        print(bookMetadata.format)
     }
 }

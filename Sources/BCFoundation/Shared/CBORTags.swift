@@ -38,6 +38,7 @@ extension URType {
     public static let sealedMessage = URType(type: "crypto-sealed", tag: 55)
     public static let digest = URType(type: "crypto-digest", tag: 700)
     public static let symmetricKey = URType(type: "crypto-key", tag: 708)
+    public static let scid = URType(type: "crypto-scid", tag: 709)
 }
 
 /// Tags for subtypes specific to AccountBundle (crypto-output)

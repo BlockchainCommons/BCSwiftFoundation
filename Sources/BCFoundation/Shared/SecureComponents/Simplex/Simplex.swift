@@ -34,12 +34,12 @@ extension Simplex: CBORDecodable {
 }
 
 extension Simplex {
-    public init(enclose plaintext: CBOREncodable, assertions: [Assertion] = []) {
-        self.init(subject: Subject(plaintext: plaintext), assertions: assertions)
+    public init(enclose plaintext: CBOREncodable) {
+        self.init(subject: Subject(plaintext: plaintext))
     }
     
-    public init(predicate: Predicate, assertions: [Assertion] = []) {
-        self.init(subject: Subject(predicate: predicate), assertions: assertions)
+    public init(predicate: Predicate) {
+        self.init(subject: Subject(predicate: predicate))
     }
     
     public func extract<T>(_ type: T.Type) throws -> T where T: CBORDecodable {
@@ -94,13 +94,26 @@ extension Simplex: ExpressibleByIntegerLiteral {
 
 extension Simplex {
     public func addAssertion(_ assertion: Assertion) -> Simplex {
-        Simplex(subject: self.subject, assertions: assertions.appending(assertion))
+        if !assertions.contains(assertion) {
+            return Simplex(subject: self.subject, assertions: assertions.appending(assertion))
+        } else {
+            return self
+        }
     }
     
+    public func addAssertion(predicate: Simplex, object: Simplex) -> Simplex {
+        addAssertion(Assertion(predicate: predicate, object: object))
+    }
+    
+    public func addAssertion(predicate: CBOREncodable, object: CBOREncodable) -> Simplex {
+        addAssertion(predicate: Simplex(enclose: predicate), object: Simplex(enclose: object))
+    }
+}
+
+extension Simplex {
     public func sign(with privateKeys: PrivateKeyBase, tag: Data = Data()) -> Simplex {
         let signature = privateKeys.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
-        let assertion = Assertion.authenticatedBy(signature: signature)
-        return addAssertion(assertion)
+        return addAssertion(.authenticatedBy(signature: signature))
     }
     
     public func sign(with privateKeys: [PrivateKeyBase], tag: Data = Data()) -> Simplex {
@@ -112,11 +125,11 @@ extension Simplex {
     }
     
     public func addRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Simplex {
-        addAssertion(Assertion.hasRecipient(recipient, contentKey: contentKey))
+        addAssertion(.hasRecipient(recipient, contentKey: contentKey))
     }
     
     public func addSSKRShare(_ share: SSKRShare) -> Simplex {
-        addAssertion(Assertion.sskrShare(share))
+        addAssertion(.sskrShare(share))
     }
     
     public func split(groupThreshold: Int, groups: [(Int, Int)], contentKey: SymmetricKey) -> [[Simplex]] {
@@ -157,6 +170,44 @@ extension Simplex {
             return
         }
         throw SimplexError.invalidShares
+    }
+}
+
+extension Simplex {
+    private var ids: [Assertion] {
+        assertions.filter { $0.predicate == Predicate.id }
+    }
+    
+    public var id: SCID {
+        get throws {
+            guard ids.count == 1 else {
+                throw SimplexError.invalidFormat
+            }
+            return try ids.first!.object.extract(SCID.self)
+        }
+    }
+    
+    public var hasID: Bool {
+        !ids.isEmpty
+    }
+    
+    public func setID(_ id: SCID) throws -> Simplex {
+        guard !hasID else {
+            throw SimplexError.invalidFormat
+        }
+        return addAssertion(.id(id))
+    }
+}
+
+extension Simplex {
+    public var digestReference: Simplex {
+        Simplex(enclose: digest)
+    }
+    
+    public var idReference: Simplex {
+        get throws {
+            try Simplex(enclose: id)
+        }
     }
 }
 

@@ -13,7 +13,7 @@ extension Digest: SimplexFormat {
 
 extension SCID: SimplexFormat {
     var formatItem: SimplexFormatItem {
-        return .item(uuidString)
+        return .item(rawValue.hex)
     }
 }
 
@@ -22,35 +22,43 @@ extension Reference: SimplexFormat {
         switch self {
         case .digest(let digest):
             return digest.formatItem
-        case .scid(let scid, let digest):
-            return .list([.item("("), scid.formatItem, .item(" "), digest.formatItem, .item(")")])
+        case .id(let id, let digest):
+            return .list([.item("("), id.formatItem, .item(" "), digest.formatItem, .item(")")])
         }
     }
 }
 
 extension CBOR: SimplexFormat {
     var formatItem: SimplexFormatItem {
-        switch self {
-        case CBOR.tagged(URType.simplex.tag, _):
-            return try! Simplex(taggedCBOR: cbor).formatItem
-        case CBOR.tagged(.predicate, let cbor):
-            guard
-                case let CBOR.unsignedInt(rawValue) = cbor,
-                case let predicate = Predicate(rawValue: rawValue)
-            else {
-                return .item("<unknown predicate>")
+        do {
+            switch self {
+            case .utf8String(let string):
+                return .item(string.flanked(.quote))
+            case CBOR.tagged(URType.simplex.tag, _):
+                return try Simplex(taggedCBOR: cbor).formatItem
+            case CBOR.tagged(.predicate, let cbor):
+                guard
+                    case let CBOR.unsignedInt(rawValue) = cbor,
+                    case let predicate = Predicate(rawValue: rawValue)
+                else {
+                    return .item("<unknown predicate>")
+                }
+                return .item(predicate†)
+            case CBOR.tagged(.signature, _):
+                return .item("Signature")
+            case CBOR.tagged(URType.sealedMessage.tag, _):
+                return .item("SealedMessage")
+            case CBOR.tagged(URType.sskrShare.tag, _):
+                return .item("SSKRShare")
+            case CBOR.tagged(URType.digest.tag, _):
+                return try .item(Digest(taggedCBOR: self)†)
+            case CBOR.tagged(URType.scid.tag, _):
+                return try .item(SCID(taggedCBOR: self)†)
+            default:
+                return .item("CBOR")
             }
-            return .item(predicate†)
-        case CBOR.tagged(.signature, _):
-            return .item("Signature")
-        case CBOR.tagged(URType.sealedMessage.tag, _):
-            return .item("SealedMessage")
-        case CBOR.tagged(URType.sskrShare.tag, _):
-            return .item("SSKRShare")
-        case .utf8String(let string):
-            return .item(string.flanked(.quote))
-        default:
-            return .item("CBOR")
+        } catch {
+            return .item("<error>")
         }
     }
 }
@@ -150,8 +158,10 @@ public enum SimplexFormatItem {
             case .item(let string):
                 currentLine += string
             case .separator:
-                lines.append(indent(level) + currentLine + .newline)
-                currentLine = ""
+                if !currentLine.isEmpty {
+                    lines.append(indent(level) + currentLine + .newline)
+                    currentLine = ""
+                }
             case .list:
                 lines.append("<list>")
             }

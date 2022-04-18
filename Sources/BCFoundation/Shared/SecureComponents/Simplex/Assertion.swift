@@ -63,6 +63,14 @@ extension Assertion {
     public static func sskrShare(_ share: SSKRShare) -> Assertion {
         Assertion(predicate: Simplex(predicate: .sskrShare), object: Simplex(enclose: share))
     }
+    
+    public static func isA(_ object: Simplex) -> Assertion {
+        Assertion(predicate: Simplex(predicate: .isA), object: object)
+    }
+    
+    public static func id(_ id: SCID) -> Assertion {
+        Assertion(predicate: Simplex(predicate: .id), object: Simplex(enclose: id))
+    }
 }
 
 extension Assertion {
