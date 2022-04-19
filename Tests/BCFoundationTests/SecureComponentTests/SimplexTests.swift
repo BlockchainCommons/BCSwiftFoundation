@@ -459,7 +459,10 @@ class SimplexTests: XCTestCase {
     }
     
     func testHiddenSignatureMultiRecipient() throws {
-        // Alice signs a message, and then encloses it in another container before encrypting it so that it can only be decrypted by Bob or Carol. This hides Alice's signature, and requires recipients to decrypt the subject before they are able to validate the signature.
+        // Alice signs a message, and then encloses it in another container before
+        // encrypting it so that it can only be decrypted by Bob or Carol. This hides
+        // Alice's signature, and requires recipients to decrypt the subject before they
+        // are able to validate the signature.
         let contentKey = SymmetricKey()
         let container = try Simplex(plaintext)
             .sign(with: alicePrivateKeys)
@@ -488,7 +491,8 @@ class SimplexTests: XCTestCase {
         // The container is received
         let receivedContainer = try Simplex(ur: ur)
 
-        // Bob decrypts the container, then extracts the inner container and validates Alice's signature, then reads the message
+        // Bob decrypts the container, then extracts the inner container and validates
+        // Alice's signature, then reads the message
         let bobReceivedPlaintext = try receivedContainer
             .decrypt(to: bobPrivateKeys)
             .extract()
@@ -496,7 +500,8 @@ class SimplexTests: XCTestCase {
             .extract(String.self)
         XCTAssertEqual(bobReceivedPlaintext, plaintext)
 
-        // Carol decrypts the container, then extracts the inner container and validates Alice's signature, then reads the message
+        // Carol decrypts the container, then extracts the inner container and validates
+        // Alice's signature, then reads the message
         let carolReceivedPlaintext = try receivedContainer
             .decrypt(to: carolPrivateKeys)
             .extract()
@@ -569,12 +574,15 @@ class SimplexTests: XCTestCase {
     }
 
     func testComplexMetadata() throws {
-        // Assertions made about an SCID are considered part of a distributed set. Which assertions are returned depends on who resolves the SCID and when it is resolved. In other words, the referent of an SCID is mutable.
+        // Assertions made about an SCID are considered part of a distributed set. Which
+        // assertions are returned depends on who resolves the SCID and when it is
+        // resolved. In other words, the referent of an SCID is mutable.
         let author = Simplex(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
             .add(.dereferenceVia, "LibraryOfCongress")
             .add(.hasName, "Ayn Rand")
         
-        // Assertions made on a literal value are considered part of the same set of assertions made on the digest of that value.
+        // Assertions made on a literal value are considered part of the same set of
+        // assertions made on the digest of that value.
         let name_en = Simplex("Atlas Shrugged")
             .add(.language, "en")
 
@@ -590,7 +598,8 @@ class SimplexTests: XCTestCase {
             .add(.hasName, name_es)
 
         let bookData = "This is the entire book “Atlas Shrugged” in EPUB format."
-        // Assertions made on a digest are considered associated with that specific binary object and no other. In other words, the referent of a Digest is immutable.
+        // Assertions made on a digest are considered associated with that specific binary
+        // object and no other. In other words, the referent of a Digest is immutable.
         let bookMetadata = Simplex(Digest(bookData))
             .add("work", work)
             .add("format", "EPUB")
@@ -671,7 +680,8 @@ class SimplexTests: XCTestCase {
             // other validity checks here
             .extract(SCID.self)
         
-        // The registrar creates its own registration document using Alice's SCID as the subject, incorporating Alice's signed document, and adding its own signature.
+        // The registrar creates its own registration document using Alice's SCID as the
+        // subject, incorporating Alice's signed document, and adding its own signature.
         let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.rawValue.hex)")!
         let aliceRegistration = Simplex(aliceSCID)
             .add(.entity, aliceSignedDocument)
@@ -703,14 +713,16 @@ class SimplexTests: XCTestCase {
         """
         XCTAssertEqual(aliceRegistration.format, expectedRegistrationFormat)
         
-        // Alice receives the registration document back, validates its signature, and extracts the URI that now points to her record.
+        // Alice receives the registration document back, validates its signature, and
+        // extracts the URI that now points to her record.
         let aliceURI = try aliceRegistration
             .validateSignature(from: exampleLedgerPublicKeys)
             .extract()
             .extract(predicate: .dereferenceVia, URL.self)
         XCTAssertEqual(aliceURI†, "https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")
         
-        // Alice wants to introduce herself to Bob, so Bob needs to know she controls her identifier. Bob sends a challenge:
+        // Alice wants to introduce herself to Bob, so Bob needs to know she controls her
+        // identifier. Bob sends a challenge:
         let aliceChallenge = Simplex(Nonce())
             .add(.note, "Challenge to Alice from Bob.")
         
