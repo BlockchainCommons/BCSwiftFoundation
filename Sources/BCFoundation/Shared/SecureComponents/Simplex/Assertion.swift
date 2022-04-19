@@ -54,7 +54,7 @@ extension Assertion {
     public static func authenticatedBy(signature: Signature, note: String? = nil) -> Assertion {
         var object = Simplex(signature)
         if let note = note {
-            object = object.addAssertion(.note, note)
+            object = object.add(.note, note)
         }
         return Assertion(Simplex(predicate: .authenticatedBy), object)
     }

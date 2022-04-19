@@ -39,6 +39,7 @@ class SimplexTests: XCTestCase {
     func testNestingOnce() {
         let container = Simplex("Hello")
             .enclose()
+        
         let expectedFormat =
         """
         {
@@ -67,6 +68,7 @@ class SimplexTests: XCTestCase {
     func testNestingSigned() {
         let container = Simplex("Hello")
             .sign(with: alicePrivateKeys)
+        
         let expectedFormat =
         """
         "Hello" [
@@ -80,6 +82,7 @@ class SimplexTests: XCTestCase {
         let container = Simplex("Hello")
             .enclose()
             .sign(with: alicePrivateKeys)
+        
         let expectedFormat =
         """
         {
@@ -95,6 +98,7 @@ class SimplexTests: XCTestCase {
         let container = Simplex("Hello")
             .sign(with: alicePrivateKeys)
             .enclose()
+        
         let expectedFormat =
         """
         {
@@ -108,11 +112,11 @@ class SimplexTests: XCTestCase {
 
     func testAssertionsOnAllPartsOfContainer() throws {
         let predicate = Simplex("predicate")
-            .addAssertion("predicate-predicate", "predicate-object")
+            .add("predicate-predicate", "predicate-object")
         let object = Simplex("object")
-            .addAssertion("object-predicate", "object-object")
+            .add("object-predicate", "object-object")
         let container = Simplex("subject")
-            .addAssertion(predicate, object)
+            .add(predicate, object)
         
         let expectedFormat =
         """
@@ -137,7 +141,11 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(ur)
 
-        XCTAssertEqual(container.format, #""Hello.""#)
+        let expectedFormat =
+        """
+        "Hello."
+        """
+        XCTAssertEqual(container.format, expectedFormat)
 
         // Alice ➡️ ☁️ ➡️ Bob
 
@@ -169,17 +177,20 @@ class SimplexTests: XCTestCase {
 
         // Bob receives the container.
         let receivedContainer = try Simplex(ur: ur)
-        // Bob receives the message and verifies that it was signed by Alice.
-        try XCTAssertTrue(receivedContainer.hasValidSignature(from: alicePublicKeys))
-        // Confirm that it wasn't signed by Carol.
-        try XCTAssertFalse(receivedContainer.hasValidSignature(from: carolPublicKeys))
-        // Confirm that it was signed by Alice OR Carol.
-        try XCTAssertTrue(receivedContainer.hasValidSignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 1))
-        // Confirm that it was not signed by Alice AND Carol.
-        try XCTAssertFalse(receivedContainer.hasValidSignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 2))
+        
+        // Bob receives the message, validates Alice's signature, and reads the message.
+        let receivedPlaintext = try receivedContainer.validateSignature(from: alicePublicKeys)
+            .extract(String.self)
+        XCTAssertEqual(receivedPlaintext, plaintext)
 
-        // Bob reads the message.
-        try XCTAssertEqual(receivedContainer.extract(String.self), plaintext)
+        // Confirm that it wasn't signed by Carol.
+        XCTAssertThrowsError(try receivedContainer.validateSignature(from: carolPublicKeys))
+        
+        // Confirm that it was signed by Alice OR Carol.
+        try receivedContainer.validateSignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 1)
+        
+        // Confirm that it was not signed by Alice AND Carol.
+        XCTAssertThrowsError(try receivedContainer.validateSignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 2))
     }
     
     func testMultisignedPlaintext() throws {
@@ -225,7 +236,11 @@ class SimplexTests: XCTestCase {
 //        print(container.taggedCBOR.dump)
 //        print(container.ur)
 
-        XCTAssertEqual(container.format, "EncryptedMessage")
+        let expectedFormat =
+        """
+        EncryptedMessage
+        """
+        XCTAssertEqual(container.format, expectedFormat)
 
         // Alice ➡️ ☁️ ➡️ Bob
 
@@ -268,7 +283,11 @@ class SimplexTests: XCTestCase {
             .encrypt(with: key)
         let ur = container.ur
         
-        XCTAssertEqual(container.format, "EncryptedMessage")
+        let expectedFormat =
+        """
+        EncryptedMessage
+        """
+        XCTAssertEqual(container.format, expectedFormat)
 
 //        print(container.taggedCBOR.diag)
 //        print(container.taggedCBOR.dump)
@@ -547,30 +566,30 @@ class SimplexTests: XCTestCase {
     func testComplexMetadata() throws {
         // Assertions made about an SCID are considered part of a distributed set. Which assertions are returned depends on who resolves the SCID and when it is resolved. In other words, the referent of an SCID is mutable.
         let author = Simplex(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
-            .addAssertion(.dereferenceVia, "LibraryOfCongress")
-            .addAssertion(.hasName, "Ayn Rand")
+            .add(.dereferenceVia, "LibraryOfCongress")
+            .add(.hasName, "Ayn Rand")
         
         // Assertions made on a literal value are considered part of the same set of assertions made on the digest of that value.
         let name_en = Simplex("Atlas Shrugged")
-            .addAssertion(.language, "en")
+            .add(.language, "en")
 
         let name_es = Simplex("La rebelión de Atlas")
-            .addAssertion(.language, "es")
+            .add(.language, "es")
         
         let work = Simplex(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
-            .addAssertion(.isA, "novel")
-            .addAssertion("isbn", "9780451191144")
-            .addAssertion("author", author)
-            .addAssertion(.dereferenceVia, "LibraryOfCongress")
-            .addAssertion(.hasName, name_en)
-            .addAssertion(.hasName, name_es)
+            .add(.isA, "novel")
+            .add("isbn", "9780451191144")
+            .add("author", author)
+            .add(.dereferenceVia, "LibraryOfCongress")
+            .add(.hasName, name_en)
+            .add(.hasName, name_es)
 
         let bookData = "This is the entire book “Atlas Shrugged” in EPUB format."
         // Assertions made on a digest are considered associated with that specific binary object and no other. In other words, the referent of a Digest is immutable.
         let bookMetadata = Simplex(Digest(bookData))
-            .addAssertion("work", work)
-            .addAssertion("format", "EPUB")
-            .addAssertion(.dereferenceVia, "IPFS")
+            .add("work", work)
+            .add("format", "EPUB")
+            .add(.dereferenceVia, "IPFS")
         
         let expectedFormat =
         """
@@ -608,8 +627,8 @@ class SimplexTests: XCTestCase {
         
         let aliceIdentifier = SCID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
         let aliceUnsignedDocument = Simplex(aliceIdentifier)
-            .addAssertion(.controller, aliceIdentifier)
-            .addAssertion(.publicKeys, alicePublicKeys)
+            .add(.controller, aliceIdentifier)
+            .add(.publicKeys, alicePublicKeys)
         
         let aliceSignedDocument = aliceUnsignedDocument
             .enclose()
@@ -654,8 +673,8 @@ class SimplexTests: XCTestCase {
         // The registrar creates its own registration document using Alice's SCID as the subject, incorporating Alice's signed document, and adding its own signature.
         let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.rawValue.hex)")!
         let aliceRegistration = Simplex(aliceSCID)
-            .addAssertion(.entity, aliceSignedDocument)
-            .addAssertion(.dereferenceVia, aliceURL)
+            .add(.entity, aliceSignedDocument)
+            .add(.dereferenceVia, aliceURL)
             .enclose()
             .sign(with: exampleLedgerPrivateKeys, note: "Made by ExampleLedger.")
         
@@ -687,12 +706,12 @@ class SimplexTests: XCTestCase {
         let aliceURI = try aliceRegistration
             .validateSignature(from: exampleLedgerPublicKeys)
             .extract()
-            .assertionObject(URL.self, predicate: .dereferenceVia)
+            .extract(predicate: .dereferenceVia, URL.self)
         XCTAssertEqual(aliceURI†, "https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")
         
         // Alice wants to introduce herself to Bob, so Bob needs to know she controls her identifier. Bob sends a challenge:
         let aliceChallenge = Simplex(Nonce())
-            .addAssertion(.note, "Challenge to Alice from Bob.")
+            .add(.note, "Challenge to Alice from Bob.")
         
         let aliceChallengeExpectedFormat =
         """
@@ -705,7 +724,7 @@ class SimplexTests: XCTestCase {
         // Alice responds by adding her registered URI to the nonce, and signing it.
         let aliceChallengeResponse = aliceChallenge
             .enclose()
-            .addAssertion(.dereferenceVia, aliceURI)
+            .add(.dereferenceVia, aliceURI)
             .enclose()
             .sign(with: alicePrivateKeys, note: "Made by Alice.")
         
@@ -736,7 +755,7 @@ class SimplexTests: XCTestCase {
         // Bob then extracts Alice's registered URI
         let responseURI = try aliceChallengeResponse
             .extract()
-            .assertionObject(URL.self, predicate: .dereferenceVia)
+            .extract(predicate: .dereferenceVia, URL.self)
         XCTAssertEqual(responseURI.absoluteString, "https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")
         
         // Bob uses the URI to ask ExampleLedger for Alice's identifier document, then
@@ -746,9 +765,9 @@ class SimplexTests: XCTestCase {
         let aliceDocumentPublicKeys = try aliceRegistration
             .validateSignature(from: exampleLedgerPublicKeys)
             .extract()
-            .assertionObject(predicate: .entity)
+            .extract(predicate: .entity)
             .extract()
-            .assertionObject(PublicKeyBase.self, predicate: .publicKeys)
+            .extract(predicate: .publicKeys, PublicKeyBase.self)
         
         // Finally, Bob uses Alice's public keys to validate the challenge he sent her.
         try aliceChallengeResponse.validateSignature(from: aliceDocumentPublicKeys)
