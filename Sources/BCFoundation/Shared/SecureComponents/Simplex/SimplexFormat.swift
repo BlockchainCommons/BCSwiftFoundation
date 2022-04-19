@@ -34,6 +34,12 @@ extension CBOR: SimplexFormat {
             switch self {
             case .utf8String(let string):
                 return .item(string.flanked(.quote))
+            case .date(let date):
+                var s = date.ISO8601Format()
+                if s.count == 20 && s.hasSuffix("T00:00:00Z") {
+                    s = s.prefix(count: 10)
+                }
+                return .item(s)
             case CBOR.tagged(URType.simplex.tag, _):
                 return try Simplex(taggedCBOR: cbor).formatItem
             case CBOR.tagged(.predicate, let cbor):

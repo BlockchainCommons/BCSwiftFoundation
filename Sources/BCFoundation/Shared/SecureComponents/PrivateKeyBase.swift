@@ -58,11 +58,11 @@ public struct PrivateKeyBase {
             .withUnsafeBytes { Data($0) })!
     }
     
-    public var pubkeys: PublicKeyBase {
+    public var publicKeys: PublicKeyBase {
         PublicKeyBase(signingPublicKey: signingPrivateKey.schnorrPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
     
-    public var ecdsaPubkeys: PublicKeyBase {
+    public var ecdsaPublicKeys: PublicKeyBase {
         PublicKeyBase(signingPublicKey: signingPrivateKey.ecdsaPublicKey, agreementPublicKey: agreementPrivateKey.publicKey)
     }
 }

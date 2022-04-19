@@ -13,4 +13,6 @@ public enum Predicate: UInt64 {
     case entity
     case hasName
     case language
+    case issuer
+    case holder
 }

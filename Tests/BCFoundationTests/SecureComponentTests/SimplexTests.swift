@@ -5,25 +5,30 @@ import WolfBase
 fileprivate let plaintext = "Hello."
 
 fileprivate let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
-fileprivate let alicePrivateKeys = PrivateKeyBase(aliceSeed, salt: "Salt")
-fileprivate let alicePublicKeys = alicePrivateKeys.pubkeys
+fileprivate let alicePrivateKeys = PrivateKeyBase(aliceSeed)
+fileprivate let alicePublicKeys = alicePrivateKeys.publicKeys
 
 fileprivate let bobSeed = Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!
-fileprivate let bobPrivateKeys = PrivateKeyBase(bobSeed, salt: "Salt")
-fileprivate let bobPublicKeys = bobPrivateKeys.pubkeys
+fileprivate let bobPrivateKeys = PrivateKeyBase(bobSeed)
+fileprivate let bobPublicKeys = bobPrivateKeys.publicKeys
 
 fileprivate let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
-fileprivate let carolPrivateKeys = PrivateKeyBase(carolSeed, salt: "Salt")
-fileprivate let carolPublicKeys = carolPrivateKeys.pubkeys
+fileprivate let carolPrivateKeys = PrivateKeyBase(carolSeed)
+fileprivate let carolPublicKeys = carolPrivateKeys.publicKeys
 
 fileprivate let exampleLedgerSeed = Seed(data: ‡"d6737ab34e4e8bb05b6ac035f9fba81a")!
-fileprivate let exampleLedgerPrivateKeys = PrivateKeyBase(exampleLedgerSeed, salt: "Salt")
-fileprivate let exampleLedgerPublicKeys = exampleLedgerPrivateKeys.pubkeys
+fileprivate let exampleLedgerPrivateKeys = PrivateKeyBase(exampleLedgerSeed)
+fileprivate let exampleLedgerPublicKeys = exampleLedgerPrivateKeys.publicKeys
 
 class SimplexTests: XCTestCase {
     func testPredicate() {
         let container = Simplex(predicate: .authenticatedBy)
         XCTAssertEqual(container.format, "authenticatedBy")
+    }
+    
+    func testDate() throws {
+        let container = try Simplex(Date(iso8601: "2018-01-07"))
+        XCTAssertEqual(container.format, "2018-01-07")
     }
 
     func testNestingPlaintext() {
@@ -509,7 +514,7 @@ class SimplexTests: XCTestCase {
         // into a basic SSKR share.
         var danSeed = Seed(data: ‡"59f2293a5bce7d4de59e71b4207ac5d2")!
         danSeed.name = "Dark Purple Aqua Love"
-        danSeed.creationDate = try! Date("2021-02-24T00:00:00Z", strategy: .iso8601)
+        danSeed.creationDate = try! Date(iso8601: "2021-02-24")
         danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
         // Dan encrypts the seed and then splits the content key into a single group
@@ -771,5 +776,96 @@ class SimplexTests: XCTestCase {
         
         // Finally, Bob uses Alice's public keys to validate the challenge he sent her.
         try aliceChallengeResponse.validateSignature(from: aliceDocumentPublicKeys)
+    }
+    
+    func testCredential() throws {
+        // John Smith's identifier
+        let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
+
+        // The State of Example's identifier and private keys
+        let stateIdentifier = SCID(‡"04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8")!
+        let statePrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
+
+        // A photo of John Smith
+        let johnSmithImage = Simplex(Digest("John Smith smiling"))
+            .add(.note, "This is an image of John Smith.")
+            .add(.dereferenceVia, "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54")
+        
+        // John Smith's Permanent Resident Card issued by the State of Example
+        let johnSmithResidentCard = try Simplex(SCID(‡"174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8")!)
+            .add(.isA, "credential")
+            .add("dateIssued", Date(iso8601: "2022-04-27"))
+            .add(.issuer, Simplex(stateIdentifier)
+                .add(.note, "Issued by the State of Example")
+                .add(.dereferenceVia, URL(string: "https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8")!)
+            )
+            .add(.holder, Simplex(johnSmithIdentifier)
+                .add(.isA, "Person")
+                .add(.isA, "Permanent Resident")
+                .add("givenName", "JOHN")
+                .add("familyName", "SMITH")
+                .add("sex", "MALE")
+                .add("birthDate", Date(iso8601: "1974-02-18"))
+                .add("image", johnSmithImage)
+                .add("lprCategory", "C09")
+                .add("lprNumber", "999-999-999")
+                .add("birthCountry", Simplex("bs").add(.note, "The Bahamas"))
+                .add("residentSince", Date(iso8601: "2018-01-07"))
+            )
+            .add(.note, "The State of Example recognizes JOHN SMITH as a Permanent Resident.")
+            .enclose()
+            .sign(with: statePrivateKeys, note: "Made by the State of Example.")
+
+        let expectedFormat =
+        """
+        {
+            SCID(174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8) [
+                "dateIssued": 2022-04-27
+                holder: SCID(78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc) [
+                    "birthCountry": {
+                        "bs" [
+                            note: "The Bahamas"
+                        ]
+                    }
+                    "birthDate": 1974-02-18
+                    "familyName": "SMITH"
+                    "givenName": "JOHN"
+                    "image": {
+                        Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
+                            dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                            note: "This is an image of John Smith."
+                        ]
+                    }
+                    "lprCategory": "C09"
+                    "lprNumber": "999-999-999"
+                    "residentSince": 2018-01-07
+                    "sex": "MALE"
+                    isA: "Permanent Resident"
+                    isA: "Person"
+                ]
+                isA: "credential"
+                issuer: SCID(04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8) [
+                    dereferenceVia: URI(https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8)
+                    note: "Issued by the State of Example"
+                ]
+                note: "The State of Example recognizes JOHN SMITH as a Permanent Resident."
+            ]
+        } [
+            authenticatedBy: Signature [
+                note: "Made by the State of Example."
+            ]
+        ]
+        """
+        XCTAssertEqual(johnSmithResidentCard.format, expectedFormat)
+    }
+    
+    func testHistoricalModeling() {
+        let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
+        let johnSmithPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
+        let johnSmithPublicKeys = johnSmithPrivateKeys.publicKeys
+
+        let acmeCorpPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
+        let acmeCorpPublicKeys = acmeCorpPrivateKeys.publicKeys
+        let acmeCorpIdentifier = SCID(‡"361235424efc81cedec7eb983a97bbe74d7972f778486f93881e5eed577d0aa7")!
     }
 }
