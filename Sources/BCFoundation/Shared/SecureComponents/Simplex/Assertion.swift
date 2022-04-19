@@ -125,14 +125,18 @@ extension Assertion {
     }
     
     public var predicate: Predicate? {
+        predicateValue.predicate
+    }
+    
+    public var predicateValue: Simplex {
         switch self {
         case .declare(let predicate, _, _):
-            return predicate.predicate
+            return predicate
         default:
             todo()
         }
     }
-    
+
     public var object: Simplex {
         switch self {
         case .declare(_, let object, _):

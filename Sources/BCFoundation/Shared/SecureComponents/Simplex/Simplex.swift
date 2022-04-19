@@ -93,6 +93,29 @@ extension Simplex: ExpressibleByIntegerLiteral {
 }
 
 extension Simplex {
+    public func assertions(predicate: CBOREncodable) -> [Assertion] {
+        let predicate = Simplex(predicate)
+        return assertions.filter { $0.predicateValue == predicate }
+    }
+
+    public func assertion(predicate: CBOREncodable) throws -> Assertion {
+        let a = assertions(predicate: predicate)
+        guard a.count == 1 else {
+            throw SimplexError.invalidFormat
+        }
+        return a.first!
+    }
+
+    public func extract(predicate: CBOREncodable) throws -> Simplex {
+        try assertion(predicate: predicate).object
+    }
+    
+    public func extract<T>(predicate: CBOREncodable, _ type: T.Type) throws -> T where T: CBORDecodable {
+        try extract(predicate: predicate).extract(type)
+    }
+}
+
+extension Simplex {
     public func assertions(predicate: Predicate) -> [Assertion] {
         assertions.filter { $0.predicate == predicate }
     }
@@ -112,7 +135,9 @@ extension Simplex {
     public func extract<T>(predicate: Predicate, _ type: T.Type) throws -> T where T: CBORDecodable {
         try extract(predicate: predicate).extract(type)
     }
+}
 
+extension Simplex {
     public func add(_ assertion: Assertion) -> Simplex {
         if !assertions.contains(assertion) {
             return Simplex(subject: self.subject, assertions: assertions.appending(assertion))
@@ -121,20 +146,14 @@ extension Simplex {
         }
     }
     
-    public func add(_ predicate: Simplex, _ object: Simplex) -> Simplex {
-        add(Assertion(predicate, object))
-    }
-    
     public func add(_ predicate: CBOREncodable, _ object: CBOREncodable) -> Simplex {
-        add(Simplex(predicate), Simplex(object))
-    }
-    
-    public func add(_ predicate: Predicate, _ object: Simplex) -> Simplex {
-        add(Simplex(predicate: predicate), object)
+        let p = predicate as? Simplex ?? Simplex(predicate)
+        let o = object as? Simplex ?? Simplex(object)
+        return add(Assertion(p, o))
     }
 
     public func add(_ predicate: Predicate, _ object: CBOREncodable) -> Simplex {
-        add(Simplex(predicate: predicate), Simplex(object))
+        return add(Simplex(predicate: predicate), object)
     }
 }
 
@@ -317,6 +336,16 @@ extension Simplex {
         let cbor = try CBOR(contentKeyData)
         let contentKey = try SymmetricKey(taggedCBOR: cbor)
         return try decrypt(with: contentKey)
+    }
+}
+
+extension Simplex {
+    public func revoke(_ digest: Digest) -> Simplex {
+        var assertions = self.assertions
+        if let index = assertions.firstIndex(where: { $0.digest == digest }) {
+            assertions.remove(at: index)
+        }
+        return Simplex(subject: subject, assertions: assertions)
     }
 }
 

@@ -32,6 +32,8 @@ extension CBOR: SimplexFormat {
     var formatItem: SimplexFormatItem {
         do {
             switch self {
+            case .unsignedInt(let n):
+                return .item(String(n))
             case .utf8String(let string):
                 return .item(string.flanked(.quote))
             case .date(let date):
@@ -107,10 +109,6 @@ extension Simplex: SimplexFormat {
     }
     
     var formatItem: SimplexFormatItem {
-        let assertionsItems = assertions.map { [$0.formatItem] }.sorted()
-        let joinedAssertionsItems = Array(assertionsItems.joined(separator: [.separator]))
-        let hasAssertions = !joinedAssertionsItems.isEmpty
-        var items: [SimplexFormatItem] = []
         let subjectItem = subject.formatItem
         let isList: Bool
         if case .list(_) = subjectItem {
@@ -118,6 +116,11 @@ extension Simplex: SimplexFormat {
         } else {
             isList = false
         }
+
+        let assertionsItems = assertions.map { [$0.formatItem] }.sorted()
+        let joinedAssertionsItems = Array(assertionsItems.joined(separator: [.separator]))
+        let hasAssertions = !joinedAssertionsItems.isEmpty
+        var items: [SimplexFormatItem] = []
         if isList {
             items.append(.begin("{"))
         }

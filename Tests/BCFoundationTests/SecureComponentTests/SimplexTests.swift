@@ -600,25 +600,21 @@ class SimplexTests: XCTestCase {
         """
         Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
             "format": "EPUB"
-            "work": {
-                SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
-                    "author": {
-                        SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
-                            dereferenceVia: "LibraryOfCongress"
-                            hasName: "Ayn Rand"
-                        ]
-                    }
-                    "isbn": "9780451191144"
+            "work": SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
+                "author": SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
                     dereferenceVia: "LibraryOfCongress"
-                    hasName: "Atlas Shrugged" [
-                        language: "en"
-                    ]
-                    hasName: "La rebelión de Atlas" [
-                        language: "es"
-                    ]
-                    isA: "novel"
+                    hasName: "Ayn Rand"
                 ]
-            }
+                "isbn": "9780451191144"
+                dereferenceVia: "LibraryOfCongress"
+                hasName: "Atlas Shrugged" [
+                    language: "en"
+                ]
+                hasName: "La rebelión de Atlas" [
+                    language: "es"
+                ]
+                isA: "novel"
+            ]
             dereferenceVia: "IPFS"
         ]
         """
@@ -822,20 +818,16 @@ class SimplexTests: XCTestCase {
             SCID(174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8) [
                 "dateIssued": 2022-04-27
                 holder: SCID(78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc) [
-                    "birthCountry": {
-                        "bs" [
-                            note: "The Bahamas"
-                        ]
-                    }
+                    "birthCountry": "bs" [
+                        note: "The Bahamas"
+                    ]
                     "birthDate": 1974-02-18
                     "familyName": "SMITH"
                     "givenName": "JOHN"
-                    "image": {
-                        Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
-                            dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
-                            note: "This is an image of John Smith."
-                        ]
-                    }
+                    "image": Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
+                        dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                        note: "This is an image of John Smith."
+                    ]
                     "lprCategory": "C09"
                     "lprNumber": "999-999-999"
                     "residentSince": 2018-01-07
@@ -859,13 +851,122 @@ class SimplexTests: XCTestCase {
         XCTAssertEqual(johnSmithResidentCard.format, expectedFormat)
     }
     
-    func testHistoricalModeling() {
-        let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
-        let johnSmithPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
-        let johnSmithPublicKeys = johnSmithPrivateKeys.publicKeys
+    /// See [The Art of Immutable Architecture, by Michael L. Perry](https://amzn.to/3Kszr1p).
+    func testHistoricalModeling() throws {
+        //
+        // Declare Actors
+        //
 
-        let acmeCorpPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
-        let acmeCorpPublicKeys = acmeCorpPrivateKeys.publicKeys
+//        let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
+//        let johnSmithPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
+//        let johnSmithPublicKeys = johnSmithPrivateKeys.publicKeys
+//        let johnSmithDocument = Simplex(johnSmithIdentifier)
+//            .add(.hasName, "John Smith")
+//            .add(.dereferenceVia, URL(string: "https://exampleledger.com/scid/78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!)
+
+//        let acmeCorpPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
+//        let acmeCorpPublicKeys = acmeCorpPrivateKeys.publicKeys
         let acmeCorpIdentifier = SCID(‡"361235424efc81cedec7eb983a97bbe74d7972f778486f93881e5eed577d0aa7")!
+        let acmeCorpDocument = Simplex(acmeCorpIdentifier)
+            .add(.hasName, "Acme Corp.")
+            .add(.dereferenceVia, URL(string: "https://exampleledger.com/scid/361235424efc81cedec7eb983a97bbe74d7972f778486f93881e5eed577d0aa7")!)
+        
+        //
+        // Declare Products
+        //
+
+        let qualityProduct = Simplex(SCID(‡"5bcca01f5f370ceb3b7365f076e9600e294d4da6ddf7a616976c87775ea8f0f1")!)
+            .add(.isA, "Product")
+            .add(.hasName, "Quality Widget")
+            .add("seller", acmeCorpDocument)
+            .add("priceEach", "10.99")
+
+        let cheapProduct = Simplex(SCID(‡"ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64")!)
+            .add(.isA, "Product")
+            .add(.hasName, "Cheap Widget")
+            .add("seller", acmeCorpDocument)
+            .add("priceEach", "4.99")
+
+        //
+        // Declare a Purchase Order
+        //
+
+        // Since the line items of a PurchaseOrder may be mutated before being finalized,
+        // they are not declared as part of the creation of the PurchaseOrder itself.
+        
+        let purchaseOrder = Simplex(SCID(‡"1bebb5b6e447f819d5a4cb86409c5da1207d1460672dfe903f55cde833549625")!)
+            .add(.isA, "PurchaseOrder")
+            .add(.hasName, "PO 123")
+        
+        //
+        // Add Line Items to the Purchase Order
+        //
+
+        // A line item's subject is a reference to the digest of the specific purchase
+        // order object. This forms a successor -> predecessor relationship to the purchase
+        // order.
+        //
+        // A line item's product is the SCID of the product. The product document found by
+        // referencing the product's SCID may change over time, for instance the price may
+        // be updated. The line item therefore captures the current price from the product
+        // document in its priceEach assertion.
+        
+        let line1 = try Simplex(purchaseOrder.digest)
+            .add(.isA, "PurchaseOrderLineItem")
+            .add("product", qualityProduct.extract(SCID.self))
+            .add(.hasName, qualityProduct.extract(predicate: .hasName))
+            .add("priceEach", qualityProduct.extract(predicate: "priceEach"))
+            .add("quantity", 4)
+
+        let line2 = try Simplex(purchaseOrder.digest)
+            .add(.isA, "PurchaseOrderLineItem")
+            .add("product", cheapProduct.extract(SCID.self))
+            .add(.hasName, cheapProduct.extract(predicate: .hasName))
+            .add("priceEach", cheapProduct.extract(predicate: "priceEach"))
+            .add("quantity", 3)
+
+        let line2ExpectedFormat =
+        """
+        Digest(1f6ced2f77e4a2132ed9273659437d6eb0775571f781a8c109265081216114f9) [
+            "priceEach": "4.99"
+            "product": SCID(ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64)
+            "quantity": 3
+            hasName: "Cheap Widget"
+            isA: "PurchaseOrderLineItem"
+        ]
+        """
+        XCTAssertEqual(line2.format, line2ExpectedFormat)
+        
+//        let revokeLine1 = Simplex(purchaseOrder.digest)
+//            .add(Assertion(revoke: Reference(digest: line1.digest)))
+//        print(revokeLine1.format)
+        
+        let purchaseOrderProjection = purchaseOrder
+            .add("lineItem", line1)
+            .add("lineItem", line2)
+//            .revoke(line1.digest)
+        
+        let purchaseOrderProjectionExpectedFormat =
+        """
+        SCID(1bebb5b6e447f819d5a4cb86409c5da1207d1460672dfe903f55cde833549625) [
+            "lineItem": Digest(1f6ced2f77e4a2132ed9273659437d6eb0775571f781a8c109265081216114f9) [
+                "priceEach": "10.99"
+                "product": SCID(5bcca01f5f370ceb3b7365f076e9600e294d4da6ddf7a616976c87775ea8f0f1)
+                "quantity": 4
+                hasName: "Quality Widget"
+                isA: "PurchaseOrderLineItem"
+            ]
+            "lineItem": Digest(1f6ced2f77e4a2132ed9273659437d6eb0775571f781a8c109265081216114f9) [
+                "priceEach": "4.99"
+                "product": SCID(ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64)
+                "quantity": 3
+                hasName: "Cheap Widget"
+                isA: "PurchaseOrderLineItem"
+            ]
+            hasName: "PO 123"
+            isA: "PurchaseOrder"
+        ]
+        """
+        XCTAssertEqual(purchaseOrderProjection.format, purchaseOrderProjectionExpectedFormat)
     }
 }

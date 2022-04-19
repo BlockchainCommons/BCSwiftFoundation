@@ -20,7 +20,7 @@ let package = Package(
         .package(url: "https://github.com/WolfMcNally/WolfBase", from: "3.24.0"),
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.4.1"),
-        .package(url: "https://github.com/BlockchainCommons/URKit.git", from: "5.0.0"),
+        .package(url: "https://github.com/BlockchainCommons/URKit.git", from: "6.0.0"),
         .package(url: "https://github.com/tesseract-one/Blake2.swift.git", from: "0.1.0"),
         .package(url: "https://github.com/GigaBitcoin/secp256k1.swift.git", .upToNextMajor(from: "0.5.0"))
     ],
