@@ -1,6 +1,7 @@
 import Foundation
 import CryptoKit
 import WolfBase
+import URKit
 
 /// Holds information used to communicate cryptographically with a remote entity.
 ///
@@ -38,15 +39,14 @@ extension PublicKeyBase {
             case let CBOR.array(elements) = untaggedCBOR,
             elements.count == 3,
             case let CBOR.unsignedInt(type) = elements[0],
-            type == 1,
-            case let CBOR.data(signingKeyData) = elements[1],
-            let signingKey = SigningPublicKey(taggedCBOR: signingKeyData),
-            case let CBOR.data(agreementKeyData) = elements[2],
-            let agreementKey = AgreementPublicKey(taggedCBOR: agreementKeyData)
+            type == 1
         else {
             throw CBORError.invalidFormat
         }
         
+        let signingKey = try SigningPublicKey(taggedCBOR: elements[1])
+        let agreementKey = try AgreementPublicKey(taggedCBOR: elements[2])
+
         self.init(signingPublicKey: signingKey, agreementPublicKey: agreementKey)
     }
     
@@ -79,5 +79,11 @@ extension PublicKeyBase {
 extension PublicKeyBase: CBOREncodable {
     public var cbor: CBOR {
         taggedCBOR
+    }
+}
+
+extension PublicKeyBase: CBORDecodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> PublicKeyBase {
+        try PublicKeyBase(taggedCBOR: cbor)
     }
 }

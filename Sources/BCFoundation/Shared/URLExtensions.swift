@@ -24,7 +24,7 @@ extension URL {
         guard
             case let CBOR.tagged(.uri, untaggedCBOR) = taggedCBOR
         else {
-            throw CBORError.invalidFormat
+            throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)
     }

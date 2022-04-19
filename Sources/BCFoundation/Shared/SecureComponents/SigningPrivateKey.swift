@@ -31,15 +31,11 @@ public struct SigningPrivateKey: CustomStringConvertible, Hashable {
     }
     
     public var ecdsaPublicKey: SigningPublicKey {
-        let privateKey = ECPrivateKey(data)!
-        let publicKey = privateKey.public
-        return SigningPublicKey(ecdsaData: publicKey.data)!
+        SigningPublicKey(ECPrivateKey(data)!.public)
     }
     
     public var schnorrPublicKey: SigningPublicKey {
-        let privateKey = ECPrivateKey(data)!
-        let xOnlyPublicKey = privateKey.xOnlyPublic
-        return SigningPublicKey(schnorrData: xOnlyPublicKey.data)!
+        SigningPublicKey(ECPrivateKey(data)!.xOnlyPublic)
     }
     
     public var description: String {

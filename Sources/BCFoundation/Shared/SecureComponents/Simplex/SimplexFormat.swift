@@ -46,6 +46,8 @@ extension CBOR: SimplexFormat {
                 return .item(predicate†)
             case CBOR.tagged(.signature, _):
                 return .item("Signature")
+            case CBOR.tagged(.nonce, _):
+                return .item("Nonce")
             case CBOR.tagged(URType.sealedMessage.tag, _):
                 return .item("SealedMessage")
             case CBOR.tagged(URType.sskrShare.tag, _):

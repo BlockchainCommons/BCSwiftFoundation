@@ -51,10 +51,10 @@ extension Assertion: Comparable {
 }
 
 extension Assertion {
-    public static func authenticatedBy(signature: Signature, name: String? = nil) -> Assertion {
+    public static func authenticatedBy(signature: Signature, note: String? = nil) -> Assertion {
         var object = Simplex(signature)
-        if let name = name {
-            object = object.addAssertion(.madeBy, name)
+        if let note = note {
+            object = object.addAssertion(.note, note)
         }
         return Assertion(Simplex(predicate: .authenticatedBy), object)
     }

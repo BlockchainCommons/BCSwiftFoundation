@@ -613,7 +613,7 @@ class SimplexTests: XCTestCase {
         
         let aliceSignedDocument = aliceUnsignedDocument
             .enclose()
-            .sign(with: alicePrivateKeys, name: "Alice")
+            .sign(with: alicePrivateKeys, note: "Made by Alice.")
         
         let expectedFormat =
         """
@@ -624,7 +624,7 @@ class SimplexTests: XCTestCase {
             ]
         } [
             authenticatedBy: Signature [
-                madeBy: "Alice"
+                note: "Made by Alice."
             ]
         ]
         """
@@ -637,7 +637,7 @@ class SimplexTests: XCTestCase {
 
         let aliceSignedDocument2 = aliceUnsignedDocument
             .enclose()
-            .sign(with: alicePrivateKeys, name: "Alice")
+            .sign(with: alicePrivateKeys, note: "Made by Alice.")
 
         XCTAssertNotEqual(aliceSignedDocument, aliceSignedDocument2)
         
@@ -656,31 +656,101 @@ class SimplexTests: XCTestCase {
         let aliceRegistration = Simplex(aliceSCID)
             .addAssertion(.entity, aliceSignedDocument)
             .addAssertion(.dereferenceVia, aliceURL)
-            .sign(with: exampleLedgerPrivateKeys, name: "ExampleLedger")
+            .enclose()
+            .sign(with: exampleLedgerPrivateKeys, note: "Made by ExampleLedger.")
+        
         let expectedRegistrationFormat =
         """
-        SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
-            authenticatedBy: Signature [
-                madeBy: "ExampleLedger"
+        {
+            SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
+                dereferenceVia: URI(https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+                entity: {
+                    SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
+                        controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+                        publicKeys: PublicKeyBase
+                    ]
+                } [
+                    authenticatedBy: Signature [
+                        note: "Made by Alice."
+                    ]
+                ]
             ]
-            dereferenceVia: URI(https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
-            entity: {
-                SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f) [
-                    controller: SCID(d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
-                    publicKeys: PublicKeyBase
-                ]
-            } [
-                authenticatedBy: Signature [
-                    madeBy: "Alice"
-                ]
+        } [
+            authenticatedBy: Signature [
+                note: "Made by ExampleLedger."
             ]
         ]
         """
         XCTAssertEqual(aliceRegistration.format, expectedRegistrationFormat)
         
-        // Alice can now introduce herself to Bob using a much shorter introducer.
+        // Alice receives the registration document back, validates its signature, and extracts the URI that now points to her record.
+        let aliceURI = try aliceRegistration
+            .validateSignature(from: exampleLedgerPublicKeys)
+            .extract()
+            .assertionObject(URL.self, predicate: .dereferenceVia)
+        XCTAssertEqual(aliceURI†, "https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")
         
-//        let aliceIntroducer = Simplex(aliceSCID)
-//            .addAssertion(<#T##assertion: Assertion##Assertion#>)
+        // Alice wants to introduce herself to Bob, so Bob needs to know she controls her identifier. Bob sends a challenge:
+        let aliceChallenge = Simplex(Nonce())
+            .addAssertion(.note, "Challenge to Alice from Bob.")
+        
+        let aliceChallengeExpectedFormat =
+        """
+        Nonce [
+            note: "Challenge to Alice from Bob."
+        ]
+        """
+        XCTAssertEqual(aliceChallenge.format, aliceChallengeExpectedFormat)
+
+        // Alice responds by adding her registered URI to the nonce, and signing it.
+        let aliceChallengeResponse = aliceChallenge
+            .enclose()
+            .addAssertion(.dereferenceVia, aliceURI)
+            .enclose()
+            .sign(with: alicePrivateKeys, note: "Made by Alice.")
+        
+        let aliceChallengeResponseExpectedFormat =
+        """
+        {
+            {
+                Nonce [
+                    note: "Challenge to Alice from Bob."
+                ]
+            } [
+                dereferenceVia: URI(https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
+            ]
+        } [
+            authenticatedBy: Signature [
+                note: "Made by Alice."
+            ]
+        ]
+        """
+        XCTAssertEqual(aliceChallengeResponse.format, aliceChallengeResponseExpectedFormat)
+
+        // Bob receive's Alice's response, and first checks that the nonce is the once he sent.
+        let responseNonce = try aliceChallengeResponse
+            .extract()
+            .extract()
+        XCTAssertEqual(aliceChallenge, responseNonce)
+        
+        // Bob then extracts Alice's registered URI
+        let responseURI = try aliceChallengeResponse
+            .extract()
+            .assertionObject(URL.self, predicate: .dereferenceVia)
+        XCTAssertEqual(responseURI.absoluteString, "https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")
+        
+        // Bob uses the URI to ask ExampleLedger for Alice's identifier document, then
+        // checks ExampleLedgers's signature. Bob trusts ExampleLedger's validation of
+        // Alice's original document, so doesn't bother to check it for internal
+        // consistency, and instead goes ahead and extracts Alice's public keys from it.
+        let aliceDocumentPublicKeys = try aliceRegistration
+            .validateSignature(from: exampleLedgerPublicKeys)
+            .extract()
+            .assertionObject(predicate: .entity)
+            .extract()
+            .assertionObject(PublicKeyBase.self, predicate: .publicKeys)
+        
+        // Finally, Bob uses Alice's public keys to validate the challenge he sent her.
+        try aliceChallengeResponse.validateSignature(from: aliceDocumentPublicKeys)
     }
 }

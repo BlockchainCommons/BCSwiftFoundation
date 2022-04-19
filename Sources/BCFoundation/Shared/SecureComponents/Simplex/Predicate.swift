@@ -4,7 +4,7 @@ public enum Predicate: UInt64 {
     case id = 1
     case isA
     case authenticatedBy
-    case madeBy
+    case note
     case hasRecipient
     case sskrShare
     case controller

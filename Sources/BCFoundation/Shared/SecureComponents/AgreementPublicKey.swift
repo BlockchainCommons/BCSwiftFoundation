@@ -19,7 +19,7 @@ public struct AgreementPublicKey: CustomStringConvertible, Hashable {
     }
     
     public var description: String {
-        "AgreementPublicKey\(data.hex)"
+        "AgreementPublicKey(\(data.hex))"
     }
     
     public var cryptoKitForm: Curve25519.KeyAgreement.PublicKey {

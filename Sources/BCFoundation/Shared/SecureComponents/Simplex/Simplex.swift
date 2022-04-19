@@ -93,6 +93,26 @@ extension Simplex: ExpressibleByIntegerLiteral {
 }
 
 extension Simplex {
+    public func assertions(predicate: Predicate) -> [Assertion] {
+        assertions.filter { $0.predicate == predicate }
+    }
+    
+    public func assertion(predicate: Predicate) throws -> Assertion {
+        let a = assertions(predicate: predicate)
+        guard a.count == 1 else {
+            throw SimplexError.invalidFormat
+        }
+        return a.first!
+    }
+    
+    public func assertionObject(predicate: Predicate) throws -> Simplex {
+        try assertion(predicate: predicate).object
+    }
+    
+    public func assertionObject<T>(_ type: T.Type, predicate: Predicate) throws -> T where T: CBORDecodable {
+        try assertionObject(predicate: predicate).extract(type)
+    }
+
     public func addAssertion(_ assertion: Assertion) -> Simplex {
         if !assertions.contains(assertion) {
             return Simplex(subject: self.subject, assertions: assertions.appending(assertion))
@@ -119,9 +139,9 @@ extension Simplex {
 }
 
 extension Simplex {
-    public func sign(with privateKeys: PrivateKeyBase, name: String? = nil, tag: Data? = nil) -> Simplex {
+    public func sign(with privateKeys: PrivateKeyBase, note: String? = nil, tag: Data? = nil) -> Simplex {
         let signature = privateKeys.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
-        return addAssertion(.authenticatedBy(signature: signature, name: name))
+        return addAssertion(.authenticatedBy(signature: signature, note: note))
     }
     
     public func sign(with privateKeys: [PrivateKeyBase], tag: Data? = nil) -> Simplex {
@@ -152,8 +172,7 @@ extension Simplex {
     public static func shares(in containers: [Simplex]) throws -> [UInt16: [SSKRShare]] {
         var result: [UInt16: [SSKRShare]] = [:]
         for container in containers {
-            try container.assertions
-                .filter { $0.predicate == Predicate.sskrShare }
+            try container.assertions(predicate: .sskrShare)
                 .forEach {
                     let share = try $0.object.extract(SSKRShare.self)
                     let identifier = share.identifier
@@ -184,8 +203,7 @@ extension Simplex {
 extension Simplex {
     public var signatures: [Signature] {
         get throws {
-            try assertions
-                .filter { $0.predicate == Predicate.authenticatedBy }
+            try assertions(predicate: .authenticatedBy)
                 .map { try $0.object.extract(Signature.self) }
         }
     }
@@ -284,8 +302,7 @@ extension Simplex {
 extension Simplex {
     public var recipients: [SealedMessage] {
         get throws {
-            try assertions
-                .filter { $0.predicate == Predicate.hasRecipient }
+            try assertions(predicate: .hasRecipient)
                 .map { try $0.object.extract(SealedMessage.self) }
         }
     }

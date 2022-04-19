@@ -3,28 +3,20 @@ import CryptoKit
 import WolfBase
 
 public enum SigningPublicKey {
-    case schnorr(data: Data)
-    case ecdsa(key: ECPublicKey)
+    case schnorr(ECXOnlyPublicKey)
+    case ecdsa(ECPublicKey)
     
-    public init?(schnorrData data: DataProvider) {
-        let data = data.providedData
-        guard data.count == 32 else {
-            return nil
-        }
-        self = .schnorr(data: data)
+    public init(_ key: ECXOnlyPublicKey) {
+        self = .schnorr(key)
     }
     
-    public init?(ecdsaData: DataProvider) {
-        guard let key = ECPublicKey(ecdsaData) else {
-            return nil
-        }
-        self = .ecdsa(key: key)
+    public init(_ key: ECPublicKey) {
+        self = .ecdsa(key)
     }
     
     public func isValidSignature(_ signature: Signature, for message: DataProvider) -> Bool {
         switch self {
-        case .schnorr(let keyData):
-            let key = ECXOnlyPublicKey(keyData)!
+        case .schnorr(let key):
             switch signature {
             case .schnorr(let sigData, let tag):
                 return key.schnorrVerify(signature: sigData, tag: tag, message: message)
@@ -43,8 +35,8 @@ public enum SigningPublicKey {
     
     public var data: Data {
         switch self {
-        case .schnorr(let data):
-            return data
+        case .schnorr(let key):
+            return key.data
         case .ecdsa(let key):
             return key.data
         }
@@ -84,9 +76,9 @@ extension SigningPublicKey: Hashable {
 extension SigningPublicKey {
     public var untaggedCBOR: CBOR {
         switch self {
-        case .schnorr(let data):
+        case .schnorr(let key):
             let type = CBOR.unsignedInt(1)
-            let data = CBOR.data(data)
+            let data = CBOR.data(key.data)
             return CBOR.array([type, data])
         case .ecdsa(let key):
             let type = CBOR.unsignedInt(2)
@@ -111,11 +103,12 @@ extension SigningPublicKey {
         switch type {
         case 1:
             guard
-                case let CBOR.data(data) = elements[1]
+                case let CBOR.data(data) = elements[1],
+                let key = ECXOnlyPublicKey(data)
             else {
                 throw CBORError.invalidFormat
             }
-            self = .schnorr(data: data)
+            self = .schnorr(key)
         case 2:
             guard
                 case let CBOR.data(data) = elements[1],
@@ -123,7 +116,7 @@ extension SigningPublicKey {
             else {
                 throw CBORError.invalidFormat
             }
-            self = .ecdsa(key: key)
+            self = .ecdsa(key)
         default:
             throw CBORError.invalidFormat
         }
