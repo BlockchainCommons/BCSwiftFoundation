@@ -2,7 +2,7 @@ import XCTest
 import WolfBase
 @testable import BCFoundation
 
-fileprivate let secureDigest = Digest("Wolf McNally".utf8Data)
+fileprivate let secureDigest = Digest("Wolf McNally")
 
 class DigestTests: XCTestCase {
     func testVectors() {
@@ -33,7 +33,7 @@ class DigestTests: XCTestCase {
     func testCBOR() {
         XCTAssertEqual(
             secureDigest.taggedCBOR.cborEncode,
-            ‡"d902bc820158204d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b"
+            ‡"d838820158204d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b"
         )
     }
 }

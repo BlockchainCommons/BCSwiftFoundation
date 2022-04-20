@@ -4,7 +4,6 @@ import URKit
 public enum Subject {
     case plaintext(CBOR, Digest)
     case encrypted(EncryptedMessage, Digest)
-    case reference(Reference)
 }
 
 extension Subject {
@@ -14,8 +13,6 @@ extension Subject {
             return digest
         case .encrypted(_, let digest):
             return digest
-        case .reference(let reference):
-            return reference.digest
         }
     }
 }
@@ -52,8 +49,8 @@ extension Subject {
             return [1.cbor, plaintext]
         case .encrypted(let message, let digest):
             return [2.cbor, message.taggedCBOR, digest.taggedCBOR]
-        case .reference(let identifier):
-            return [3.cbor, identifier.untaggedCBOR]
+//        case .reference(let identifier):
+//            return [3.cbor, identifier.untaggedCBOR]
         }
     }
     
@@ -77,11 +74,6 @@ extension Subject {
                 throw CBORError.invalidFormat
             }
             self = try .encrypted(EncryptedMessage(taggedCBOR: elements[1]), Digest(taggedCBOR: elements[2]))
-        case 3:
-            guard elements.count == 2 else {
-                throw CBORError.invalidFormat
-            }
-            self = try .reference(Reference(untaggedCBOR: elements[1]))
         default:
             throw CBORError.invalidFormat
         }

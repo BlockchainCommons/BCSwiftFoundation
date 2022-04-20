@@ -17,17 +17,6 @@ extension SCID: SimplexFormat {
     }
 }
 
-extension Reference: SimplexFormat {
-    var formatItem: SimplexFormatItem {
-        switch self {
-        case .digest(let digest):
-            return digest.formatItem
-        case .id(let id, let digest):
-            return .list([.item("("), id.formatItem, .item(" "), digest.formatItem, .item(")")])
-        }
-    }
-}
-
 extension CBOR: SimplexFormat {
     var formatItem: SimplexFormatItem {
         do {
@@ -84,8 +73,6 @@ extension Subject: SimplexFormat {
             return cbor.formatItem
         case .encrypted(_, _):
             return .item("EncryptedMessage")
-        case .reference(let reference):
-            return reference.formatItem
         }
     }
 }
@@ -95,10 +82,6 @@ extension Assertion: SimplexFormat {
         switch self {
         case .declare(let predicate, let object, _):
             return .list([predicate.formatItem, .item(": "), object.formatItem])
-        case .amend(let assertion, let object, _):
-            return .list([.item(".amend("), assertion.formatItem, object.formatItem, .item(")")])
-        case .revoke(let assertion, _):
-            return .list([.item(".revoke("), assertion.formatItem, .item(")")])
         }
     }
 }
