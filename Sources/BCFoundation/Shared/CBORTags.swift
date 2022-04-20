@@ -36,9 +36,9 @@ extension URType {
     public static let prvkeys = URType(type: "crypto-prvkeys", tag: 50)
     public static let pubkeys = URType(type: "crypto-pubkeys", tag: 51)
     public static let sealedMessage = URType(type: "crypto-sealed", tag: 55)
-    public static let digest = URType(type: "crypto-digest", tag: 700)
-    public static let symmetricKey = URType(type: "crypto-key", tag: 708)
-    public static let scid = URType(type: "crypto-scid", tag: 709)
+    public static let digest = URType(type: "crypto-digest", tag: 56)
+    public static let symmetricKey = URType(type: "crypto-key", tag: 57)
+    public static let scid = URType(type: "crypto-scid", tag: 58)
 }
 
 /// Tags for subtypes specific to AccountBundle (crypto-output)
@@ -69,13 +69,13 @@ extension CBOR.Tag {
 
 /// Tags for subtypes specific to Secure Components
 extension CBOR.Tag {
-    public static let password = CBOR.Tag(701)
-    public static let permit = CBOR.Tag(702)
-    public static let agreementPrivateKey = CBOR.Tag(703)
-    public static let agreementPublicKey = CBOR.Tag(704)
-    public static let signingPrivateKey = CBOR.Tag(705)
-    public static let signingPublicKey = CBOR.Tag(706)
-    public static let signature = CBOR.Tag(707)
-    public static let nonce = CBOR.Tag(708)
-    public static let predicate = CBOR.Tag(56)
+    public static let predicate = CBOR.Tag(59)
+    public static let password = CBOR.Tag(700)
+    public static let permit = CBOR.Tag(701)
+    public static let agreementPrivateKey = CBOR.Tag(702)
+    public static let agreementPublicKey = CBOR.Tag(703)
+    public static let signingPrivateKey = CBOR.Tag(704)
+    public static let signingPublicKey = CBOR.Tag(705)
+    public static let signature = CBOR.Tag(706)
+    public static let nonce = CBOR.Tag(707)
 }
