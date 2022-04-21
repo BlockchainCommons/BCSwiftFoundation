@@ -1,8 +1,9 @@
 import Foundation
 import URKit
 
-public enum Subject {
+public indirect enum Subject {
     case leaf(CBOR, Digest)
+    case simplex(Simplex)
     case encrypted(EncryptedMessage, Digest)
 }
 
@@ -11,6 +12,8 @@ extension Subject {
         switch self {
         case .leaf(_, let digest):
             return digest
+        case .simplex(let simplex):
+            return simplex.digest
         case .encrypted(_, let digest):
             return digest
         }
@@ -25,9 +28,13 @@ extension Subject: Equatable {
 
 extension Subject {
     init(plaintext: CBOREncodable) {
-        let cbor = plaintext.cbor
-        let encodedCBOR = cbor.cborEncode
-        self = .leaf(cbor, Digest(encodedCBOR))
+        if let simplex = plaintext as? Simplex {
+            self = .simplex(simplex)
+        } else {
+            let cbor = plaintext.cbor
+            let encodedCBOR = cbor.cborEncode
+            self = .leaf(cbor, Digest(encodedCBOR))
+        }
     }
     
     init(predicate: Predicate) {
@@ -40,57 +47,58 @@ extension Subject {
         }
         return plaintext
     }
+    
+    var simplex: Simplex? {
+        guard case let .simplex(simplex) = self else {
+            return nil
+        }
+        return simplex
+    }
 }
 
 extension Subject {
     var untaggedCBOR: CBOR {
         switch self {
         case .leaf(let plaintext, _):
-            return [1.cbor, plaintext]
+            return plaintext
+        case .simplex(let simplex):
+            return simplex.taggedCBOR
         case .encrypted(let message, let digest):
-            return [2.cbor, message.taggedCBOR, digest.taggedCBOR]
-//        case .reference(let identifier):
-//            return [3.cbor, identifier.untaggedCBOR]
+            return [message.taggedCBOR, digest.taggedCBOR]
         }
     }
     
     init(untaggedCBOR: CBOR) throws {
-        guard
-            case let CBOR.array(elements) = untaggedCBOR,
-            elements.count >= 2,
-            case let CBOR.unsignedInt(type) = elements[0]
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        switch type {
-        case 1:
+        if case let CBOR.array(elements) = untaggedCBOR {
             guard elements.count == 2 else {
-                throw CBORError.invalidFormat
+                throw SimplexError.invalidFormat
             }
-            self = .leaf(elements[1], Digest(elements[1]))
-        case 2:
-            guard elements.count == 3 else {
-                throw CBORError.invalidFormat
-            }
-            self = try .encrypted(EncryptedMessage(taggedCBOR: elements[1]), Digest(taggedCBOR: elements[2]))
-        default:
-            throw CBORError.invalidFormat
+            self = try .encrypted(EncryptedMessage(taggedCBOR: elements[0]), Digest(taggedCBOR: elements[1]))
+        } else if case CBOR.tagged(URType.simplex.tag, _) = untaggedCBOR {
+            self = try .simplex(Simplex(taggedCBOR: untaggedCBOR))
+        } else {
+            self = .leaf(untaggedCBOR, Digest(untaggedCBOR.cborEncode))
         }
     }
 }
 
 extension Subject {
     public func encrypt(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Subject {
-        guard case let .leaf(cbor, digest) = self else {
+        let encodedCBOR: Data
+        let digest: Digest
+        switch self {
+        case .leaf(let c, _):
+            encodedCBOR = c.cborEncode
+            digest = Digest(encodedCBOR)
+        case .simplex(let s):
+            encodedCBOR = s.taggedCBOR.cborEncode
+            digest = s.digest
+        case .encrypted(_, _):
             throw SimplexError.invalidOperation
         }
         
-        let encodedCBOR = cbor.cborEncode
         let encryptedMessage = key.encrypt(plaintext: encodedCBOR, aad: aad, nonce: nonce)
-        let result = Subject.encrypted(encryptedMessage, Digest(encodedCBOR))
-        assert(digest == result.digest)
-        return result
+        return Subject.encrypted(encryptedMessage, digest)
     }
     
     public func decrypt(with key: SymmetricKey) throws -> Subject {
@@ -101,16 +109,23 @@ extension Subject {
         }
         
         guard
-            let data = key.decrypt(message: encryptedMessage)
+            let encodedCBOR = key.decrypt(message: encryptedMessage)
         else {
             throw SimplexError.invalidKey
         }
         
-        guard Digest.validate(data, digest: digest) else {
-            throw SimplexError.invalidDigest
+        let cbor = try CBOR(encodedCBOR)
+        if case CBOR.tagged(URType.simplex.tag, _) = cbor {
+            let simplex = try Simplex(taggedCBOR: cbor)
+            guard simplex.digest == digest else {
+                throw SimplexError.invalidDigest
+            }
+            return .simplex(simplex)
+        } else {
+            guard Digest.validate(encodedCBOR, digest: digest) else {
+                throw SimplexError.invalidDigest
+            }
+            return .leaf(cbor, digest)
         }
-        
-        let cbor = try CBOR(data)
-        return .leaf(cbor, digest)
     }
 }

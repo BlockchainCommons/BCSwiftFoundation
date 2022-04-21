@@ -53,6 +53,10 @@ extension Simplex {
         subject.plaintext
     }
     
+    public var simplex: Simplex? {
+        subject.simplex
+    }
+    
     public var predicate: Predicate? {
         guard
             let plaintext = plaintext,
@@ -72,11 +76,11 @@ extension Simplex {
     
     public func extract() throws -> Simplex {
         guard
-            let plaintext = plaintext
+            let simplex = simplex
         else {
             throw SimplexError.invalidFormat
         }
-        return try Simplex(taggedCBOR: plaintext)
+        return simplex
     }
 }
 

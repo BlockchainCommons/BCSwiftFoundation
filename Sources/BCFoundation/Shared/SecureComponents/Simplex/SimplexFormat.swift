@@ -71,6 +71,8 @@ extension Subject: SimplexFormat {
         switch self {
         case .leaf(let cbor, _):
             return cbor.formatItem
+        case .simplex(let simplex):
+            return simplex.formatItem
         case .encrypted(_, _):
             return .item("EncryptedMessage")
         }
