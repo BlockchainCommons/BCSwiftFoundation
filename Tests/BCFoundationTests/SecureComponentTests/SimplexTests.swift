@@ -33,7 +33,7 @@ class SimplexTests: XCTestCase {
 
     func testNestingPlaintext() {
         let container = Simplex("Hello")
-        
+
         let expectedFormat =
         """
         "Hello"
@@ -44,7 +44,7 @@ class SimplexTests: XCTestCase {
     func testNestingOnce() {
         let container = Simplex("Hello")
             .enclose()
-        
+
         let expectedFormat =
         """
         {
@@ -58,7 +58,7 @@ class SimplexTests: XCTestCase {
         let container = Simplex("Hello")
             .enclose()
             .enclose()
-        
+
         let expectedFormat =
         """
         {
@@ -73,7 +73,7 @@ class SimplexTests: XCTestCase {
     func testNestingSigned() {
         let container = Simplex("Hello")
             .sign(with: alicePrivateKeys)
-        
+
         let expectedFormat =
         """
         "Hello" [
@@ -87,7 +87,7 @@ class SimplexTests: XCTestCase {
         let container = Simplex("Hello")
             .enclose()
             .sign(with: alicePrivateKeys)
-        
+
         let expectedFormat =
         """
         {
@@ -103,7 +103,7 @@ class SimplexTests: XCTestCase {
         let container = Simplex("Hello")
             .sign(with: alicePrivateKeys)
             .enclose()
-        
+
         let expectedFormat =
         """
         {
@@ -122,7 +122,7 @@ class SimplexTests: XCTestCase {
             .add("object-predicate", "object-object")
         let container = Simplex("subject")
             .add(predicate, object)
-        
+
         let expectedFormat =
         """
         "subject" [
@@ -141,7 +141,7 @@ class SimplexTests: XCTestCase {
         // Alice sends a plaintext message to Bob.
         let container = Simplex(plaintext)
         let ur = container.ur
-        
+
 //        print(container.taggedCBOR.diag)
 //        print(container.taggedCBOR.dump)
 //        print(ur)
@@ -287,7 +287,7 @@ class SimplexTests: XCTestCase {
             .enclose()
             .encrypt(with: key)
         let ur = container.ur
-        
+
         let expectedFormat =
         """
         EncryptedMessage

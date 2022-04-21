@@ -58,10 +58,7 @@ extension Digest: Comparable {
 
 extension Digest {
     public var untaggedCBOR: CBOR {
-        let type = CBOR.unsignedInt(1)
-        let digest = CBOR.data(self.rawValue)
-        
-        return CBOR.array([type, digest])
+        CBOR.data(self.rawValue)
     }
     
     public var taggedCBOR: CBOR {
@@ -76,28 +73,12 @@ extension Digest {
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.array(elements) = untaggedCBOR else {
-            throw CBORError.invalidFormat
-        }
-        
-        guard elements.count == 2 else {
-            throw CBORError.invalidFormat
-        }
-        
         guard
-            case let CBOR.unsignedInt(type) = elements[0],
-            type == 1
+            case let CBOR.data(rawValue) = untaggedCBOR,
+            let digest = Digest(rawValue: rawValue)
         else {
             throw CBORError.invalidFormat
         }
-        
-        guard
-            case let CBOR.data(digestData) = elements[1],
-            let digest = Digest(rawValue: digestData)
-        else {
-            throw CBORError.invalidFormat
-        }
-        
         self = digest
     }
     

@@ -31,9 +31,12 @@ class DigestTests: XCTestCase {
     }
     
     func testCBOR() {
-        XCTAssertEqual(
-            secureDigest.taggedCBOR.cborEncode,
-            ‡"d838820158204d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b"
+        let expected =
+        """
+        56(
+           h'4d0c1a8e4d2bbdf766c8ec46c9f62541fbe6285cacc8fda743eed9120b6a958b'
         )
+        """
+        XCTAssertEqual(secureDigest.taggedCBOR.diag, expected)
     }
 }

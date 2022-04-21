@@ -356,11 +356,13 @@ extension Simplex {
 
 extension Simplex {
     public var untaggedCBOR: CBOR {
-        var array = [subject.untaggedCBOR]
-        if !assertions.isEmpty {
-            array.append(CBOR.array(assertions.map { $0.untaggedCBOR }))
+        if assertions.isEmpty {
+            return subject.cbor
+        } else {
+            var array = [subject.cbor]
+            array.append(contentsOf: assertions.map { $0.untaggedCBOR })
+            return CBOR.array(array)
         }
-        return CBOR.array(array)
     }
     
     public var taggedCBOR: CBOR {
@@ -368,31 +370,42 @@ extension Simplex {
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard
-            case let CBOR.array(elements) = untaggedCBOR,
-            (1...2).contains(elements.count)
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        let subject = try Subject(untaggedCBOR: elements[0])
-        
-        let assertions: [Assertion]
-        if elements.count == 2 {
-            guard
-                case let CBOR.array(assertionElements) = elements[1],
-                !assertionElements.isEmpty
-            else {
+        if case let CBOR.array(elements) = untaggedCBOR {
+            guard elements.count >= 2 else {
                 throw CBORError.invalidFormat
             }
-            assertions = try assertionElements.map {
-                try Assertion(untaggedCBOR: $0)
-            }
+            let subject = try Subject(cbor: elements[0])
+            let assertions = try elements.dropFirst().map { try Assertion(untaggedCBOR: $0 ) }
+            self.init(subject: subject, assertions: assertions)
         } else {
-            assertions = []
+            try self.init(subject: Subject(cbor: untaggedCBOR), assertions: [])
         }
-        
-        self.init(subject: subject, assertions: assertions)
+
+//        guard
+//            case let CBOR.array(elements) = untaggedCBOR,
+//            (1...2).contains(elements.count)
+//        else {
+//            throw CBORError.invalidFormat
+//        }
+//
+//        let subject = try Subject(cbor: elements[0])
+//
+//        let assertions: [Assertion]
+//        if elements.count == 2 {
+//            guard
+//                case let CBOR.array(assertionElements) = elements[1],
+//                !assertionElements.isEmpty
+//            else {
+//                throw CBORError.invalidFormat
+//            }
+//            assertions = try assertionElements.map {
+//                try Assertion(untaggedCBOR: $0)
+//            }
+//        } else {
+//            assertions = []
+//        }
+//
+//        self.init(subject: subject, assertions: assertions)
     }
     
     public init(taggedCBOR: CBOR) throws {

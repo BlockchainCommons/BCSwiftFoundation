@@ -57,27 +57,33 @@ extension Subject {
 }
 
 extension Subject {
-    var untaggedCBOR: CBOR {
+    var cbor: CBOR {
         switch self {
-        case .leaf(let plaintext, _):
-            return plaintext
         case .simplex(let simplex):
             return simplex.taggedCBOR
+        case .leaf(let plaintext, _):
+            return CBOR.tagged(.plaintext, plaintext)
         case .encrypted(let message, let digest):
-            return [message.taggedCBOR, digest.taggedCBOR]
+            return CBOR.tagged(.encrypted, [message.taggedCBOR, digest.taggedCBOR])
         }
     }
     
-    init(untaggedCBOR: CBOR) throws {
-        if case let CBOR.array(elements) = untaggedCBOR {
-            guard elements.count == 2 else {
+    init(cbor: CBOR) throws {
+        if case CBOR.tagged(URType.simplex.tag, _) = cbor {
+            self = try .simplex(Simplex(taggedCBOR: cbor))
+        } else if case let CBOR.tagged(.plaintext, plaintext) = cbor {
+            self = .leaf(plaintext, Digest(plaintext.cborEncode))
+        } else if case let CBOR.tagged(.encrypted, encrypted) = cbor {
+            guard
+                case let CBOR.array(elements) = encrypted,
+                elements.count == 2
+            else {
                 throw SimplexError.invalidFormat
             }
+            
             self = try .encrypted(EncryptedMessage(taggedCBOR: elements[0]), Digest(taggedCBOR: elements[1]))
-        } else if case CBOR.tagged(URType.simplex.tag, _) = untaggedCBOR {
-            self = try .simplex(Simplex(taggedCBOR: untaggedCBOR))
         } else {
-            self = .leaf(untaggedCBOR, Digest(untaggedCBOR.cborEncode))
+            throw SimplexError.invalidFormat
         }
     }
 }

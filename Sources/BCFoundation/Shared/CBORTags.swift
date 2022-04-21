@@ -70,6 +70,8 @@ extension CBOR.Tag {
 /// Tags for subtypes specific to Secure Components
 extension CBOR.Tag {
     public static let predicate = CBOR.Tag(59)
+    public static let plaintext = CBOR.Tag(60)
+    public static let encrypted = CBOR.Tag(61)
     public static let password = CBOR.Tag(700)
     public static let permit = CBOR.Tag(701)
     public static let agreementPrivateKey = CBOR.Tag(702)

@@ -49,14 +49,13 @@ extension Signature {
     public var untaggedCBOR: CBOR {
         switch self {
         case .schnorr(let data, let tag):
-            let type = CBOR.unsignedInt(1)
-            let sig = CBOR.data(data)
-            let tag = CBOR.data(tag)
-            return CBOR.array([type, sig, tag])
+            if tag.isEmpty {
+                return data.cbor
+            } else {
+                return [data.cbor, tag.cbor]
+            }
         case .ecdsa(let data):
-            let type = CBOR.unsignedInt(2)
-            let sig = CBOR.data(data)
-            return CBOR.array([type, sig])
+            return [1.cbor, data.cbor]
         }
     }
     
@@ -65,33 +64,25 @@ extension Signature {
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard
+        if
+            case let CBOR.data(data) = untaggedCBOR
+        {
+            self = .schnorr(data: data, tag: Data())
+        } else if
             case let CBOR.array(elements) = untaggedCBOR,
-            elements.count > 1,
-            case let CBOR.unsignedInt(type) = elements[0]
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        switch type {
-        case 1:
-            guard
-                elements.count == 3,
-                case let CBOR.data(sigData) = elements[1],
-                case let CBOR.data(tagData) = elements[2]
-            else {
-                throw CBORError.invalidFormat
-            }
-            self = .schnorr(data: sigData, tag: tagData)
-        case 2:
-            guard
-                elements.count == 2,
-                case let CBOR.data(sigData) = elements[1]
-            else {
-                throw CBORError.invalidFormat
-            }
-            self = .ecdsa(data: sigData)
-        default:
+            elements.count == 2,
+            case let CBOR.data(data) = elements[0],
+            case let CBOR.data(tag) = elements[1]
+        {
+            self = .schnorr(data: data, tag: tag)
+        } else if
+            case let CBOR.array(elements) = untaggedCBOR,
+            elements.count == 2,
+            case CBOR.unsignedInt(1) = elements[0],
+            case let CBOR.data(data) = elements[1]
+        {
+            self = .ecdsa(data: data)
+        } else {
             throw CBORError.invalidFormat
         }
     }
