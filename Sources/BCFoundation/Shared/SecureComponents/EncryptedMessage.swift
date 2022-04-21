@@ -61,14 +61,20 @@ extension EncryptedMessage {
 }
 
 extension EncryptedMessage {
-    public var untaggedCBOR: CBOR {
-        let type = CBOR.unsignedInt(1)
-        let ciphertext = CBOR.data(self.ciphertext)
-        let aad = CBOR.data(self.aad)
-        let nonce = CBOR.data(self.nonce.rawValue)
-        let auth = CBOR.data(self.auth.rawValue)
+    public var digest: Digest {
+        get throws {
+            try Digest(taggedCBOR: CBOR(aad))
+        }
+    }
+}
 
-        return CBOR.array([type, ciphertext, aad, nonce, auth])
+extension EncryptedMessage {
+    public var untaggedCBOR: CBOR {
+        if self.aad.isEmpty {
+            return CBOR.array([ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor])
+        } else {
+            return CBOR.array([ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor, aad.cbor])
+        }
     }
     
     public var taggedCBOR: CBOR {
@@ -95,20 +101,27 @@ extension EncryptedMessage {
     {
         guard
             case let CBOR.array(elements) = cbor,
-            elements.count == 5,
-            case let CBOR.unsignedInt(type) = elements[0],
-            type == 1,
-            case let CBOR.data(ciphertext) = elements[1],
-            case let CBOR.data(aad) = elements[2],
-            case let CBOR.data(nonceData) = elements[3],
+            (3...4).contains(elements.count),
+            case let CBOR.data(ciphertext) = elements[0],
+            case let CBOR.data(nonceData) = elements[1],
             let nonce = Nonce(rawValue: nonceData),
-            case let CBOR.data(authData) = elements[4],
+            case let CBOR.data(authData) = elements[2],
             let auth = Auth(rawValue: authData)
         else {
             throw CBORError.invalidFormat
         }
-        
-        return (ciphertext, aad, nonce, auth)
+
+        if elements.count == 4 {
+            guard
+                case let CBOR.data(aad) = elements[3],
+                !aad.isEmpty
+            else {
+                throw CBORError.invalidFormat
+            }
+            return (ciphertext, aad, nonce, auth)
+        } else {
+            return (ciphertext, Data(), nonce, auth)
+        }
     }
     
     public static func decode(taggedCBOR: CBOR) throws -> (ciphertext: Data, aad: Data, nonce: Nonce, auth: Auth) {

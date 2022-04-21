@@ -36,12 +36,16 @@ class EncryptedMessageTests: XCTestCase {
     }
     
     func testCBOR() {
-        let expectedCBOR = ‡"d83085015872d31a8d34648e60db7b86afbc53ef7ec2a4aded51296e08fea9e2b5a736ee62d63dbea45e8ca9671282fafb69da92728b1a71de0a9e060b2905d6a5b67ecd3b3692ddbd7f2d778b8c9803aee328091b58fab324e4fad675945585808b4831d7bc3ff4def08e4b7a9de576d26586cec64b61164c50515253c0c1c2c3c4c5c6c74c070000004041424344454647501ae10b594f09e26a7e902ecbd0600691"
+//        print(secureMessage.taggedCBOR.cborEncode.hex)
+//        print(secureMessage.taggedCBOR.diag)
+//        print(secureMessage.taggedCBOR.dump)
+        let expectedCBOR = ‡"d830845872d31a8d34648e60db7b86afbc53ef7ec2a4aded51296e08fea9e2b5a736ee62d63dbea45e8ca9671282fafb69da92728b1a71de0a9e060b2905d6a5b67ecd3b3692ddbd7f2d778b8c9803aee328091b58fab324e4fad675945585808b4831d7bc3ff4def08e4b7a9de576d26586cec64b61164c070000004041424344454647501ae10b594f09e26a7e902ecbd06006914c50515253c0c1c2c3c4c5c6c7"
         XCTAssertEqual(secureMessage.taggedCBOR.cborEncode, expectedCBOR)
     }
     
     func testUR() {
-        let expectedUR = try! UR(urString: "ur:crypto-msg/lpadhdjptecylgeeiemnhnuykglnperfguwskbsaoxpmwegydtjtayzeptvoreosenwyidtbfsrnoxhylkptiobglfzszointnmojplucyjsuebknnambddtahtbonrpkbsnfrenmoutrylbdpktlulkmkaxplvldeascwhdzsqddkvezstbkpmwgolplalufdehtsrffhwkuewtmngrknntvwkotdihlntoswgrhscmgsgdgygmgurtsesasrssskswstgsataeaeaefzfpfwfxfyfefgflgdcyvybdhkgwasvoimkbmhdmsbtihnammeihgudrjp")
+//        print(secureMessage.ur)
+        let expectedUR = try! UR(urString: "ur:crypto-msg/lrhdjptecylgeeiemnhnuykglnperfguwskbsaoxpmwegydtjtayzeptvoreosenwyidtbfsrnoxhylkptiobglfzszointnmojplucyjsuebknnambddtahtbonrpkbsnfrenmoutrylbdpktlulkmkaxplvldeascwhdzsqddkvezstbkpmwgolplalufdehtsrffhwkuewtmngrknntvwkotdihlntoswgrhscmgsataeaeaefzfpfwfxfyfefgflgdcyvybdhkgwasvoimkbmhdmsbtihnammegsgdgygmgurtsesasrssskswstcfnbpdct")
         XCTAssertEqual(secureMessage.ur, expectedUR)
     }
 }

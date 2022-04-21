@@ -308,8 +308,8 @@ extension Simplex {
 }
 
 extension Simplex {
-    public func encrypt(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Simplex {
-        let subject = try self.subject.encrypt(with: key, aad: aad, nonce: nonce)
+    public func encrypt(with key: SymmetricKey, nonce: Nonce? = nil) throws -> Simplex {
+        let subject = try self.subject.encrypt(with: key, nonce: nonce)
         let result = Simplex(subject: subject, assertions: assertions)
         assert(digest == result.digest)
         return result

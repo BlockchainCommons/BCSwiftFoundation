@@ -71,13 +71,13 @@ extension CBOR.Tag {
 extension CBOR.Tag {
     public static let predicate = CBOR.Tag(59)
     public static let plaintext = CBOR.Tag(60)
-    public static let encrypted = CBOR.Tag(61)
+    public static let signature = CBOR.Tag(61)
+    public static let agreementPublicKey = CBOR.Tag(62)
+    
     public static let password = CBOR.Tag(700)
     public static let permit = CBOR.Tag(701)
     public static let agreementPrivateKey = CBOR.Tag(702)
-    public static let agreementPublicKey = CBOR.Tag(703)
     public static let signingPrivateKey = CBOR.Tag(704)
     public static let signingPublicKey = CBOR.Tag(705)
-    public static let signature = CBOR.Tag(706)
     public static let nonce = CBOR.Tag(707)
 }

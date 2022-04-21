@@ -40,11 +40,10 @@ public struct SealedMessage {
 
 extension SealedMessage {
     public var untaggedCBOR: CBOR {
-        let type = CBOR.unsignedInt(1)
         let message = self.message.taggedCBOR
         let ephemeralPublicKey = self.ephemeralPublicKey.taggedCBOR
         
-        return CBOR.array([type, message, ephemeralPublicKey])
+        return CBOR.array([message, ephemeralPublicKey])
     }
     
     public var taggedCBOR: CBOR {
@@ -54,11 +53,9 @@ extension SealedMessage {
     public init(untaggedCBOR: CBOR) throws {
         guard
             case let CBOR.array(elements) = untaggedCBOR,
-            elements.count == 3,
-            case let CBOR.unsignedInt(type) = elements[0],
-            type == 1,
-            let message = try? EncryptedMessage(taggedCBOR: elements[1]),
-            let ephemeralPublicKey = try? AgreementPublicKey(taggedCBOR: elements[2])
+            elements.count == 2,
+            let message = try? EncryptedMessage(taggedCBOR: elements[0]),
+            let ephemeralPublicKey = try? AgreementPublicKey(taggedCBOR: elements[1])
         else {
             throw CBORError.invalidFormat
         }

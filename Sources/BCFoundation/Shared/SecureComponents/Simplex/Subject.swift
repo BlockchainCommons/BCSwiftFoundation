@@ -63,8 +63,8 @@ extension Subject {
             return simplex.taggedCBOR
         case .leaf(let plaintext, _):
             return CBOR.tagged(.plaintext, plaintext)
-        case .encrypted(let message, let digest):
-            return CBOR.tagged(.encrypted, [message.taggedCBOR, digest.taggedCBOR])
+        case .encrypted(let message, _):
+            return message.taggedCBOR
         }
     }
     
@@ -73,15 +73,9 @@ extension Subject {
             self = try .simplex(Simplex(taggedCBOR: cbor))
         } else if case let CBOR.tagged(.plaintext, plaintext) = cbor {
             self = .leaf(plaintext, Digest(plaintext.cborEncode))
-        } else if case let CBOR.tagged(.encrypted, encrypted) = cbor {
-            guard
-                case let CBOR.array(elements) = encrypted,
-                elements.count == 2
-            else {
-                throw SimplexError.invalidFormat
-            }
-            
-            self = try .encrypted(EncryptedMessage(taggedCBOR: elements[0]), Digest(taggedCBOR: elements[1]))
+        } else if case CBOR.tagged(URType.message.tag, _) = cbor {
+            let message = try EncryptedMessage(taggedCBOR: cbor)
+            self = try .encrypted(message, message.digest)
         } else {
             throw SimplexError.invalidFormat
         }
@@ -89,7 +83,7 @@ extension Subject {
 }
 
 extension Subject {
-    public func encrypt(with key: SymmetricKey, aad: Data? = nil, nonce: Nonce? = nil) throws -> Subject {
+    public func encrypt(with key: SymmetricKey, nonce: Nonce? = nil) throws -> Subject {
         let encodedCBOR: Data
         let digest: Digest
         switch self {
@@ -103,13 +97,13 @@ extension Subject {
             throw SimplexError.invalidOperation
         }
         
-        let encryptedMessage = key.encrypt(plaintext: encodedCBOR, aad: aad, nonce: nonce)
+        let encryptedMessage = key.encrypt(plaintext: encodedCBOR, digest: digest, nonce: nonce)
         return Subject.encrypted(encryptedMessage, digest)
     }
     
     public func decrypt(with key: SymmetricKey) throws -> Subject {
         guard
-            case let .encrypted(encryptedMessage, digest) = self
+            case let .encrypted(encryptedMessage, _) = self
         else {
             throw SimplexError.invalidOperation
         }
@@ -128,7 +122,7 @@ extension Subject {
             }
             return .simplex(simplex)
         } else {
-            guard Digest.validate(encodedCBOR, digest: digest) else {
+            guard try Digest.validate(encodedCBOR, digest: encryptedMessage.digest) else {
                 throw SimplexError.invalidDigest
             }
             return .leaf(cbor, digest)
