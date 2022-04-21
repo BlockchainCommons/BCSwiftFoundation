@@ -79,10 +79,7 @@ extension Subject: SimplexFormat {
 
 extension Assertion: SimplexFormat {
     var formatItem: SimplexFormatItem {
-        switch self {
-        case .declare(let predicate, let object, _):
-            return .list([predicate.formatItem, .item(": "), object.formatItem])
-        }
+        .list([predicate.formatItem, .item(": "), object.formatItem])
     }
 }
 

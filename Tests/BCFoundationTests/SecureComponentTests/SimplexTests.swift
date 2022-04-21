@@ -268,12 +268,12 @@ class SimplexTests: XCTestCase {
     func testEncryptDecrypt() throws {
         let key = SymmetricKey()
         let plaintextContainer = Simplex(plaintext)
-        print(plaintextContainer.format)
+//        print(plaintextContainer.format)
         let encryptedContainer = try plaintextContainer.encrypt(with: key)
-        print(encryptedContainer.format)
+//        print(encryptedContainer.format)
         XCTAssertEqual(plaintextContainer, encryptedContainer)
         let plaintextContainer2 = try encryptedContainer.decrypt(with: key)
-        print(plaintextContainer2.format)
+//        print(plaintextContainer2.format)
         XCTAssertEqual(encryptedContainer, plaintextContainer2)
     }
     
@@ -939,7 +939,7 @@ class SimplexTests: XCTestCase {
 
         let line2ExpectedFormat =
         """
-        Digest(00c37744b4fea92c7760c0546c936f456d8e67b47c6f3d93c3ee349d6534fa18) [
+        Digest(0680a0ba78b2bd47dcf7c02a28c41bdce207389fb2895cf4c2b65223753b44b8) [
             "priceEach": "4.99"
             "product": SCID(ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64)
             "quantity": 3
@@ -961,14 +961,14 @@ class SimplexTests: XCTestCase {
         let purchaseOrderProjectionExpectedFormat =
         """
         SCID(1bebb5b6e447f819d5a4cb86409c5da1207d1460672dfe903f55cde833549625) [
-            "lineItem": Digest(00c37744b4fea92c7760c0546c936f456d8e67b47c6f3d93c3ee349d6534fa18) [
+            "lineItem": Digest(0680a0ba78b2bd47dcf7c02a28c41bdce207389fb2895cf4c2b65223753b44b8) [
                 "priceEach": "10.99"
                 "product": SCID(5bcca01f5f370ceb3b7365f076e9600e294d4da6ddf7a616976c87775ea8f0f1)
                 "quantity": 4
                 hasName: "Quality Widget"
                 isA: "PurchaseOrderLineItem"
             ]
-            "lineItem": Digest(00c37744b4fea92c7760c0546c936f456d8e67b47c6f3d93c3ee349d6534fa18) [
+            "lineItem": Digest(0680a0ba78b2bd47dcf7c02a28c41bdce207389fb2895cf4c2b65223753b44b8) [
                 "priceEach": "4.99"
                 "product": SCID(ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64)
                 "quantity": 3

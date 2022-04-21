@@ -2,23 +2,17 @@ import Foundation
 import WolfBase
 import SSKR
 
-public enum Assertion {
-    case declare(predicate: Simplex, object: Simplex, digest: Digest)
+public struct Assertion {
+    public let predicate: Simplex
+    public let object: Simplex
+    public let digest: Digest
 }
 
 extension Assertion {
     public init(_ predicate: Simplex, _ object: Simplex) {
-        let digest = Digest("declare".utf8Data + predicate.digest.rawValue + object.digest.rawValue)
-        self = .declare(predicate: predicate, object: object, digest: digest)
-    }
-}
-
-extension Assertion {
-    public var digest: Digest {
-        switch self {
-        case .declare(_, _, let digest):
-            return digest
-        }
+        self.predicate = predicate
+        self.object = object
+        self.digest = Digest(predicate.digest.rawValue + object.digest.rawValue)
     }
 }
 
@@ -63,49 +57,20 @@ extension Assertion {
 
 extension Assertion {
     var untaggedCBOR: CBOR {
-        switch self {
-        case .declare(let predicate, let object, _):
-            return [1.cbor, predicate.untaggedCBOR, object.untaggedCBOR]
-        }
+        [predicate.taggedCBOR, object.taggedCBOR]
     }
     
     init(untaggedCBOR: CBOR) throws {
         guard
             case let CBOR.array(elements) = untaggedCBOR,
-            elements.count >= 2,
-            case let CBOR.unsignedInt(type) = elements[0]
+            elements.count == 2
         else {
             throw CBORError.invalidFormat
         }
-        
-        switch type {
-        case 1:
-            guard elements.count == 3 else {
-                throw CBORError.invalidFormat
-            }
-            let predicate = try Simplex(untaggedCBOR: elements[1])
-            let object = try Simplex(untaggedCBOR: elements[2])
-            self.init(predicate, object)
-        default:
-            throw CBORError.invalidFormat
-        }
-    }
-    
-    public var predicate: Predicate? {
-        predicateValue.predicate
-    }
-    
-    public var predicateValue: Simplex {
-        switch self {
-        case .declare(let predicate, _, _):
-            return predicate
-        }
-    }
 
-    public var object: Simplex {
-        switch self {
-        case .declare(_, let object, _):
-            return object
-        }
+        let predicate = try Simplex(taggedCBOR: elements[0])
+        let object = try Simplex(taggedCBOR: elements[1])
+
+        self.init(predicate, object)
     }
 }

@@ -95,7 +95,7 @@ extension Simplex: ExpressibleByIntegerLiteral {
 extension Simplex {
     public func assertions(predicate: CBOREncodable) -> [Assertion] {
         let predicate = Simplex(predicate)
-        return assertions.filter { $0.predicateValue == predicate }
+        return assertions.filter { $0.predicate == predicate }
     }
 
     public func assertion(predicate: CBOREncodable) throws -> Assertion {
@@ -117,7 +117,8 @@ extension Simplex {
 
 extension Simplex {
     public func assertions(predicate: Predicate) -> [Assertion] {
-        assertions.filter { $0.predicate == predicate }
+        let p = Simplex(predicate: predicate)
+        return assertions.filter { $0.predicate == p }
     }
     
     public func assertion(predicate: Predicate) throws -> Assertion {
