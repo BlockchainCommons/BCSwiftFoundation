@@ -69,7 +69,7 @@ extension CBOR: SimplexFormat {
 extension Subject: SimplexFormat {
     var formatItem: SimplexFormatItem {
         switch self {
-        case .plaintext(let cbor, _):
+        case .leaf(let cbor, _):
             return cbor.formatItem
         case .encrypted(_, _):
             return .item("EncryptedMessage")
