@@ -45,9 +45,7 @@ public struct SigningPrivateKey: CustomStringConvertible, Hashable {
 
 extension SigningPrivateKey {
     public var untaggedCBOR: CBOR {
-        let type = CBOR.unsignedInt(1)
-        let key = CBOR.data(self.data)
-        return CBOR.array([type, key])
+        CBOR.data(self.data)
     }
 
     public var taggedCBOR: CBOR {
@@ -56,11 +54,7 @@ extension SigningPrivateKey {
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.array(elements) = untaggedCBOR,
-            elements.count == 2,
-            case let CBOR.unsignedInt(type) = elements[0],
-            type == 1,
-            case let CBOR.data(data) = elements[1],
+            case let CBOR.data(data) = untaggedCBOR,
             let key = SigningPrivateKey(data)
         else {
             throw CBORError.invalidFormat

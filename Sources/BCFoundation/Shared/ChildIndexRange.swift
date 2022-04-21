@@ -43,10 +43,10 @@ extension ChildIndexRange {
 
 extension ChildIndexRange {
     public var untaggedCBOR: CBOR {
-        CBOR.array([
+        [
             CBOR.unsignedInt(UInt64(low.value)),
             CBOR.unsignedInt(UInt64(high.value))
-        ])
+        ]
     }
     
     public init?(cbor: CBOR) {

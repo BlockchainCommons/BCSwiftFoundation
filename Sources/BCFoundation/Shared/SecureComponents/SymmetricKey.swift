@@ -56,9 +56,7 @@ public struct SymmetricKey: CustomStringConvertible, Equatable, Hashable, DataPr
 
 extension SymmetricKey {
     public var untaggedCBOR: CBOR {
-        let type = CBOR.unsignedInt(1)
-        let key = CBOR.data(self.data)
-        return CBOR.array([type, key])
+        CBOR.data(self.data)
     }
 
     public var taggedCBOR: CBOR {
@@ -66,13 +64,8 @@ extension SymmetricKey {
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard
-            case let CBOR.array(elements) = untaggedCBOR,
-            elements.count == 2,
-            case let CBOR.unsignedInt(type) = elements[0],
-            type == 1,
-            case let CBOR.data(data) = elements[1],
-            let key = SymmetricKey(data)
+        guard case let CBOR.data(data) = untaggedCBOR,
+              let key = SymmetricKey(data)
         else {
             throw CBORError.invalidFormat
         }

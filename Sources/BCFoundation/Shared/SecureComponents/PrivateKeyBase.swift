@@ -69,10 +69,7 @@ public struct PrivateKeyBase {
 
 extension PrivateKeyBase {
     public var untaggedCBOR: CBOR {
-        let type = CBOR.unsignedInt(1)
-        let data = CBOR.data(self.data)
-        let salt = CBOR.data(self.salt)
-        return CBOR.array([type, data, salt])
+        [data.cbor, salt.cbor]
     }
 
     public var taggedCBOR: CBOR {
@@ -82,11 +79,9 @@ extension PrivateKeyBase {
     public init(untaggedCBOR: CBOR) throws {
         guard
             case let CBOR.array(elements) = untaggedCBOR,
-            elements.count == 3,
-            case let CBOR.unsignedInt(type) = elements[0],
-            type == 1,
-            case let CBOR.data(data) = elements[1],
-            case let CBOR.data(salt) = elements[2]
+            elements.count == 2,
+            case let CBOR.data(data) = elements[0],
+            case let CBOR.data(salt) = elements[1]
         else {
             throw CBORError.invalidFormat
         }

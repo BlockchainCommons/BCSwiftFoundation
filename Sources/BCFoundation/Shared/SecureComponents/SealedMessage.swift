@@ -43,7 +43,7 @@ extension SealedMessage {
         let message = self.message.taggedCBOR
         let ephemeralPublicKey = self.ephemeralPublicKey.taggedCBOR
         
-        return CBOR.array([message, ephemeralPublicKey])
+        return [message, ephemeralPublicKey]
     }
     
     public var taggedCBOR: CBOR {

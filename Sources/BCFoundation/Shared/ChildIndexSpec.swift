@@ -68,7 +68,7 @@ extension ChildIndexSpec {
         case .indexRange(let indexRange):
             return indexRange.untaggedCBOR
         case .indexWildcard:
-            return CBOR.array([])
+            return []
         default:
             fatalError()
         }

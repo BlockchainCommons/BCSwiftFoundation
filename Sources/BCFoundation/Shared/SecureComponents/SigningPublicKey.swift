@@ -77,13 +77,9 @@ extension SigningPublicKey {
     public var untaggedCBOR: CBOR {
         switch self {
         case .schnorr(let key):
-            let type = CBOR.unsignedInt(1)
-            let data = CBOR.data(key.data)
-            return CBOR.array([type, data])
+            return CBOR.data(key.data)
         case .ecdsa(let key):
-            let type = CBOR.unsignedInt(2)
-            let data = CBOR.data(key.data)
-            return CBOR.array([type, data])
+            return [1.cbor, key.data.cbor]
         }
     }
 
@@ -92,34 +88,21 @@ extension SigningPublicKey {
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard
-            case let CBOR.array(elements) = untaggedCBOR,
-            elements.count > 1,
-            case let CBOR.unsignedInt(type) = elements[0]
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        switch type {
-        case 1:
-            guard
-                case let CBOR.data(data) = elements[1],
-                let key = ECXOnlyPublicKey(data)
-            else {
-                throw CBORError.invalidFormat
-            }
+        if case let CBOR.data(data) = untaggedCBOR,
+           let key = ECXOnlyPublicKey(data)
+        {
             self = .schnorr(key)
-        case 2:
-            guard
-                case let CBOR.data(data) = elements[1],
-                let key = ECPublicKey(data)
-            else {
-                throw CBORError.invalidFormat
-            }
+            return
+        } else if case let CBOR.array(elements) = untaggedCBOR,
+                  elements.count == 2,
+                  case CBOR.unsignedInt(1) = elements[0],
+                  case let CBOR.data(data) = elements[1],
+                  let key = ECPublicKey(data)
+        {
             self = .ecdsa(key)
-        default:
-            throw CBORError.invalidFormat
+            return
         }
+        throw CBORError.invalidFormat
     }
     
     public init(taggedCBOR: CBOR) throws {

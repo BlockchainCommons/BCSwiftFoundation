@@ -23,11 +23,7 @@ public struct PublicKeyBase: CustomStringConvertible, Hashable {
 
 extension PublicKeyBase {
     public var untaggedCBOR: CBOR {
-        let type = CBOR.unsignedInt(1)
-        let signingKey = signingPublicKey.taggedCBOR
-        let agreementKey = agreementPublicKey.taggedCBOR
-        
-        return CBOR.array([type, signingKey, agreementKey])
+        [signingPublicKey.taggedCBOR, agreementPublicKey.taggedCBOR]
     }
     
     public var taggedCBOR: CBOR {
@@ -37,15 +33,13 @@ extension PublicKeyBase {
     public init(untaggedCBOR: CBOR) throws {
         guard
             case let CBOR.array(elements) = untaggedCBOR,
-            elements.count == 3,
-            case let CBOR.unsignedInt(type) = elements[0],
-            type == 1
+            elements.count == 2
         else {
             throw CBORError.invalidFormat
         }
         
-        let signingKey = try SigningPublicKey(taggedCBOR: elements[1])
-        let agreementKey = try AgreementPublicKey(taggedCBOR: elements[2])
+        let signingKey = try SigningPublicKey(taggedCBOR: elements[0])
+        let agreementKey = try AgreementPublicKey(taggedCBOR: elements[1])
 
         self.init(signingPublicKey: signingKey, agreementPublicKey: agreementKey)
     }

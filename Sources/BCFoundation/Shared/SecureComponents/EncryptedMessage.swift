@@ -71,9 +71,9 @@ extension EncryptedMessage {
 extension EncryptedMessage {
     public var untaggedCBOR: CBOR {
         if self.aad.isEmpty {
-            return CBOR.array([ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor])
+            return [ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor]
         } else {
-            return CBOR.array([ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor, aad.cbor])
+            return [ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor, aad.cbor]
         }
     }
     
