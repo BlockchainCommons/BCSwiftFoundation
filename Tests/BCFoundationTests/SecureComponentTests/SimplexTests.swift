@@ -4,21 +4,25 @@ import WolfBase
 
 fileprivate let plaintext = "Hello."
 
-fileprivate let aliceSeed = Seed(data: ‡"82f32c855d3d542256180810797e0073")!
-fileprivate let alicePrivateKeys = PrivateKeyBase(aliceSeed)
+fileprivate let aliceIdentifier = SCID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
+fileprivate let alicePrivateKeys = PrivateKeyBase(Seed(data: ‡"82f32c855d3d542256180810797e0073")!)
 fileprivate let alicePublicKeys = alicePrivateKeys.publicKeys
 
-fileprivate let bobSeed = Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!
-fileprivate let bobPrivateKeys = PrivateKeyBase(bobSeed)
+fileprivate let bobIdentifier = SCID(‡"24b5b23d8aed462c5a3c02cc4972315eb71a6c5fdfc0063de28603f467ae499c")!
+fileprivate let bobPrivateKeys = PrivateKeyBase(Seed(data: ‡"187a5973c64d359c836eba466a44db7b")!)
 fileprivate let bobPublicKeys = bobPrivateKeys.publicKeys
 
-fileprivate let carolSeed = Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!
-fileprivate let carolPrivateKeys = PrivateKeyBase(carolSeed)
+fileprivate let carolIdentifier = SCID(‡"06c777262faedf49a443277474c1c08531efcff4c58e9cb3b04f7fc1c0e6d60d")!
+fileprivate let carolPrivateKeys = PrivateKeyBase(Seed(data: ‡"8574afab18e229651c1be8f76ffee523")!)
 fileprivate let carolPublicKeys = carolPrivateKeys.publicKeys
 
-fileprivate let exampleLedgerSeed = Seed(data: ‡"d6737ab34e4e8bb05b6ac035f9fba81a")!
-fileprivate let exampleLedgerPrivateKeys = PrivateKeyBase(exampleLedgerSeed)
+fileprivate let exampleLedgerIdentifier = SCID(‡"0eda5ce79a2b5619e387f490861a2e7211559029b3b369cf98fb749bd3ba9a5d")!
+fileprivate let exampleLedgerPrivateKeys = PrivateKeyBase(Seed(data: ‡"d6737ab34e4e8bb05b6ac035f9fba81a")!)
 fileprivate let exampleLedgerPublicKeys = exampleLedgerPrivateKeys.publicKeys
+
+fileprivate let stateIdentifier = SCID(‡"04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8")!
+fileprivate let statePrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
+fileprivate let statePublicKeys = statePrivateKeys.publicKeys
 
 class SimplexTests: XCTestCase {
     func testPredicate() {
@@ -32,11 +36,11 @@ class SimplexTests: XCTestCase {
     }
 
     func testNestingPlaintext() {
-        let container = Simplex("Hello")
+        let container = Simplex(plaintext)
 
         let expectedFormat =
         """
-        "Hello"
+        "Hello."
         """
         XCTAssertEqual(container.format, expectedFormat)
         
@@ -51,18 +55,18 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingOnce() {
-        let container = Simplex("Hello")
+        let container = Simplex(plaintext)
             .enclose()
 
         let expectedFormat =
         """
         {
-            "Hello"
+            "Hello."
         }
         """
         XCTAssertEqual(container.format, expectedFormat)
 
-        let redactedContainer = Simplex("Hello")
+        let redactedContainer = Simplex(plaintext)
             .redact()
             .enclose()
 
@@ -78,7 +82,7 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingTwice() throws {
-        let container = Simplex("Hello")
+        let container = Simplex(plaintext)
             .enclose()
             .enclose()
 
@@ -86,7 +90,7 @@ class SimplexTests: XCTestCase {
         """
         {
             {
-                "Hello"
+                "Hello."
             }
         }
         """
@@ -108,12 +112,12 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingSigned() throws {
-        let container = Simplex("Hello")
+        let container = Simplex(plaintext)
             .sign(with: alicePrivateKeys)
 
         let expectedFormat =
         """
-        "Hello" [
+        "Hello." [
             authenticatedBy: Signature
         ]
         """
@@ -134,14 +138,14 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingEncloseThenSign() throws {
-        let container = Simplex("Hello")
+        let container = Simplex(plaintext)
             .enclose()
             .sign(with: alicePrivateKeys)
 
         let expectedFormat =
         """
         {
-            "Hello"
+            "Hello."
         } [
             authenticatedBy: Signature
         ]
@@ -174,7 +178,7 @@ class SimplexTests: XCTestCase {
         let expectedRevealedFormat =
         """
         {
-            "Hello"
+            "Hello."
         } [
             REDACTED: REDACTED
         ]
@@ -183,14 +187,14 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingSignThenEnclose() {
-        let container = Simplex("Hello")
+        let container = Simplex(plaintext)
             .sign(with: alicePrivateKeys)
             .enclose()
 
         let expectedFormat =
         """
         {
-            "Hello" [
+            "Hello." [
                 authenticatedBy: Signature
             ]
         }
@@ -637,7 +641,7 @@ class SimplexTests: XCTestCase {
         // Dan ➡️ ☁️ ➡️ Bob
         // Dan ➡️ ☁️ ➡️ Carol
 
-        // let aliceEnvelope = Envelope(ur: sentURs[0]) // UNRECOVERED
+        // let aliceContainer = Container(ur: sentURs[0]) // UNRECOVERED
         let bobContainer = try Simplex(ur: sentURs[1])
         let carolContainer = try Simplex(ur: sentURs[2])
 
@@ -652,7 +656,7 @@ class SimplexTests: XCTestCase {
         XCTAssertEqual(danSeed.name, recoveredSeed.name)
         XCTAssertEqual(danSeed.note, recoveredSeed.note)
 
-        // Attempting to recover with only one of the envelopes won't work.
+        // Attempting to recover with only one of the containers won't work.
         XCTAssertThrowsError(try Simplex(shares: [bobContainer]))
     }
 
@@ -718,7 +722,6 @@ class SimplexTests: XCTestCase {
         // document itself can be referred to by its SCID, while the signed document
         // can be referred to by its digest.
         
-        let aliceIdentifier = SCID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
         let aliceUnsignedDocument = Simplex(aliceIdentifier)
             .add(.controller, aliceIdentifier)
             .add(.publicKeys, alicePublicKeys)
@@ -842,7 +845,7 @@ class SimplexTests: XCTestCase {
         """
         XCTAssertEqual(aliceChallengeResponse.format, aliceChallengeResponseExpectedFormat)
 
-        // Bob receive's Alice's response, and first checks that the nonce is the once he sent.
+        // Bob receives Alice's response, and first checks that the nonce is the once he sent.
         let responseNonce = try aliceChallengeResponse
             .extract()
             .extract()
@@ -872,11 +875,6 @@ class SimplexTests: XCTestCase {
     func testCredential() throws {
         // John Smith's identifier
         let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
-
-        // The State of Example's identifier and private keys
-        let stateIdentifier = SCID(‡"04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8")!
-        let statePrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
-        let statePublicKeys = statePrivateKeys.publicKeys
 
         // A photo of John Smith
         let johnSmithImage = Simplex(Digest("John Smith smiling"))
