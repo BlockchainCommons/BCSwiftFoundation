@@ -8,7 +8,7 @@ import WolfBase
 /// Implemented with Blake2b hashing.
 ///
 /// https://datatracker.ietf.org/doc/rfc7693
-public struct Digest: CustomStringConvertible, Equatable, RawRepresentable {
+public struct Digest: CustomStringConvertible, Hashable, RawRepresentable {
     public let rawValue: Data
     public static let defaultDigestLength = 32
     

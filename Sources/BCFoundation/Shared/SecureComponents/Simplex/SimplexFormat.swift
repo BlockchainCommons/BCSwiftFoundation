@@ -38,19 +38,19 @@ extension CBOR: SimplexFormat {
                     case let CBOR.unsignedInt(rawValue) = cbor,
                     case let predicate = Predicate(rawValue: rawValue)
                 else {
-                    return .item("<unknown predicate>")
+                    return "<unknown predicate>"
                 }
                 return .item(predicate†)
             case CBOR.tagged(.signature, _):
-                return .item("Signature")
+                return "Signature"
             case CBOR.tagged(.nonce, _):
-                return .item("Nonce")
+                return "Nonce"
             case CBOR.tagged(URType.sealedMessage.tag, _):
-                return .item("SealedMessage")
+                return "SealedMessage"
             case CBOR.tagged(URType.sskrShare.tag, _):
-                return .item("SSKRShare")
+                return "SSKRShare"
             case CBOR.tagged(URType.pubkeys.tag, _):
-                return .item("PublicKeyBase")
+                return "PublicKeyBase"
             case CBOR.tagged(.uri, _):
                 return try .item(URL(taggedCBOR: self)†.flanked("URI(", ")"))
             case CBOR.tagged(URType.digest.tag, _):
@@ -58,10 +58,10 @@ extension CBOR: SimplexFormat {
             case CBOR.tagged(URType.scid.tag, _):
                 return try .item(SCID(taggedCBOR: self)†)
             default:
-                return .item("CBOR")
+                return "CBOR"
             }
         } catch {
-            return .item("<error>")
+            return "<error>"
         }
     }
 }
@@ -74,14 +74,16 @@ extension Subject: SimplexFormat {
         case .simplex(let simplex):
             return simplex.formatItem
         case .encrypted(_, _):
-            return .item("EncryptedMessage")
+            return "EncryptedMessage"
+        case .redacted(_):
+            return "REDACTED"
         }
     }
 }
 
 extension Assertion: SimplexFormat {
     var formatItem: SimplexFormatItem {
-        .list([predicate.formatItem, .item(": "), object.formatItem])
+        .list([predicate.formatItem, ": ", object.formatItem])
     }
 }
 
@@ -132,6 +134,12 @@ public enum SimplexFormatItem {
     case item(String)
     case separator
     case list([SimplexFormatItem])
+}
+
+extension SimplexFormatItem: ExpressibleByStringLiteral {
+    public init(stringLiteral value: StringLiteralType) {
+        self = .item(value)
+    }
 }
 
 extension SimplexFormatItem: CustomStringConvertible {

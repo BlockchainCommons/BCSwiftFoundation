@@ -4,7 +4,25 @@ import WolfBase
 import CryptoKit
 import SSKR
 
-public struct Simplex {
+extension Set {
+    public mutating func insert<E>(_ element: E) where Element == Digest, E: DigestProvider {
+        insert(element.digest)
+    }
+    
+    public mutating func insert<S>(_ other: S) where Element == Digest, S.Element == Digest, S: Sequence {
+        formUnion(other)
+    }
+
+    public mutating func insert<S>(_ other: S) where Element == Digest, S.Element == DigestProvider, S: Sequence {
+        formUnion(other.map { $0.digest })
+    }
+}
+
+public protocol DigestProvider {
+    var digest: Digest { get }
+}
+
+public struct Simplex: DigestProvider {
     public let subject: Subject
     public let assertions: [Assertion]
     public let digest: Digest
@@ -18,6 +36,26 @@ extension Simplex {
         var digests = [subject.digest]
         digests.append(contentsOf: sortedAssertions.map { $0.digest })
         self.digest = Digest(Data(digests.map { $0.rawValue }.joined()))
+    }
+    
+    public init(digest: Digest) {
+        self.subject = .redacted(digest)
+        self.assertions = []
+        self.digest = digest
+    }
+}
+
+extension Simplex {
+    public var deepDigests: Set<Digest> {
+        var result = subject.deepDigests.union([digest])
+        for assertion in assertions {
+            result.formUnion(assertion.deepDigests)
+        }
+        return result
+    }
+    
+    public var shallowDigests: Set<Digest> {
+        [digest, subject.digest]
     }
 }
 
@@ -345,6 +383,40 @@ extension Simplex {
 }
 
 extension Simplex {
+    public func redact() -> Simplex {
+        let result = Simplex(digest: digest)
+        assert(result.digest == digest)
+        return result
+    }
+    
+    public func redact(items: Set<Digest>) -> Simplex {
+        if items.contains(digest) {
+            return redact()
+        }
+        let subject = self.subject.redact(items: items)
+        let assertions = self.assertions.map {
+            $0.redact(items: items)
+        }
+        let result = Simplex(subject: subject, assertions: assertions)
+        assert(result.digest == digest)
+        return result
+    }
+    
+    public func redact(revealing items: Set<Digest>) -> Simplex {
+        if !items.contains(digest) {
+            return redact()
+        }
+        let subject = self.subject.redact(revealing: items)
+        let assertions = self.assertions.map {
+            $0.redact(revealing: items)
+        }
+        let result = Simplex(subject: subject, assertions: assertions)
+        assert(result.digest == digest)
+        return result
+    }
+}
+
+extension Simplex {
     public func revoke(_ digest: Digest) -> Simplex {
         var assertions = self.assertions
         if let index = assertions.firstIndex(where: { $0.digest == digest }) {
@@ -380,32 +452,6 @@ extension Simplex {
         } else {
             try self.init(subject: Subject(cbor: untaggedCBOR), assertions: [])
         }
-
-//        guard
-//            case let CBOR.array(elements) = untaggedCBOR,
-//            (1...2).contains(elements.count)
-//        else {
-//            throw CBORError.invalidFormat
-//        }
-//
-//        let subject = try Subject(cbor: elements[0])
-//
-//        let assertions: [Assertion]
-//        if elements.count == 2 {
-//            guard
-//                case let CBOR.array(assertionElements) = elements[1],
-//                !assertionElements.isEmpty
-//            else {
-//                throw CBORError.invalidFormat
-//            }
-//            assertions = try assertionElements.map {
-//                try Assertion(untaggedCBOR: $0)
-//            }
-//        } else {
-//            assertions = []
-//        }
-//
-//        self.init(subject: subject, assertions: assertions)
     }
     
     public init(taggedCBOR: CBOR) throws {

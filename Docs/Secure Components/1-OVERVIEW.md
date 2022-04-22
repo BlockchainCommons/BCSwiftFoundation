@@ -1,7 +1,7 @@
 # Secure Components - Overview
 
 **Authors:** Wolf McNally, Christopher Allen, Blockchain Commons</br>
-**Revised:** March 28, 2022</br>
+**Revised:** April 22, 2022</br>
 **Status:** DRAFT
 
 ---
@@ -16,7 +16,7 @@
 
 ## Introduction
 
-The Secure Components suite provides tools for easily implementing encryption (symmetric or public key), signing, and sharding of messages, including serialization to and from [CBOR](https://cbor.io/), and [UR](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md) formats.
+The Secure Components suite provides tools for easily implementing encryption (symmetric or public key), signing, and sharding of messages, and representation of knowledge graphs, including serialization to and from [CBOR](https://cbor.io/), and [UR](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md) formats.
 
 ## Status
 
@@ -337,7 +337,7 @@ EncryptedMessage [
 
 ### Complex Metadata
 
-A specific digital object is identified and several layers of metadata are attributed to it. In this example some predicates are specified as strings (indicated by quotes) whiile other predicates use tagged well-known integers.
+A specific digital object is identified and several layers of metadata are attributed to it. In this example some predicates are specified as strings (indicated by quotes) while other predicates use tagged well-known integers (no quotes).
 
 ```
 Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
@@ -359,4 +359,386 @@ Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
     ]
     dereferenceVia: "IPFS"
 ]
+```
+
+---
+
+### Verifiable Credential
+
+A government wishes to issue a verifiable credential for permanent residency to an individual using a Self-Certifying Identifier (SCID) provided by that person.
+
+```
+{
+    SCID(174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8) [
+        "dateIssued": 2022-04-27
+        holder: SCID(78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc) [
+            "birthCountry": "bs" [
+                note: "The Bahamas"
+            ]
+            "birthDate": 1974-02-18
+            "familyName": "SMITH"
+            "givenName": "JOHN"
+            "image": Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
+                dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                note: "This is an image of John Smith."
+            ]
+            "lprCategory": "C09"
+            "lprNumber": "999-999-999"
+            "residentSince": 2018-01-07
+            "sex": "MALE"
+            isA: "Permanent Resident"
+            isA: "Person"
+        ]
+        isA: "credential"
+        issuer: SCID(04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8) [
+            dereferenceVia: URI(https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8)
+            note: "Issued by the State of Example"
+        ]
+        note: "The State of Example recognizes JOHN SMITH as a Permanent Resident."
+    ]
+} [
+    authenticatedBy: Signature [
+        note: "Made by the State of Example."
+    ]
+]
+```
+
+---
+
+### Redaction
+
+The holder of a credential can then selectively reveal (i.e. redact all but) any of the micro-claims in this document. For instance, the holder could reveal just their name, their photo, and the issuer's signature, thereby proving that the issuer did indeed certify those facts.
+
+Redaction is performed by building a set of `Digest`s that will be revealed. All digests not present in the reveal-set will be replaced with redaction markers containing only the hash of what has been redacted, thus preserving the hash tree including revealed signatures. If a higher-level object is redacted, then everything it contains will also be redacted, so if a deeper object is to be revealed, all of its parent objects also need to be revealed, even though not everything *about* the parent objects must be revealed.
+
+```
+{
+    SCID(174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8) [
+        REDACTED: REDACTED
+        REDACTED: REDACTED
+        holder: SCID(78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc) [
+            "familyName": "SMITH"
+            "givenName": "JOHN"
+            "image": Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
+                dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                note: "This is an image of John Smith."
+            ]
+            REDACTED: REDACTED
+            REDACTED: REDACTED
+            REDACTED: REDACTED
+            REDACTED: REDACTED
+            REDACTED: REDACTED
+            REDACTED: REDACTED
+            REDACTED: REDACTED
+            REDACTED: REDACTED
+        ]
+        isA: "credential"
+        issuer: SCID(04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8) [
+            dereferenceVia: URI(https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8)
+            note: "Issued by the State of Example"
+        ]
+    ]
+} [
+    authenticatedBy: Signature [
+        note: "Made by the State of Example."
+    ]
+]
+```
+
+### Simplex Notation vs. CBOR Diagnostic Notation
+
+Simplex notation compactly describes the potentially complex semantic structure of a `Simplex` in a friendly, human-readable format. For comparison, below is the same structure from the Credential example in CBOR diagnostic notation. The tags this CBOR structure uses are:
+
+|CBOR Tag|Type|
+|---|---|
+|1|`Date`|
+|32|`URI`|
+|49|`Simplex`|
+|56|`Digest`|
+|58|`SCID`|
+|59|`Predicate`|
+|60|`.leaf`|
+|61|`Signature`|
+
+Integers below tagged 59 are well-known predicates:
+
+|Integer|Predicate|
+|---|---|
+|2|`isA`|
+|3|`authenticatedBy`|
+|4|`note`|
+|9|`dereferenceVia`|
+|13|`issuer`|
+|14|`holder`|
+
+```
+49(
+   [
+      49(
+         [
+            60(
+               58(
+                  h'174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8'
+               )
+            ),
+            [
+               49(
+                  60(
+                     59(4)
+                  )
+               ),
+               49(
+                  60(
+                     "The State of Example recognizes JOHN SMITH as a Permanent Resident."
+                  )
+               )
+            ],
+            [
+               49(
+                  60(
+                     59(14)
+                  )
+               ),
+               49(
+                  [
+                     60(
+                        58(
+                           h'78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc'
+                        )
+                     ),
+                     [
+                        49(
+                           60("givenName")
+                        ),
+                        49(
+                           60("JOHN")
+                        )
+                     ],
+                     [
+                        49(
+                           60(
+                              59(2)
+                           )
+                        ),
+                        49(
+                           60("Permanent Resident")
+                        )
+                     ],
+                     [
+                        49(
+                           60("residentSince")
+                        ),
+                        49(
+                           60(
+                              1(2018-01-07T00:00:00Z)
+                           )
+                        )
+                     ],
+                     [
+                        49(
+                           60(
+                              59(2)
+                           )
+                        ),
+                        49(
+                           60("Person")
+                        )
+                     ],
+                     [
+                        49(
+                           60("familyName")
+                        ),
+                        49(
+                           60("SMITH")
+                        )
+                     ],
+                     [
+                        49(
+                           60("image")
+                        ),
+                        49(
+                           [
+                              60(
+                                 56(
+                                    h'4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54'
+                                 )
+                              ),
+                              [
+                                 49(
+                                    60(
+                                       59(9)
+                                    )
+                                 ),
+                                 49(
+                                    60(
+                                       "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                                    )
+                                 )
+                              ],
+                              [
+                                 49(
+                                    60(
+                                       59(4)
+                                    )
+                                 ),
+                                 49(
+                                    60(
+                                       "This is an image of John Smith."
+                                    )
+                                 )
+                              ]
+                           ]
+                        )
+                     ],
+                     [
+                        49(
+                           60("sex")
+                        ),
+                        49(
+                           60("MALE")
+                        )
+                     ],
+                     [
+                        49(
+                           60("birthDate")
+                        ),
+                        49(
+                           60(
+                              1(1974-02-18T00:00:00Z)
+                           )
+                        )
+                     ],
+                     [
+                        49(
+                           60("lprNumber")
+                        ),
+                        49(
+                           60("999-999-999")
+                        )
+                     ],
+                     [
+                        49(
+                           60("birthCountry")
+                        ),
+                        49(
+                           [
+                              60("bs"),
+                              [
+                                 49(
+                                    60(
+                                       59(4)
+                                    )
+                                 ),
+                                 49(
+                                    60("The Bahamas")
+                                 )
+                              ]
+                           ]
+                        )
+                     ],
+                     [
+                        49(
+                           60("lprCategory")
+                        ),
+                        49(
+                           60("C09")
+                        )
+                     ]
+                  ]
+               )
+            ],
+            [
+               49(
+                  60(
+                     59(13)
+                  )
+               ),
+               49(
+                  [
+                     60(
+                        58(
+                           h'04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8'
+                        )
+                     ),
+                     [
+                        49(
+                           60(
+                              59(4)
+                           )
+                        ),
+                        49(
+                           60(
+                              "Issued by the State of Example"
+                           )
+                        )
+                     ],
+                     [
+                        49(
+                           60(
+                              59(9)
+                           )
+                        ),
+                        49(
+                           60(
+                              32(
+                                 "https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8"
+                              )
+                           )
+                        )
+                     ]
+                  ]
+               )
+            ],
+            [
+               49(
+                  60(
+                     59(2)
+                  )
+               ),
+               49(
+                  60("credential")
+               )
+            ],
+            [
+               49(
+                  60("dateIssued")
+               ),
+               49(
+                  60(
+                     1(2022-04-27T00:00:00Z)
+                  )
+               )
+            ]
+         ]
+      ),
+      [
+         49(
+            60(
+               59(3)
+            )
+         ),
+         49(
+            [
+               60(
+                  61(
+                     h'0f8a3cfc2139ded0fa4dd4ea80bad8b5c3f18bf3523e0063793056910980e2b3d8b51ee2fcc4ca17aeb559741deb954a6b0ecb089ff8d56b4d46a7c84656d6a1'
+                  )
+               ),
+               [
+                  49(
+                     60(
+                        59(4)
+                     )
+                  ),
+                  49(
+                     60(
+                        "Made by the State of Example."
+                     )
+                  )
+               ]
+            ]
+         )
+      ]
+   ]
+)
 ```

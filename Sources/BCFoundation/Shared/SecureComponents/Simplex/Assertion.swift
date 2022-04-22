@@ -1,8 +1,9 @@
 import Foundation
 import WolfBase
 import SSKR
+import URKit
 
-public struct Assertion {
+public struct Assertion: DigestProvider {
     public let predicate: Simplex
     public let object: Simplex
     public let digest: Digest
@@ -13,6 +14,30 @@ extension Assertion {
         self.predicate = predicate
         self.object = object
         self.digest = Digest(predicate.digest.rawValue + object.digest.rawValue)
+    }
+}
+
+extension Assertion {
+    public var deepDigests: Set<Digest> {
+        predicate.deepDigests.union(object.deepDigests).union([digest])
+    }
+    
+    public var shallowDigests: Set<Digest> {
+        [
+            digest,
+            predicate.digest, predicate.subject.digest,
+            object.digest, object.subject.digest
+        ]
+    }
+}
+
+extension Assertion {
+    public func assertions(predicate: CBOREncodable) -> [Assertion] {
+        object.assertions(predicate: predicate)
+    }
+    
+    public func assertion(predicate: CBOREncodable) throws -> Assertion {
+        try object.assertion(predicate: predicate)
     }
 }
 
@@ -52,6 +77,32 @@ extension Assertion {
     
     public static func id(_ id: SCID) -> Assertion {
         Assertion(Simplex(predicate: .id), Simplex(id))
+    }
+}
+
+extension Assertion {
+    public func redact() -> Assertion {
+        let result = Assertion(predicate.redact(), object.redact())
+        assert(result.digest == digest)
+        return result
+    }
+    
+    public func redact(items: Set<Digest>) -> Assertion {
+        if items.contains(digest) {
+            return redact()
+        }
+        let result = Assertion(predicate.redact(items: items), object.redact(items: items))
+        assert(result.digest == digest)
+        return result
+    }
+    
+    public func redact(revealing items: Set<Digest>) -> Assertion {
+        if !items.contains(digest) {
+            return redact()
+        }
+        let result = Assertion(predicate.redact(revealing: items), object.redact(revealing: items))
+        assert(result.digest == digest)
+        return result
     }
 }
 

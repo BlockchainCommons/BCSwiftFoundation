@@ -39,6 +39,15 @@ class SimplexTests: XCTestCase {
         "Hello"
         """
         XCTAssertEqual(container.format, expectedFormat)
+        
+        let redactedContainer = container.redact()
+        XCTAssertEqual(redactedContainer, container)
+
+        let expectedRedactedFormat =
+        """
+        REDACTED
+        """
+        XCTAssertEqual(redactedContainer.format, expectedRedactedFormat)
     }
     
     func testNestingOnce() {
@@ -52,9 +61,23 @@ class SimplexTests: XCTestCase {
         }
         """
         XCTAssertEqual(container.format, expectedFormat)
+
+        let redactedContainer = Simplex("Hello")
+            .redact()
+            .enclose()
+
+        XCTAssertEqual(redactedContainer, container)
+
+        let expectedRedactedFormat =
+        """
+        {
+            REDACTED
+        }
+        """
+        XCTAssertEqual(redactedContainer.format, expectedRedactedFormat)
     }
     
-    func testNestingTwice() {
+    func testNestingTwice() throws {
         let container = Simplex("Hello")
             .enclose()
             .enclose()
@@ -68,9 +91,23 @@ class SimplexTests: XCTestCase {
         }
         """
         XCTAssertEqual(container.format, expectedFormat)
+
+        let redaction = try container
+            .extract()
+            .extract()
+            .digest
+        let redactedContainer = container.redact(items: Set([redaction]))
+        
+        let expectedRedactedFormat =
+        """
+        {
+            REDACTED
+        }
+        """
+        XCTAssertEqual(redactedContainer.format, expectedRedactedFormat)
     }
     
-    func testNestingSigned() {
+    func testNestingSigned() throws {
         let container = Simplex("Hello")
             .sign(with: alicePrivateKeys)
 
@@ -81,9 +118,22 @@ class SimplexTests: XCTestCase {
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
+
+        let redaction = container
+            .subject
+            .digest
+        let redactedContainer = container.redact(items: Set([redaction]))
+        try redactedContainer.validateSignature(from: alicePublicKeys)
+        let expectedRedactedFormat =
+        """
+        REDACTED [
+            authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(redactedContainer.format, expectedRedactedFormat)
     }
     
-    func testNestingEncloseThenSign() {
+    func testNestingEncloseThenSign() throws {
         let container = Simplex("Hello")
             .enclose()
             .sign(with: alicePrivateKeys)
@@ -97,6 +147,39 @@ class SimplexTests: XCTestCase {
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
+
+        let redaction = try container
+            .extract()
+            .subject
+            .digest
+        let redactedContainer = container.redact(items: Set([redaction]))
+        XCTAssertEqual(redactedContainer, container)
+        try redactedContainer.validateSignature(from: alicePublicKeys)
+        let expectedRedactedFormat =
+        """
+        {
+            REDACTED
+        } [
+            authenticatedBy: Signature
+        ]
+        """
+        XCTAssertEqual(redactedContainer.format, expectedRedactedFormat)
+        
+        let p1 = container
+        let p2 = try p1.extract()
+        let p3 = p2.subject
+        let revealSet: Set<Digest> = [p1.digest, p2.digest, p3.digest]
+        let revealedContainer = container.redact(revealing: revealSet)
+        XCTAssertEqual(revealedContainer, container)
+        let expectedRevealedFormat =
+        """
+        {
+            "Hello"
+        } [
+            REDACTED: REDACTED
+        ]
+        """
+        XCTAssertEqual(revealedContainer.format, expectedRevealedFormat)
     }
     
     func testNestingSignThenEnclose() {
@@ -793,6 +876,7 @@ class SimplexTests: XCTestCase {
         // The State of Example's identifier and private keys
         let stateIdentifier = SCID(‡"04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8")!
         let statePrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
+        let statePublicKeys = statePrivateKeys.publicKeys
 
         // A photo of John Smith
         let johnSmithImage = Simplex(Digest("John Smith smiling"))
@@ -824,6 +908,9 @@ class SimplexTests: XCTestCase {
             .enclose()
             .sign(with: statePrivateKeys, note: "Made by the State of Example.")
 
+        // Validate the state's signature
+        try johnSmithResidentCard.validateSignature(from: statePublicKeys)
+        
         let expectedFormat =
         """
         {
@@ -861,6 +948,90 @@ class SimplexTests: XCTestCase {
         ]
         """
         XCTAssertEqual(johnSmithResidentCard.format, expectedFormat)
+        
+        // John wishes to identify himself to a third party using his government-issued
+        // credential, but does not wish to reveal more than his name, his photo, and the
+        // fact that the state has authenticated his identity.
+
+        // Redaction is performed by building a set of `Digest`s that will be revealed. All
+        // digests not present in the reveal-set will be replaced with redaction markers
+        // containing only the hash of what has been redacted, thus preserving the hash
+        // tree including revealed signatures. If a higher-level object is redacted, then
+        // everything it contains will also be redacted, so if a deeper object is to be
+        // revealed, all of its parent objects also need to be revealed, even though not
+        // everything *about* the parent objects must be revealed.
+
+        // Start a reveal-set
+        var revealSet: Set<Digest> = []
+
+        // Reveal the card. Without this, everything about the card would be redacted.
+        let top = johnSmithResidentCard
+        revealSet.insert(top)
+
+        // Reveal everything about the state's signature on the card
+        try revealSet.insert(top.assertion(predicate: .authenticatedBy).deepDigests)
+
+        // Reveal the top level subject of the card. This is John Smith's SCID.
+        let topContent = top.subject.simplex!
+        revealSet.insert(topContent.shallowDigests)
+
+        // Reveal everything about the `isA` and `issuer` assertions at the top level of the card.
+        try revealSet.insert(topContent.assertion(predicate: .isA).deepDigests)
+        try revealSet.insert(topContent.assertion(predicate: .issuer).deepDigests)
+
+        // Reveal the `holder` assertion on the card, but not any of its sub-assertions.
+        let holder = try topContent.assertion(predicate: .holder)
+        revealSet.insert(holder.shallowDigests)
+        
+        // Within the `holder` assertion, reveal everything about just the `givenName`, `familyName`, and `image` assertions.
+        try revealSet.insert(holder.assertion(predicate: "givenName").deepDigests)
+        try revealSet.insert(holder.assertion(predicate: "familyName").deepDigests)
+        try revealSet.insert(holder.assertion(predicate: "image").deepDigests)
+        
+        // Perform the redaction
+        let redactedCredential = top.redact(revealing: revealSet)
+        
+        // Verify that the redacted credential compares equal to the original credential.
+        XCTAssertEqual(redactedCredential, johnSmithResidentCard)
+        
+        // Verify that the state's signature on the redacted card is still valid.
+        try redactedCredential.validateSignature(from: statePublicKeys)
+        
+        let expectedRedactedFormat =
+        """
+        {
+            SCID(174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8) [
+                REDACTED: REDACTED
+                REDACTED: REDACTED
+                holder: SCID(78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc) [
+                    "familyName": "SMITH"
+                    "givenName": "JOHN"
+                    "image": Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
+                        dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                        note: "This is an image of John Smith."
+                    ]
+                    REDACTED: REDACTED
+                    REDACTED: REDACTED
+                    REDACTED: REDACTED
+                    REDACTED: REDACTED
+                    REDACTED: REDACTED
+                    REDACTED: REDACTED
+                    REDACTED: REDACTED
+                    REDACTED: REDACTED
+                ]
+                isA: "credential"
+                issuer: SCID(04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8) [
+                    dereferenceVia: URI(https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8)
+                    note: "Issued by the State of Example"
+                ]
+            ]
+        } [
+            authenticatedBy: Signature [
+                note: "Made by the State of Example."
+            ]
+        ]
+        """
+        XCTAssertEqual(redactedCredential.format, expectedRedactedFormat)
     }
     
     /// See [The Art of Immutable Architecture, by Michael L. Perry](https://amzn.to/3Kszr1p).
