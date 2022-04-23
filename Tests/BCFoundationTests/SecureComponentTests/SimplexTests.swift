@@ -26,8 +26,8 @@ fileprivate let statePublicKeys = statePrivateKeys.publicKeys
 
 class SimplexTests: XCTestCase {
     func testPredicate() {
-        let container = Simplex(predicate: .authenticatedBy)
-        XCTAssertEqual(container.format, "authenticatedBy")
+        let container = Simplex(predicate: .verifiedBy)
+        XCTAssertEqual(container.format, "verifiedBy")
     }
     
     func testDate() throws {
@@ -118,7 +118,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         "Hello." [
-            authenticatedBy: Signature
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -131,7 +131,7 @@ class SimplexTests: XCTestCase {
         let expectedRedactedFormat =
         """
         REDACTED [
-            authenticatedBy: Signature
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(redactedContainer.format, expectedRedactedFormat)
@@ -147,7 +147,7 @@ class SimplexTests: XCTestCase {
         {
             "Hello."
         } [
-            authenticatedBy: Signature
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -164,7 +164,7 @@ class SimplexTests: XCTestCase {
         {
             REDACTED
         } [
-            authenticatedBy: Signature
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(redactedContainer.format, expectedRedactedFormat)
@@ -195,7 +195,7 @@ class SimplexTests: XCTestCase {
         """
         {
             "Hello." [
-                authenticatedBy: Signature
+                verifiedBy: Signature
             ]
         }
         """
@@ -260,7 +260,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         "Hello." [
-            authenticatedBy: Signature
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -298,8 +298,8 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         "Hello." [
-            authenticatedBy: Signature
-            authenticatedBy: Signature
+            verifiedBy: Signature
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -433,7 +433,7 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         EncryptedMessage [
-            authenticatedBy: Signature
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -510,9 +510,9 @@ class SimplexTests: XCTestCase {
         let expectedFormat =
         """
         EncryptedMessage [
-            authenticatedBy: Signature
             hasRecipient: SealedMessage
             hasRecipient: SealedMessage
+            verifiedBy: Signature
         ]
         """
         XCTAssertEqual(container.format, expectedFormat)
@@ -738,7 +738,7 @@ class SimplexTests: XCTestCase {
                 publicKeys: PublicKeyBase
             ]
         } [
-            authenticatedBy: Signature [
+            verifiedBy: Signature [
                 note: "Made by Alice."
             ]
         ]
@@ -786,13 +786,13 @@ class SimplexTests: XCTestCase {
                         publicKeys: PublicKeyBase
                     ]
                 } [
-                    authenticatedBy: Signature [
+                    verifiedBy: Signature [
                         note: "Made by Alice."
                     ]
                 ]
             ]
         } [
-            authenticatedBy: Signature [
+            verifiedBy: Signature [
                 note: "Made by ExampleLedger."
             ]
         ]
@@ -838,7 +838,7 @@ class SimplexTests: XCTestCase {
                 dereferenceVia: URI(https://exampleledger.com/scid/d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f)
             ]
         } [
-            authenticatedBy: Signature [
+            verifiedBy: Signature [
                 note: "Made by Alice."
             ]
         ]
@@ -940,7 +940,7 @@ class SimplexTests: XCTestCase {
                 note: "The State of Example recognizes JOHN SMITH as a Permanent Resident."
             ]
         } [
-            authenticatedBy: Signature [
+            verifiedBy: Signature [
                 note: "Made by the State of Example."
             ]
         ]
@@ -949,7 +949,7 @@ class SimplexTests: XCTestCase {
         
         // John wishes to identify himself to a third party using his government-issued
         // credential, but does not wish to reveal more than his name, his photo, and the
-        // fact that the state has authenticated his identity.
+        // fact that the state has verified his identity.
 
         // Redaction is performed by building a set of `Digest`s that will be revealed. All
         // digests not present in the reveal-set will be replaced with redaction markers
@@ -967,7 +967,7 @@ class SimplexTests: XCTestCase {
         revealSet.insert(top)
 
         // Reveal everything about the state's signature on the card
-        try revealSet.insert(top.assertion(predicate: .authenticatedBy).deepDigests)
+        try revealSet.insert(top.assertion(predicate: .verifiedBy).deepDigests)
 
         // Reveal the top level subject of the card. This is John Smith's SCID.
         let topContent = top.subject.simplex!
@@ -1024,7 +1024,7 @@ class SimplexTests: XCTestCase {
                 ]
             ]
         } [
-            authenticatedBy: Signature [
+            verifiedBy: Signature [
                 note: "Made by the State of Example."
             ]
         ]

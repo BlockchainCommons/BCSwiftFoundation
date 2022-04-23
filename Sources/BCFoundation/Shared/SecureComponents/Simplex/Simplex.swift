@@ -203,7 +203,7 @@ extension Simplex {
 extension Simplex {
     public func sign(with privateKeys: PrivateKeyBase, note: String? = nil, tag: Data? = nil) -> Simplex {
         let signature = privateKeys.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
-        return add(.authenticatedBy(signature: signature, note: note))
+        return add(.verifiedBy(signature: signature, note: note))
     }
     
     public func sign(with privateKeys: [PrivateKeyBase], tag: Data? = nil) -> Simplex {
@@ -265,7 +265,7 @@ extension Simplex {
 extension Simplex {
     public var signatures: [Signature] {
         get throws {
-            try assertions(predicate: .authenticatedBy)
+            try assertions(predicate: .verifiedBy)
                 .map { try $0.object.extract(Signature.self) }
         }
     }

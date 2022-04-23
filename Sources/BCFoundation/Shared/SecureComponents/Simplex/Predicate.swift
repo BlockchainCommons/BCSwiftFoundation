@@ -3,7 +3,7 @@ import Foundation
 public enum Predicate: UInt64 {
     case id = 1
     case isA
-    case authenticatedBy
+    case verifiedBy
     case note
     case hasRecipient
     case sskrShare

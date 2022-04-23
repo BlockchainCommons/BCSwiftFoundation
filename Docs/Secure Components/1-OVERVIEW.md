@@ -265,7 +265,7 @@ This is the `.leaf` string with a single `Assertion` whose predicate is a well-k
 
 ```
 "Hello." [
-    authenticatedBy: Signature
+    verifiedBy: Signature
 ]
 ```
 
@@ -277,8 +277,8 @@ Although you cannot have duplicate assertions every signature is unique, hence t
 
 ```
 "Hello." [
-    authenticatedBy: Signature
-    authenticatedBy: Signature
+    verifiedBy: Signature
+    verifiedBy: Signature
 ]
 ```
 
@@ -300,7 +300,7 @@ The sender has first encrypted a message, then signed it. The signature can be v
 
 ```
 EncryptedMessage [
-    authenticatedBy: Signature
+    verifiedBy: Signature
 ]
 ```
 
@@ -325,7 +325,7 @@ As before, the signature can be outside the `subject` message, as below, or insi
 
 ```
 EncryptedMessage [
-    authenticatedBy: Signature
+    verifiedBy: Signature
     hasRecipient: SealedMessage
     hasRecipient: SealedMessage
 ]
@@ -417,7 +417,7 @@ A government wishes to issue a verifiable credential for permanent residency to 
         note: "The State of Example recognizes JOHN SMITH as a Permanent Resident."
     ]
 } [
-    authenticatedBy: Signature [
+    verifiedBy: Signature [
         note: "Made by the State of Example."
     ]
 ]
@@ -429,7 +429,7 @@ A government wishes to issue a verifiable credential for permanent residency to 
 
 The holder of a credential can then selectively reveal any of the micro-claims in this document. For instance, the holder could reveal just their name, their photo, and the issuer's signature, thereby proving that the issuer did indeed certify those facts.
 
-Redaction is performed by building a set of `Digest`s that will be revealed. All digests not present in the reveal-set will be replaced with redaction markers containing only the hash of what has been redacted, thus preserving the hash tree including revealed signatures. If a higher-level object is redacted, then everything it contains will also be redacted, so if a deeper object is to be revealed, all of its parent objects up to the level of the authenticating signature also need to be revealed, even though not everything *about* the parent objects must be revealed.
+Redaction is performed by building a set of `Digest`s that will be revealed. All digests not present in the reveal-set will be replaced with redaction markers containing only the hash of what has been redacted, thus preserving the hash tree including revealed signatures. If a higher-level object is redacted, then everything it contains will also be redacted, so if a deeper object is to be revealed, all of its parent objects up to the level of the verifying signature also need to be revealed, even though not everything *about* the parent objects must be revealed.
 
 ```
 {
@@ -459,7 +459,7 @@ Redaction is performed by building a set of `Digest`s that will be revealed. All
         ]
     ]
 } [
-    authenticatedBy: Signature [
+    verifiedBy: Signature [
         note: "Made by the State of Example."
     ]
 ]
@@ -485,7 +485,7 @@ Integers below tagged 59 are well-known predicates:
 |Integer|Predicate|
 |---|---|
 |2|`isA`|
-|3|`authenticatedBy`|
+|3|`verifiedBy`|
 |4|`note`|
 |9|`dereferenceVia`|
 |13|`issuer`|
