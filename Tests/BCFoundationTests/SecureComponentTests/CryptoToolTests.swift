@@ -26,12 +26,12 @@ import BCFoundation
 ////        let envelope = Envelope(plaintext: message, key: key)
 ////        print(envelope.ur)
 //
-////        let prvkeys = PrivateKeyBase()
-////        print(prvkeys.ur)
+////        let privateKeys = PrivateKeyBase()
+////        print(privateKeys.ur)
 //
 //        let ur = try UR(urString: "ur:crypto-prvkeys/lsadhdcxsofssasgpmrfdyrtiavoinbepabseyfnttcnfmdyzcktwnmsbzgsqzfhksiezclagdioeshtqzzmkplamkehpklylejztszowywmztjpme")
-//        let prvkeys = try PrivateKeyBase(ur: ur)
-//        let pubkeys = prvkeys.pubkeys
-//        print(pubkeys.ur)
+//        let privateKeys = try PrivateKeyBase(ur: ur)
+//        let publicKeys = privateKeys.publicKeys
+//        print(publicKeys.ur)
 //    }
 //}

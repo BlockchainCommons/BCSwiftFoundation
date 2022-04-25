@@ -240,9 +240,9 @@ graph LR
 
 ### Derivations
 
-* `SigningPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `signing`.
+* `SigningPrivateKey`: [BLAKE3](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf) with context: `signing`.
 * `SigningPublicKey`: [BIP-340 Schnorr](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki) x-only public key or [ECDSA-25519-doublesha256](https://en.bitcoin.it/wiki/BIP_0137) public key.
-* `AgreementPrivateKey`: [HKDF-SHA-512](https://datatracker.ietf.org/doc/html/rfc5869) with `salt` and `info`: `agreement`.
+* `AgreementPrivateKey`: [BLAKE3](https://github.com/BLAKE3-team/BLAKE3-specs/blob/master/blake3.pdf) with context: `agreement`.
 * `SigningPrivateKey`: [RFC-7748 X25519](https://datatracker.ietf.org/doc/html/rfc7748).
 
 ### CDDL for PrivateKeyBase

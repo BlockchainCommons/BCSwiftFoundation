@@ -49,7 +49,7 @@ extension CBOR: SimplexFormat {
                 return "SealedMessage"
             case CBOR.tagged(URType.sskrShare.tag, _):
                 return "SSKRShare"
-            case CBOR.tagged(URType.pubkeys.tag, _):
+            case CBOR.tagged(URType.publicKeyBase.tag, _):
                 return "PublicKeyBase"
             case CBOR.tagged(.uri, _):
                 return try .item(URL(taggedCBOR: self)†.flanked("URI(", ")"))

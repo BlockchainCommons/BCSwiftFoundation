@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CryptoSwift
 
 public protocol IdentityDigestable {
     var identityDigestSource: Data { get }

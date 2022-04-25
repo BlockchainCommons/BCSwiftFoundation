@@ -51,10 +51,10 @@ extension Envelope {
         return inner
     }
     
-    public func plaintext(for prvkeys: PrivateKeyBase) -> Data? {
+    public func plaintext(for privateKeys: PrivateKeyBase) -> Data? {
         guard
             case let(.encrypted(message, .recipients(sealedMessages), digest)) = self,
-            let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: prvkeys),
+            let contentKeyData = SealedMessage.firstPlaintext(in: sealedMessages, for: privateKeys),
             let contentKey = SymmetricKey(contentKeyData),
             let plaintext = contentKey.decrypt(message: message),
             Digest.validate(plaintext, digest: digest)
@@ -64,9 +64,9 @@ extension Envelope {
         return plaintext
     }
     
-    public func inner(for prvkeys: PrivateKeyBase) -> Envelope? {
+    public func inner(for privateKeys: PrivateKeyBase) -> Envelope? {
         guard
-            let innerCBOR = plaintext(for: prvkeys),
+            let innerCBOR = plaintext(for: privateKeys),
             let inner = Envelope(taggedCBOR: innerCBOR)
         else {
             return nil
@@ -139,8 +139,8 @@ extension Envelope {
 extension Envelope {
     public init(plaintext: DataProvider, recipients: [PublicKeyBase], contentKey: SymmetricKey = .init(), includeDigest: Bool = true) {
         let message = contentKey.encrypt(plaintext: plaintext)
-        let sealedMessages = recipients.map { pubkeys in
-            SealedMessage(plaintext: contentKey, recipient: pubkeys)
+        let sealedMessages = recipients.map { publicKeys in
+            SealedMessage(plaintext: contentKey, recipient: publicKeys)
         }
         let digest = includeDigest ? Digest(plaintext) : nil
         self = .encrypted(message, .recipients(sealedMessages), digest)
@@ -178,24 +178,24 @@ extension Envelope {
         return key.isValidSignature(signature, for: plaintext)
     }
     
-    public func isValidSignature(_ signature: Signature, pubkeys: PublicKeyBase) -> Bool {
-        isValidSignature(signature, key: pubkeys.signingPublicKey)
+    public func isValidSignature(_ signature: Signature, publicKeys: PublicKeyBase) -> Bool {
+        isValidSignature(signature, key: publicKeys.signingPublicKey)
     }
     
     public func hasValidSignature(key: SigningPublicKey) -> Bool {
         signatures.contains { isValidSignature($0, key: key) }
     }
     
-    public func hasValidSignature(from pubkeys: PublicKeyBase) -> Bool {
-        hasValidSignature(key: pubkeys.signingPublicKey)
+    public func hasValidSignature(from publicKeys: PublicKeyBase) -> Bool {
+        hasValidSignature(key: publicKeys.signingPublicKey)
     }
     
     public func hasValidSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) -> Bool {
         keys.filter(hasValidSignature).count >= threshold ?? keys.count
     }
     
-    public func hasValidSignatures(from pubkeysArray: [PublicKeyBase], threshold: Int? = nil) -> Bool {
-        hasValidSignatures(with: pubkeysArray.map { $0.signingPublicKey }, threshold: threshold)
+    public func hasValidSignatures(from publicKeysArray: [PublicKeyBase], threshold: Int? = nil) -> Bool {
+        hasValidSignatures(with: publicKeysArray.map { $0.signingPublicKey }, threshold: threshold)
     }
 }
 

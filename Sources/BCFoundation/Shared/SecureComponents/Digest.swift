@@ -1,11 +1,11 @@
 import Foundation
-import Blake2
+import BLAKE3
 import URKit
 import WolfBase
 
 /// A cryptographically secure digest.
 ///
-/// Implemented with Blake2b hashing.
+/// Implemented with BLAKE3 hashing.
 ///
 /// https://datatracker.ietf.org/doc/rfc7693
 public struct Digest: CustomStringConvertible, Hashable, RawRepresentable {
@@ -13,7 +13,7 @@ public struct Digest: CustomStringConvertible, Hashable, RawRepresentable {
     public static let defaultDigestLength = 32
     
     public init(_ data: DataProvider, digestLength: Int = defaultDigestLength) {
-        self.rawValue = try! Blake2.hash(.b2b, size: digestLength, data: data.providedData)
+        self.rawValue = BLAKE3.hash(contentsOf: data.providedData, outputByteCount: digestLength).data
     }
     
     public init?(_ data: DataProvider, includeDigest: Bool, digestLength: Int = defaultDigestLength) {

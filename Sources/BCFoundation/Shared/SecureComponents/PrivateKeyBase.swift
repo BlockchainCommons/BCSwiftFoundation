@@ -1,29 +1,30 @@
 import Foundation
 import CryptoKit
 import WolfBase
+import BLAKE3
 
 /// Types can conform to `PrivateKeysDataProvider` to indicate that they will provide
 /// unique data from which keys for signing and encryption can be derived.
 ///
 /// Conforming types include `Data`, `Seed`, `HDKey`, and `Password`.
 public protocol PrivateKeysDataProvider {
-    var prvkeysData: Data { get }
+    var privateKeysData: Data { get }
 }
 
 extension Data: PrivateKeysDataProvider {
-    public var prvkeysData: Data {
+    public var privateKeysData: Data {
         self
     }
 }
 
 extension Seed: PrivateKeysDataProvider {
-    public var prvkeysData: Data {
+    public var privateKeysData: Data {
         data
     }
 }
 
 extension HDKey: PrivateKeysDataProvider {
-    public var prvkeysData: Data {
+    public var privateKeysData: Data {
         keyData
     }
 }
@@ -31,17 +32,14 @@ extension HDKey: PrivateKeysDataProvider {
 /// Holds unique data from which keys for signing and encryption can be derived and
 /// a field of random salt used in the key derivation process.
 ///
-/// Derivation is performed used HKDF-SHA512.
+/// Derivation is performed used BLAKE3.
 ///
 /// https://datatracker.ietf.org/doc/html/rfc5869
 public struct PrivateKeyBase {
     public let data: Data
-    public let salt: Data
     
-    public init(_ provider: PrivateKeysDataProvider, salt: DataProvider? = nil) {
-        let salt = salt?.providedData ?? SecureRandomNumberGenerator.shared.data(count: 16)
-        self.data = provider.prvkeysData
-        self.salt = salt
+    public init(_ provider: PrivateKeysDataProvider) {
+        self.data = provider.privateKeysData
     }
     
     public init() {
@@ -49,13 +47,11 @@ public struct PrivateKeyBase {
     }
     
     public var signingPrivateKey: SigningPrivateKey {
-        return .init(HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "signing".utf8Data, outputByteCount: 32)
-            .withUnsafeBytes { Data($0) })!
+        .init(BLAKE3.deriveKey(fromContentsOf: data, withContext: "signing").data)!
     }
     
     public var agreementPrivateKey: AgreementPrivateKey {
-        return .init(HKDF<SHA512>.deriveKey(inputKeyMaterial: .init(data: data), salt: salt, info: "agreement".utf8Data, outputByteCount: 32)
-            .withUnsafeBytes { Data($0) })!
+        .init(BLAKE3.deriveKey(fromContentsOf: data, withContext: "agreement").data)!
     }
     
     public var publicKeys: PublicKeyBase {
@@ -69,27 +65,22 @@ public struct PrivateKeyBase {
 
 extension PrivateKeyBase {
     public var untaggedCBOR: CBOR {
-        [data.cbor, salt.cbor]
+        data.cbor
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.prvkeys.tag, untaggedCBOR)
+        CBOR.tagged(URType.privateKeyBase.tag, untaggedCBOR)
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard
-            case let CBOR.array(elements) = untaggedCBOR,
-            elements.count == 2,
-            case let CBOR.data(data) = elements[0],
-            case let CBOR.data(salt) = elements[1]
-        else {
+        guard case let CBOR.data(data) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
-        self = PrivateKeyBase(data, salt: salt)
+        self.init(data)
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.prvkeys.tag, untaggedCBOR) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.privateKeyBase.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)
@@ -102,11 +93,11 @@ extension PrivateKeyBase {
 
 extension PrivateKeyBase {
     public var ur: UR {
-        return try! UR(type: URType.prvkeys.type, cbor: untaggedCBOR)
+        return try! UR(type: URType.privateKeyBase.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {
-        guard ur.type == URType.prvkeys.type else {
+        guard ur.type == URType.privateKeyBase.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)

@@ -694,7 +694,7 @@ class SimplexTests: XCTestCase {
         
         let expectedFormat =
         """
-        Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
+        Digest(e8aa201db4044168d05b77d7b36648fb7a97db2d3e72f5babba9817911a52809) [
             "format": "EPUB"
             "work": SCID(7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80) [
                 "author": SCID(9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8) [
@@ -879,7 +879,7 @@ class SimplexTests: XCTestCase {
         // A photo of John Smith
         let johnSmithImage = Simplex(Digest("John Smith smiling"))
             .add(.note, "This is an image of John Smith.")
-            .add(.dereferenceVia, "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54")
+            .add(.dereferenceVia, "https://exampleledger.com/digest/36be30726befb65ca13b136ae29d8081f64792c2702415eb60ad1c56ed33c999")
         
         // John Smith's Permanent Resident Card issued by the State of Example
         let johnSmithResidentCard = try Simplex(SCID(‡"174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8")!)
@@ -921,8 +921,8 @@ class SimplexTests: XCTestCase {
                     "birthDate": 1974-02-18
                     "familyName": "SMITH"
                     "givenName": "JOHN"
-                    "image": Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
-                        dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                    "image": Digest(36be30726befb65ca13b136ae29d8081f64792c2702415eb60ad1c56ed33c999) [
+                        dereferenceVia: "https://exampleledger.com/digest/36be30726befb65ca13b136ae29d8081f64792c2702415eb60ad1c56ed33c999"
                         note: "This is an image of John Smith."
                     ]
                     "lprCategory": "C09"
@@ -1004,8 +1004,8 @@ class SimplexTests: XCTestCase {
                 holder: SCID(78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc) [
                     "familyName": "SMITH"
                     "givenName": "JOHN"
-                    "image": Digest(4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54) [
-                        dereferenceVia: "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54"
+                    "image": Digest(36be30726befb65ca13b136ae29d8081f64792c2702415eb60ad1c56ed33c999) [
+                        dereferenceVia: "https://exampleledger.com/digest/36be30726befb65ca13b136ae29d8081f64792c2702415eb60ad1c56ed33c999"
                         note: "This is an image of John Smith."
                     ]
                     REDACTED: REDACTED
@@ -1108,7 +1108,7 @@ class SimplexTests: XCTestCase {
 
         let line2ExpectedFormat =
         """
-        Digest(0680a0ba78b2bd47dcf7c02a28c41bdce207389fb2895cf4c2b65223753b44b8) [
+        Digest(6eda6278399769c825633f19c1e9591814f959a8781e459fd8531900d14b3d43) [
             "priceEach": "4.99"
             "product": SCID(ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64)
             "quantity": 3
@@ -1130,14 +1130,14 @@ class SimplexTests: XCTestCase {
         let purchaseOrderProjectionExpectedFormat =
         """
         SCID(1bebb5b6e447f819d5a4cb86409c5da1207d1460672dfe903f55cde833549625) [
-            "lineItem": Digest(0680a0ba78b2bd47dcf7c02a28c41bdce207389fb2895cf4c2b65223753b44b8) [
+            "lineItem": Digest(6eda6278399769c825633f19c1e9591814f959a8781e459fd8531900d14b3d43) [
                 "priceEach": "10.99"
                 "product": SCID(5bcca01f5f370ceb3b7365f076e9600e294d4da6ddf7a616976c87775ea8f0f1)
                 "quantity": 4
                 hasName: "Quality Widget"
                 isA: "PurchaseOrderLineItem"
             ]
-            "lineItem": Digest(0680a0ba78b2bd47dcf7c02a28c41bdce207389fb2895cf4c2b65223753b44b8) [
+            "lineItem": Digest(6eda6278399769c825633f19c1e9591814f959a8781e459fd8531900d14b3d43) [
                 "priceEach": "4.99"
                 "product": SCID(ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64)
                 "quantity": 3

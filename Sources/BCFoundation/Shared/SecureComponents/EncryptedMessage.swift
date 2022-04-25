@@ -1,7 +1,6 @@
 import Foundation
-import CryptoSwift
 import URKit
-import CryptoKit
+import BLAKE3
 import protocol WolfBase.DataProvider
 
 /// A secure encrypted message.
@@ -56,7 +55,10 @@ public struct EncryptedMessage: CustomStringConvertible, Equatable {
 extension EncryptedMessage {
     public static func sharedKey(agreementPrivateKey: AgreementPrivateKey, agreementPublicKey: AgreementPublicKey) -> SymmetricKey {
         let sharedSecret = try! agreementPrivateKey.cryptoKitForm.sharedSecretFromKeyAgreement(with: agreementPublicKey.cryptoKitForm)
-        return SymmetricKey(sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: Data(), sharedInfo: "agreement".utf8Data, outputByteCount: 32).withUnsafeBytes { Data($0) })!
+        let keyData = sharedSecret.withUnsafeBytes {
+            BLAKE3.deriveKey(fromContentsOf: $0, withContext: "agreement")
+        }.data
+        return SymmetricKey(keyData)!
     }
 }
 

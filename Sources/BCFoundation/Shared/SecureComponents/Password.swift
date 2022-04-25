@@ -42,7 +42,7 @@ public class Password: PrivateKeysDataProvider {
         self.data = try! Data(Scrypt(password: password.bytes, salt: salt.bytes, dkLen: dkLen, N: n, r: r, p: p).calculate())
     }
     
-    public func validate(_ password: String) -> Bool {
+    public func isValid(_ password: String) -> Bool {
         guard !password.isEmpty else {
             return false
         }
@@ -50,7 +50,7 @@ public class Password: PrivateKeysDataProvider {
         return data == d
     }
     
-    public var prvkeysData: Data {
+    public var privateKeysData: Data {
         data
     }
 }
