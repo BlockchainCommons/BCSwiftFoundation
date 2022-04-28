@@ -21,7 +21,7 @@ let package = Package(
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
         .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.4.1"),
         .package(url: "https://github.com/BlockchainCommons/URKit.git", from: "6.0.0"),
-        .package(url: "https://github.com/GigaBitcoin/secp256k1.swift.git", .upToNextMajor(from: "0.5.0")),
+        .package(url: "https://github.com/BlockchainCommons/secp256k1-zkp.swift.git", .upToNextMajor(from: "0.5.0")),
         .package(url: "https://github.com/BlockchainCommons/blake3-swift.git", .branch("master"))
     ],
     targets: [
@@ -35,7 +35,7 @@ let package = Package(
                 "CryptoSwift",
                 "URKit",
                 .product(name: "BLAKE3", package: "blake3-swift"),
-                .product(name: "secp256k1", package: "secp256k1.swift"),
+                .product(name: "secp256k1", package: "secp256k1-zkp.swift"),
             ]
         ),
         .binaryTarget(

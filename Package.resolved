@@ -2,12 +2,39 @@
   "object": {
     "pins": [
       {
+        "package": "BLAKE3",
+        "repositoryURL": "https://github.com/BlockchainCommons/blake3-swift.git",
+        "state": {
+          "branch": "master",
+          "revision": "24a3082ad423e4b930e279d43de5e7443fde2147",
+          "version": null
+        }
+      },
+      {
+        "package": "crypto-traits-swift",
+        "repositoryURL": "https://github.com/nixberg/crypto-traits-swift",
+        "state": {
+          "branch": null,
+          "revision": "edbb488fbe7a09572e889e026a5aa07e0feb1198",
+          "version": "0.2.1"
+        }
+      },
+      {
         "package": "CryptoSwift",
         "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
         "state": {
           "branch": null,
           "revision": "4b0565384d3c4c588af09e660535b2c7c9bf5b39",
           "version": "1.4.2"
+        }
+      },
+      {
+        "package": "endianbytes-swift",
+        "repositoryURL": "https://github.com/nixberg/endianbytes-swift",
+        "state": {
+          "branch": null,
+          "revision": "c09b87de7948c2e95d2a9c3faba34ab2cb24ba3b",
+          "version": "0.4.0"
         }
       },
       {
@@ -21,7 +48,7 @@
       },
       {
         "package": "secp256k1",
-        "repositoryURL": "https://github.com/GigaBitcoin/secp256k1.swift.git",
+        "repositoryURL": "https://github.com/BlockchainCommons/secp256k1-zkp.swift.git",
         "state": {
           "branch": null,
           "revision": "abe7c8232970c1fd57f4c77590bce2c868df7137",
@@ -29,12 +56,30 @@
         }
       },
       {
+        "package": "swift-algorithms",
+        "repositoryURL": "https://github.com/apple/swift-algorithms",
+        "state": {
+          "branch": null,
+          "revision": "b14b7f4c528c942f121c8b860b9410b2bf57825e",
+          "version": "1.0.0"
+        }
+      },
+      {
+        "package": "swift-numerics",
+        "repositoryURL": "https://github.com/apple/swift-numerics",
+        "state": {
+          "branch": null,
+          "revision": "0a5bc04095a675662cf24757cc0640aa2204253b",
+          "version": "1.0.2"
+        }
+      },
+      {
         "package": "URKit",
         "repositoryURL": "https://github.com/BlockchainCommons/URKit.git",
         "state": {
           "branch": null,
-          "revision": "5ef6e7e16662ecf9aa6b91781c7d8b0792d65575",
-          "version": "5.0.0"
+          "revision": "5a87c48aab97f8405db23e8d42ffcfce0fb65b18",
+          "version": "6.0.0"
         }
       },
       {
@@ -42,8 +87,8 @@
         "repositoryURL": "https://github.com/WolfMcNally/WolfBase",
         "state": {
           "branch": null,
-          "revision": "2fce4e23cc125f6e177e57230b341decdd8959b1",
-          "version": "3.24.0"
+          "revision": "10f8f43cb9ffca924c02df9ea77019402df43cba",
+          "version": "3.26.0"
         }
       }
     ]
