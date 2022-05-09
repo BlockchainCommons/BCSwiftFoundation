@@ -199,7 +199,7 @@ extension LibSecP256K1 {
             msg32.withUnsafeByteBuffer { msg32 in
                 withUnsafePointer(to: keyPair) { keyPair in
                     auxRand.withUnsafeByteBuffer { auxRand in
-                        _ = secp256k1_schnorrsig_sign(context, sig64.baseAddress!, msg32.baseAddress!, keyPair, auxRand.baseAddress)
+                        _ = secp256k1_schnorrsig_sign32(context, sig64.baseAddress!, msg32.baseAddress!, keyPair, auxRand.baseAddress)
                     }
                 }
             }
