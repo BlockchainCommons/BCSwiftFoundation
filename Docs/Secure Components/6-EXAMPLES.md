@@ -1,7 +1,7 @@
 # Secure Components - Examples
 
 **Authors:** Wolf McNally, Christopher Allen, Blockchain Commons</br>
-**Revised:** April 22, 2022</br>
+**Revised:** May 16, 2022</br>
 **Status:** DRAFT
 
 ---
@@ -9,14 +9,21 @@
 ## Contents
 
 * [Overview](1-OVERVIEW.md)
-* Examples: This document.
-* [Definitions](3-DEFINITIONS.md)
+* [Simplex Overview](2-SIMPLEX.md)
+* [Simplex Notation](3-SIMPLEX-NOTATION.md)
+* [Simplex Expressions](4-SIMPLEX-EXPRESSIONS.md)
+* [Definitions](5-DEFINITIONS.md)
+* [Examples](6-EXAMPLES.md): This document
 
 ---
 
 ## Introduction
 
-This section includes a set of high-level examples of API usage in Swift involving `Simplex`. These examples are actual, running unit tests in the [BCSwiftFoundation package](https://github.com/blockchaincommons/BCSwiftFoundation).
+This section includes a set of high-level examples of API usage in Swift involving `Simplex`.
+
+## Status
+
+These examples are actual, running unit tests in the [BCSwiftFoundation package](https://github.com/blockchaincommons/BCSwiftFoundation). The document and implementation as a whole are considered a draft.
 
 ## Common structures used by the examples
 
@@ -97,10 +104,10 @@ XCTAssertEqual(receivedPlaintext, plaintext)
 XCTAssertThrowsError(try receivedContainer.validateSignature(from: carolPublicKeys))
 
 // Confirm that it was signed by Alice OR Carol.
-try receivedContainer.validateSignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 1)
+try receivedContainer.verifySignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 1)
 
 // Confirm that it was not signed by Alice AND Carol.
-XCTAssertThrowsError(try receivedContainer.validateSignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 2))
+XCTAssertThrowsError(try receivedContainer.verifySignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 2))
 ```
 
 ### Simplex Notation
@@ -123,7 +130,7 @@ let ur = container.ur
 
 // Bob receives the container and verifies the message was signed by both Alice and Carol.
 let receivedPlaintext = try Simplex(ur: ur)
-    .validateSignatures(from: [alicePublicKeys, carolPublicKeys])
+    .verifySignatures(from: [alicePublicKeys, carolPublicKeys])
     .extract(String.self)
 
 // Bob reads the message.
@@ -501,7 +508,7 @@ let aliceSCID = try aliceSignedDocument.validateSignature(from: alicePublicKeys)
 
 // The registrar creates its own registration document using Alice's SCID as the
 // subject, incorporating Alice's signed document, and adding its own signature.
-let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.rawValue.hex)")!
+let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.data.hex)")!
 let aliceRegistration = Simplex(aliceSCID)
     .add(.entity, aliceSignedDocument)
     .add(.dereferenceVia, aliceURL)

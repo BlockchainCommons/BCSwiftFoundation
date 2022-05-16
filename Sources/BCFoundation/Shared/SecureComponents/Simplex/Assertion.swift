@@ -13,7 +13,7 @@ extension Assertion {
     public init(_ predicate: Simplex, _ object: Simplex) {
         self.predicate = predicate
         self.object = object
-        self.digest = Digest(predicate.digest.rawValue + object.digest.rawValue)
+        self.digest = Digest(predicate.digest.data + object.digest.data)
     }
 }
 

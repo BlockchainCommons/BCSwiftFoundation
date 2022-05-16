@@ -2,42 +2,42 @@ import Foundation
 import WolfBase
 import URKit
 
-public struct Nonce: CustomStringConvertible, Equatable, Hashable, RawRepresentable, DataProvider {
-    public let rawValue: Data
+public struct Nonce: CustomStringConvertible, Equatable, Hashable, DataProvider {
+    public let data: Data
     
-    public init?(rawValue: Data) {
-        guard rawValue.count == 12 else {
+    public init?(_ data: Data) {
+        guard data.count == 12 else {
             return nil
         }
-        self.rawValue = rawValue
+        self.data = data
     }
     
     public init() {
-        self.init(rawValue: SecureRandomNumberGenerator.shared.data(count: 12))!
+        self.init(SecureRandomNumberGenerator.shared.data(count: 12))!
     }
 
     public var bytes: [UInt8] {
-        rawValue.bytes
+        data.bytes
     }
     
     public var description: String {
-        rawValue.hex.flanked("Nonce(", ")")
+        data.hex.flanked("Nonce(", ")")
     }
     
     public var providedData: Data {
-        rawValue
+        data
     }
 }
 
 extension Nonce {
     public var untaggedCBOR: CBOR {
-        CBOR.data(self.rawValue)
+        CBOR.data(self.data)
     }
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.data(rawValue) = untaggedCBOR,
-            let result = Nonce(rawValue: rawValue)
+            case let CBOR.data(data) = untaggedCBOR,
+            let result = Nonce(data)
         else {
             throw CBORError.invalidFormat
         }

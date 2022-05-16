@@ -7,13 +7,13 @@ protocol SimplexFormat {
 
 extension Digest: SimplexFormat {
     var formatItem: SimplexFormatItem {
-        return .item(rawValue.prefix(8).hex)
+        return .item(data.prefix(8).hex)
     }
 }
 
 extension SCID: SimplexFormat {
     var formatItem: SimplexFormatItem {
-        return .item(rawValue.hex)
+        return .item(data.hex)
     }
 }
 

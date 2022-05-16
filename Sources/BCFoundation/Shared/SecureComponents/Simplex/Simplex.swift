@@ -4,24 +4,6 @@ import WolfBase
 import CryptoKit
 import SSKR
 
-extension Set {
-    public mutating func insert<E>(_ element: E) where Element == Digest, E: DigestProvider {
-        insert(element.digest)
-    }
-    
-    public mutating func insert<S>(_ other: S) where Element == Digest, S.Element == Digest, S: Sequence {
-        formUnion(other)
-    }
-
-    public mutating func insert<S>(_ other: S) where Element == Digest, S.Element == DigestProvider, S: Sequence {
-        formUnion(other.map { $0.digest })
-    }
-}
-
-public protocol DigestProvider {
-    var digest: Digest { get }
-}
-
 public struct Simplex: DigestProvider {
     public let subject: Subject
     public let assertions: [Assertion]
@@ -35,7 +17,7 @@ extension Simplex {
         self.assertions = sortedAssertions
         var digests = [subject.digest]
         digests.append(contentsOf: sortedAssertions.map { $0.digest })
-        self.digest = Digest(Data(digests.map { $0.rawValue }.joined()))
+        self.digest = Digest(Data(digests.map { $0.data }.joined()))
     }
     
     public init(digest: Digest) {

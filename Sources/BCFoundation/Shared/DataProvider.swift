@@ -9,6 +9,6 @@ extension CBOR: DataProvider {
 
 extension Digest: DataProvider {
     public var providedData: Data {
-        rawValue
+        data
     }
 }

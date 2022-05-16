@@ -28,26 +28,26 @@ public struct EncryptedMessage: CustomStringConvertible, Equatable {
         "Message(ciphertext: \(ciphertext.hex), aad: \(aad.hex), nonce: \(nonce), auth: \(auth))"
     }
     
-    public struct Auth: CustomStringConvertible, Equatable, Hashable, RawRepresentable {
-        public let rawValue: Data
+    public struct Auth: CustomStringConvertible, Equatable, Hashable {
+        public let data: Data
         
-        public init?(rawValue: Data) {
-            guard rawValue.count == 16 else {
+        public init?(_ data: Data) {
+            guard data.count == 16 else {
                 return nil
             }
-            self.rawValue = rawValue
+            self.data = data
         }
         
         public init?(_ bytes: [UInt8]) {
-            self.init(rawValue: Data(bytes))
+            self.init(Data(bytes))
         }
         
         public var bytes: [UInt8] {
-            rawValue.bytes
+            data.bytes
         }
         
         public var description: String {
-            rawValue.hex.flanked("auth(", ")")
+            data.hex.flanked("auth(", ")")
         }
     }
 }
@@ -73,9 +73,9 @@ extension EncryptedMessage {
 extension EncryptedMessage {
     public var untaggedCBOR: CBOR {
         if self.aad.isEmpty {
-            return [ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor]
+            return [ciphertext.cbor, nonce.data.cbor, auth.data.cbor]
         } else {
-            return [ciphertext.cbor, nonce.rawValue.cbor, auth.rawValue.cbor, aad.cbor]
+            return [ciphertext.cbor, nonce.data.cbor, auth.data.cbor, aad.cbor]
         }
     }
     
@@ -106,9 +106,9 @@ extension EncryptedMessage {
             (3...4).contains(elements.count),
             case let CBOR.data(ciphertext) = elements[0],
             case let CBOR.data(nonceData) = elements[1],
-            let nonce = Nonce(rawValue: nonceData),
+            let nonce = Nonce(nonceData),
             case let CBOR.data(authData) = elements[2],
-            let auth = Auth(rawValue: authData)
+            let auth = Auth(authData)
         else {
             throw CBORError.invalidFormat
         }

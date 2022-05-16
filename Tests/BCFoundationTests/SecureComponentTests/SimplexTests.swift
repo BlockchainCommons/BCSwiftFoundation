@@ -768,7 +768,7 @@ class SimplexTests: XCTestCase {
         
         // The registrar creates its own registration document using Alice's SCID as the
         // subject, incorporating Alice's signed document, and adding its own signature.
-        let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.rawValue.hex)")!
+        let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.data.hex)")!
         let aliceRegistration = Simplex(aliceSCID)
             .add(.entity, aliceSignedDocument)
             .add(.dereferenceVia, aliceURL)

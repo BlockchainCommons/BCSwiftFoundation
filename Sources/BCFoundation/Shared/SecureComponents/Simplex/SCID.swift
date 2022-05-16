@@ -1,32 +1,28 @@
 import Foundation
 import URKit
 
-public struct SCID: CustomStringConvertible, Equatable, Hashable, RawRepresentable {
-    public let rawValue: Data
-    
-    public init?(rawValue: Data) {
-        guard rawValue.count == 32 else {
-            return nil
-        }
-        self.rawValue = rawValue
-    }
+public struct SCID: CustomStringConvertible, Equatable, Hashable {
+    public let data: Data
     
     public init?(_ data: Data) {
-        self.init(rawValue: data)
+        guard data.count == 32 else {
+            return nil
+        }
+        self.data = data
     }
     
     public init() {
-        self.init(rawValue: SecureRandomNumberGenerator.shared.data(count: 32))!
+        self.init(SecureRandomNumberGenerator.shared.data(count: 32))!
     }
     
     public var description: String {
-        rawValue.hex.flanked("SCID(", ")")
+        data.hex.flanked("SCID(", ")")
     }
 }
 
 extension SCID {
     public var untaggedCBOR: CBOR {
-        CBOR.data(rawValue)
+        CBOR.data(data)
     }
     
     public var taggedCBOR: CBOR {
@@ -35,8 +31,8 @@ extension SCID {
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.data(rawValue) = untaggedCBOR,
-            let value = SCID(rawValue: rawValue)
+            case let CBOR.data(data) = untaggedCBOR,
+            let value = SCID(data)
         else {
             throw CBORError.invalidFormat
         }

@@ -2,18 +2,19 @@ import Foundation
 import BLAKE3
 import URKit
 import WolfBase
+import Multibase
 
 /// A cryptographically secure digest.
 ///
 /// Implemented with BLAKE3 hashing.
 ///
 /// https://datatracker.ietf.org/doc/rfc7693
-public struct Digest: CustomStringConvertible, Hashable, RawRepresentable {
-    public let rawValue: Data
+public struct Digest: CustomStringConvertible, Hashable {
+    public let data: Data
     public static let defaultDigestLength = 32
     
     public init(_ data: DataProvider, digestLength: Int = defaultDigestLength) {
-        self.rawValue = BLAKE3.hash(contentsOf: data.providedData, outputByteCount: digestLength).data
+        self.data = BLAKE3.hash(contentsOf: data.providedData, outputByteCount: digestLength).data
     }
     
     public init?(_ data: DataProvider, includeDigest: Bool, digestLength: Int = defaultDigestLength) {
@@ -27,19 +28,15 @@ public struct Digest: CustomStringConvertible, Hashable, RawRepresentable {
         guard rawValue.count == digestLength else {
             return nil
         }
-        self.rawValue = rawValue
-    }
-
-    public init?(rawValue: Data) {
-        self.init(rawValue: rawValue, digestLength: Self.defaultDigestLength)
+        self.data = rawValue
     }
     
     public var description: String {
-        "Digest(\(rawValue.hex))"
+        "Digest(\(data.hex))"
     }
     
     public func validate(_ data: DataProvider) -> Bool {
-        self == Digest(data, digestLength: self.rawValue.count)
+        self == Digest(data, digestLength: self.data.count)
     }
     
     public static func validate(_ data: DataProvider, digest: Digest?) -> Bool {
@@ -52,13 +49,13 @@ public struct Digest: CustomStringConvertible, Hashable, RawRepresentable {
 
 extension Digest: Comparable {
     public static func < (lhs: Digest, rhs: Digest) -> Bool {
-        lhs.rawValue.lexicographicallyPrecedes(rhs.rawValue)
+        lhs.data.lexicographicallyPrecedes(rhs.data)
     }
 }
 
 extension Digest {
     public var untaggedCBOR: CBOR {
-        CBOR.data(self.rawValue)
+        CBOR.data(self.data)
     }
     
     public var taggedCBOR: CBOR {
@@ -74,8 +71,8 @@ extension Digest {
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.data(rawValue) = untaggedCBOR,
-            let digest = Digest(rawValue: rawValue)
+            case let CBOR.data(data) = untaggedCBOR,
+            let digest = Digest(rawValue: data)
         else {
             throw CBORError.invalidFormat
         }
