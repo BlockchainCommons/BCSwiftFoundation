@@ -19,7 +19,7 @@
 
 ## Introduction
 
-We provide a simplified textual notation for pretty-printing and interpreting `Simplex`.
+We provide a simplified textual notation for pretty-printing and reading instances of the `Simplex` type.
 
 ## Status
 
@@ -115,7 +115,7 @@ Even leaf objects like strings and numbers can be transformed into Simplexes wit
 ]
 ```
 
-Thus, the `Simplex` type provides a flexible foundation for constructing solutions for various applications. Here are some high-level schematics of such applications in Simplex Notation. See the EXAMPLES chapter for more detail.
+Thus, the `Simplex` type provides a flexible foundation for constructing solutions for various applications. Here are some high-level schematics of such applications in Simplex Notation. See the [EXAMPLES](6-EXAMPLES.md) chapter for more detail.
 
 ## Examples
 
@@ -156,7 +156,7 @@ Although you cannot have duplicate assertions every signature is unique, hence t
 
 ## A container containing a symmetrically encrypted message.
 
-The subject is just an `EncryptedMessage`. Because this `EncryptedMessage` is the `subject` of a `Simplex`, we do know that its plaintext MUST be CBOR. This CBOR plaintext may be a leaf or another `Simplex` with more layers of assertions, but the receiver will have to decrypt it to find out.
+The subject is just an `EncryptedMessage`. Because this `EncryptedMessage` is the `subject` of a `Simplex`, we do know that its plaintext MUST be CBOR. This CBOR plaintext may be a leaf or another `Simplex` with more layers of assertions possibly  including signatures, but the receiver will have to decrypt it to find out.
 
 ```
 EncryptedMessage

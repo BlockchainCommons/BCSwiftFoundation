@@ -31,7 +31,6 @@ extension URType {
     public static let transactionResponse = URType(type: "crypto-response", tag: 313)
 
     public static let message = URType(type: "crypto-msg", tag: 48)
-    public static let envelope = URType(type: "crypto-envelope", tag: 49)
     public static let simplex = URType(type: "crypto-simplex", tag: 49)
     public static let privateKeyBase = URType(type: "crypto-prvkeys", tag: 50)
     public static let publicKeyBase = URType(type: "crypto-pubkeys", tag: 51)

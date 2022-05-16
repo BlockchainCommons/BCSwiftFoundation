@@ -38,6 +38,8 @@ This document is an early draft. While there is a reference implementation of `S
 
 Since every Simplex has a unique digest, any Simplex expression can be replaced by its digest as long as the expression can eventually be found that matches it. In some cases, certain expressions may be so common as to be designated "well-known". In this case they can be represented by their digest alone or even a small tagged integer, trusting that the recipient of a Simplex can resolve the expression should they wish to evaluate it. Expressions that solve problems in specific domains and include placeholders for their arguments may be good candidates for this, one example being common cryptocurrency spending conditions.
 
+Even for expressions that are not "well known," like any other `Simplex`, an expression could appear as a reference to a `Digest` with one or more `dereferenceBy` assertions that tell the evaluator how to retrieve the expression that belongs in that place.
+
 ## Example Expressions
 
 All of these examples are in Simplex Notation.
@@ -46,7 +48,7 @@ All of these examples are in Simplex Notation.
 
 ## Constants
 
-Constants like numbers, strings, and even compound data types like `EncryptedMessage` are directly encodable as a Simplex whose `subject` is an instance of the constant's CBOR type:
+Constants like numbers, strings, and even compound data types like `EncryptedMessage` are directly encodable as a Simplex whose `subject` is an instance of the constant's CBOR type. Obviously, they evaluate to themselves.
 
 ```
 2
@@ -94,15 +96,15 @@ When evaluated, the result is a Simplex that may be substituted for the original
 5
 ```
 
-**NOTE:** In the remainder of this document, `func(name)` is denoted as `⟪name⟫` and `param(name)` is denoted as `⟨name⟩`
+**NOTE:** In the remainder of this document, `func(name)` is denoted as `«name»` and `param(name)` is denoted as `❰name❱`
 
 ## Unary Operator
 
-Unary operators are simply functions of arity one. One parameter name may be blank, denoted `⟨_⟩`. This is most frequently seen with unary operators.
+Unary operators are simply functions of arity one. One parameter name may be blank, denoted `❰_❱`. This is most frequently seen with unary operators.
 
 ```
-⟪negate⟫ [
-    ⟨_⟩: 10
+«negate» [
+    ❰_❱: 10
 ]
 ```
 
@@ -115,9 +117,9 @@ Unary operators are simply functions of arity one. One parameter name may be bla
 The composition `f(g(x))`:
 
 ```
-⟪f⟫ [
-    ⟨_⟩: ⟪g⟫ [
-        ⟨_⟩: $x
+«f» [
+    ❰_❱: «g» [
+        ❰_❱: $x
     ]
 ]
 ```
@@ -129,9 +131,9 @@ Operators that evaluate to boolean values are often known as "predicates". To av
 `5 > 2` may be encoded as:
 
 ```
-⟪greaterThan⟫ [
-    ⟨lhs⟩: 5
-    ⟨rhs⟩: 10
+«greaterThan» [
+    ❰lhs❱: 5
+    ❰rhs❱: 10
 ]
 ```
 
@@ -148,11 +150,11 @@ validateSignature(key: pubkey, sig: signature, digest: sha256(message))
 ```
 
 ```
-⟪validateSignature⟫ [
-    ⟨key⟩: SigningPublicKey
-    ⟨sig⟩: Signature
-    ⟨digest⟩: ⟪sha256⟫ [
-        ⟨_⟩: Data
+«validateSignature» [
+    ❰key❱: SigningPublicKey
+    ❰sig❱: Signature
+    ❰digest❱: «sha256» [
+        ❰_❱: Data
     ]
 ]
 ```
@@ -164,8 +166,8 @@ The `validateSignature` function is a logical predicate. The result of this expr
 Functions may take parameters that are sequences encoded as CBOR arrays, or dictionaries encoded as CBOR maps.
 
 ```
-⟪concatenate⟫ [
-    ⟨_⟩: ["Foo", "Bar", "Baz"]
+«concatenate» [
+    ❰_❱: ["Foo", "Bar", "Baz"]
 ]
 ```
 
@@ -173,7 +175,7 @@ Functions may take parameters that are sequences encoded as CBOR arrays, or dict
 FooBarBaz
 ```
 
-## Variable Substitution and Partially-Applied Functions
+## Variable Substitution and Partially-Applied Expressions
 
 Simplex expressions support scoped variable substitution.
 
@@ -183,11 +185,11 @@ Corresponsing predicates that are CBOR unsigned integers or CBOR strings and tag
 
 ```
 {
-    ⟪validateSignature⟫ [
-        ⟨key⟩: $key
-        ⟨sig⟩: $sig
-        ⟨digest⟩: ⟪sha256⟫ [
-            ⟨_⟩: $message
+    «validateSignature» [
+        ❰key❱: $key
+        ❰sig❱: $sig
+        ❰digest❱: «sha256» [
+            ❰_❱: $message
         ]
     ]
 } [
@@ -197,7 +199,7 @@ Corresponsing predicates that are CBOR unsigned integers or CBOR strings and tag
 ]
 ```
 
-### Unlimited Replacement
+### Complete Replacement
 
 The scope of replacement is recursive, but stops at any separately enclosed simplexes.
 
@@ -205,11 +207,11 @@ In this example, there is only a top set of replacements, so all variables are s
 
 ```
 {
-    ⟪add⟫ [
-        ⟨lhs⟩: $a
-        ⟨rhs⟩: ⟪multiply⟫ [
-            ⟨lhs⟩: $b
-            ⟨rhs⟩: $c
+    «add» [
+        ❰lhs❱: $a
+        ❰rhs❱: «multiply» [
+            ❰lhs❱: $b
+            ❰rhs❱: $c
         ]
     ]
 } [
@@ -225,12 +227,12 @@ In this case, the `rhs` argument of the top-level function has been enclosed, so
 
 ```
 {
-    ⟪add⟫ [
-        ⟨lhs⟩: $a
-        ⟨rhs⟩: {
-            ⟪multiply⟫ [
-                ⟨lhs⟩: $b
-                ⟨rhs⟩: $c
+    «add» [
+        ❰lhs❱: $a
+        ❰rhs❱: {
+            «multiply» [
+                ❰lhs❱: $b
+                ❰rhs❱: $c
             ]
         }
     ]
@@ -244,12 +246,12 @@ In this case, the `rhs` argument of the top-level function has been enclosed, so
 Because of this, when the above expression is evaluated only the `$a` substitution is made, and the expression result is only partially applied:
 
 ```
-⟪add⟫ [
-    ⟨lhs⟩: 10
-    ⟨rhs⟩: {
-        ⟪add⟫ [
-            ⟨lhs⟩: $b
-            ⟨rhs⟩: $c
+«add» [
+    ❰lhs❱: 10
+    ❰rhs❱: {
+        «add» [
+            ❰lhs❱: $b
+            ❰rhs❱: $c
         ]
     }
 ]
@@ -261,18 +263,18 @@ In this version, the inner expression has its own `replacement` assertions that 
 
 ```
 {
-    ⟪add⟫ [
-        ⟨lhs⟩: $a
-        ⟨rhs⟩: {
-            ⟪multiply⟫ [
-                ⟨lhs⟩: $d
-                ⟨rhs⟩: $e
+    «add» [
+        ❰lhs❱: $a
+        ❰rhs❱: {
+            «multiply» [
+                ❰lhs❱: $d
+                ❰rhs❱: $e
             ]
         } [
             /d: $c
-            /e: ⟪add⟫ [
-                ⟨lhs⟩: $b
-                ⟨rhs⟩: 2
+            /e: «add» [
+                ❰lhs❱: $b
+                ❰rhs❱: 2
             ]
         ]
     ]
@@ -297,11 +299,11 @@ By successive substitution, this expression evaluates to:
 Functions may take functions as parameters.
 
 ```
-⟪map⟫ [
-    ⟨_⟩ : [3, 4, 5]
-    ⟨transform⟩: ⟪mul⟫ [
-        ⟨lhs⟩: $0
-        ⟨rhs⟩: $0
+«map» [
+    ❰_❱ : [3, 4, 5]
+    ❰transform❱: «mul» [
+        ❰lhs❱: $0
+        ❰rhs❱: $0
     ]
 ]
 ```
@@ -312,13 +314,13 @@ This expression evaluates to:
 [9, 16, 25]
 ```
 
-Each application of the `⟨transform⟩` expression to an element of the `⟨_⟩` argument results in a replacement expression:
+Each application of the `❰transform❱` expression to an element of the `❰_❱` argument results in a replacement expression:
 
 ```
 {
-    ⟪mul⟫ [
-        ⟨lhs⟩: $0
-        ⟨rhs⟩: $0
+    «mul» [
+        ❰lhs❱: $0
+        ❰rhs❱: $0
     ]
 } [
     /0: 4
@@ -328,9 +330,9 @@ Each application of the `⟨transform⟩` expression to an element of the `⟨_�
 By substitution:
 
 ```
-⟪mul⟫ [
-    ⟨lhs⟩: 4
-    ⟨rhs⟩: 4
+«mul» [
+    ❰lhs❱: 4
+    ❰rhs❱: 4
 ]
 ```
 
@@ -346,14 +348,18 @@ Functions may perform tests yielding different evaluation paths. For example the
 
 
 ```
-⟪if⟫ [
-    ⟨test⟩: ⟪greaterThan⟫ [
-        ⟨lhs⟩: 20
-        ⟨rhs⟩: 10
+«if» [
+    ❰test❱: «greaterThan» [
+        ❰lhs❱: 20
+        ❰rhs❱: 10
     ]
-    ⟨true⟩: "Big"
-    ⟨false⟩: "Small"
+    ❰true❱: "Big"
+    ❰false❱: "Small"
 ]
+```
+
+```
+"Big"
 ```
 
 ## Atomic Swap
@@ -368,14 +374,14 @@ The `encryptedSignature` parameter of the `decryptSignature` function is already
 
 ```
 Transaction(Alice) [
-    signature: ⟪decryptSignature⟫ [
-        ⟨encryptedSignature⟩: EncryptedSignature(Alice)
-        ⟨decryptionKey⟩: ⟪recoverDecryptionKey⟫ [
-            ⟨message⟩: ⟪digest⟫ [
-                ⟨_⟩: $transaction
+    signature: «decryptSignature» [
+        ❰encryptedSignature❱: EncryptedSignature(Alice)
+        ❰decryptionKey❱: «recoverDecryptionKey» [
+            ❰message❱: «digest» [
+                ❰_❱: $transaction
             ]
-            ⟨encryptedSignature⟩: $encryptedSignature
-            ⟨signature⟩: $signature
+            ❰encryptedSignature❱: $encryptedSignature
+            ❰signature❱: $signature
         ]
     ]
 ]
@@ -387,12 +393,12 @@ Bob gives Alice his unsigned transaction that promises to pay her 1 BTC, along w
 
 ```
 Transaction(Bob) [
-    signature: ⟪recoverSignature⟫ [
-        ⟨message⟩: ⟪digest⟫ [
-            ⟨_⟩: $transaction
+    signature: «recoverSignature» [
+        ❰message❱: «digest» [
+            ❰_❱: $transaction
         ]
-        ⟨encryptedSignature⟩: EncryptedSignature(Bob)
-        ⟨decryptionKey⟩: $decryptionKey
+        ❰encryptedSignature❱: EncryptedSignature(Bob)
+        ❰decryptionKey❱: $decryptionKey
     ]
 ]
 ```
@@ -402,12 +408,12 @@ Alice has always known the `DecryptionKey`, so she can use it to decrypt Bob’s
 ```
 {
     Transaction(Bob) [
-        signature: ⟪recoverSignature⟫ [
-            ⟨message⟩: ⟪digest⟫ [
-                ⟨_⟩: $transaction
+        signature: «recoverSignature» [
+            ❰message❱: «digest» [
+                ❰_❱: $transaction
             ]
-            ⟨encryptedSignature⟩: EncryptedSignature(Bob)
-            ⟨decryptionKey⟩: $decryptionKey
+            ❰encryptedSignature❱: EncryptedSignature(Bob)
+            ❰decryptionKey❱: $decryptionKey
         ]
     ]
 } [
@@ -420,12 +426,12 @@ After the replacements are performed:
 
 ```
 Transaction(Bob) [
-    signature: ⟪recoverSignature⟫ [
-        ⟨message⟩: ⟪digest⟫ [
-            ⟨_⟩: Transaction(Bob)
+    signature: «recoverSignature» [
+        ❰message❱: «digest» [
+            ❰_❱: Transaction(Bob)
         ]
-        ⟨encryptedSignature⟩: EncryptedSignature(Bob)
-        ⟨decryptionKey⟩: DecryptionKey
+        ❰encryptedSignature❱: EncryptedSignature(Bob)
+        ❰decryptionKey❱: DecryptionKey
     ]
 ]
 ```
@@ -443,14 +449,14 @@ Alice broadcasts the transaction and receives Bob’s payment. When Bob sees tha
 ```
 {
     Transaction(Alice) [
-        signature: ⟪decryptSignature⟫ [
-            ⟨encryptedSignature⟩: EncryptedSignature(Alice)
-            ⟨decryptionKey⟩: ⟪recoverDecryptionKey⟫ [
-                ⟨message⟩: ⟪digest⟫ [
-                    ⟨_⟩: $transaction
+        signature: «decryptSignature» [
+            ❰encryptedSignature❱: EncryptedSignature(Alice)
+            ❰decryptionKey❱: «recoverDecryptionKey» [
+                ❰message❱: «digest» [
+                    ❰_❱: $transaction
                 ]
-                ⟨encryptedSignature⟩: $encryptedSignature
-                ⟨signature⟩: $signature
+                ❰encryptedSignature❱: $encryptedSignature
+                ❰signature❱: $signature
             ]
         ]
     ]
@@ -465,14 +471,14 @@ After the replacements:
 
 ```
 Transaction(Alice) [
-    signature: ⟪decryptSignature⟫ [
-        ⟨encryptedSignature⟩: EncryptedSignature(Alice)
-        ⟨decryptionKey⟩: ⟪recoverDecryptionKey⟫ [
-            ⟨message⟩: ⟪digest⟫ [
-                ⟨_⟩: Transaction(Alice)
+    signature: «decryptSignature» [
+        ❰encryptedSignature❱: EncryptedSignature(Alice)
+        ❰decryptionKey❱: «recoverDecryptionKey» [
+            ❰message❱: «digest» [
+                ❰_❱: Transaction(Alice)
             ]
-            ⟨encryptedSignature⟩: EncryptedSignature(Bob)
-            ⟨signature⟩: Signature(Bob)
+            ❰encryptedSignature❱: EncryptedSignature(Bob)
+            ❰signature❱: Signature(Bob)
         ]
     ]
 ]

@@ -28,11 +28,11 @@ struct Simplex {
 }
 ```
 
-The basic idea is that a `Simplex` contains some [deterministically-encoded CBOR](https://www.rfc-editor.org/rfc/rfc8949.html#name-deterministically-encoded-c) data (the `subject`) that may or may not be encrypted, and zero or more assertions about the `subject`.
+The basic idea is that a `Simplex` contains some [deterministically-encoded CBOR](https://www.rfc-editor.org/rfc/rfc8949.html#name-deterministically-encoded-c) data (the `subject`) that may or may not be encrypted or redacted, and zero or more assertions about the `subject`.
 
 ## Subject
 
-The `Subject` of a `Simplex` is an enumerated type.
+The `subject` of a `Simplex` is an enumerated type.
 
 * `.leaf` represents any terminal CBOR object.
 * `.simplex` represents a nested `Simplex`.
@@ -88,7 +88,7 @@ Simplexes can be be in several forms, for any of these forms, the same digest is
 * Unencrypted or encrypted.
 * Unredacted or redacted.
 
-Thus the `Digest` of a `Simplex` identifies the `subject` and its assertions as if they were all present (dereferenced), unredacted, and unencrypted. This allows a `Simplex` to be transformed either into or out of the various encrypted/decrypted, local/reference, and redacted/unredacted forms without changing the cumulative tree of digests. This also means that any transformations that do not preserve the digest tree invalidate the signatures of any enclosing `Simplex`s.
+Thus the `Digest` of a `Simplex` identifies the `subject` and its assertions as if they were all present (dereferenced), unredacted, and unencrypted. This allows a `Simplex` to be transformed either into or out of the various encrypted/decrypted, local/reference, and redacted/unredacted forms without changing the cumulative [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree) of digests. This also means that any transformations that do not preserve the digest tree invalidate the signatures of any enclosing `Simplex`s.
 
 This architecture supports selective disclosure of contents of nested `Simplex`s by revealing only the minimal objects necessary to traverse to a particular nesting path, and having done so, calculating the hashes back to the root allows verification that the correct and included contents were disclosed. On a structure where only a minimal number of fields have been revealed, a signature can still be validated.
 
@@ -100,8 +100,8 @@ Put another way, a `SCID` resolves to a *projection* of a current view of an obj
 
 ## References
 
-In the DID spec, a given DID URI is tied to a single specific method for resolving it. However, there are many cases where one may want a resource (possibly a DID document-like object) or third-party assertions about such a resource to persist in a multiplicity of places, retrievable by a multiplicity of methods. Therefore, in this proposal, one or more methods for dereferencing a `SCID` or `Digest` (analogous to DID methods) may be added to a `Simplex` as assertions with the `dereferenceVia` predicate. This allows the referent to potentially exist in many places (including local caches), with the assertions providing guidance to authoritative or recommended methods for dereferencing them.
+In the [DID spec](https://www.w3.org/TR/did-core/), a given DID URI is tied to a single specific method for resolving it. However, there are many cases where one may want a resource (possibly a DID document-like object) or third-party assertions about such a resource to persist in a multiplicity of places, retrievable by a multiplicity of methods. Therefore, in this proposal, one or more methods for dereferencing a `SCID` or `Digest` (analogous to DID methods) may be added to a `Simplex` as assertions with the `dereferenceVia` predicate. This allows the referent to potentially exist in many places (including local caches), with the assertions providing guidance to authoritative or recommended methods for dereferencing them.
 
 ## Signatures
 
-Signatures have a random component, so anything with a signature will have a non-deterministic digest. Therefore, the two results of signing the same object twice with the same private key will not compare as equal, even if the same binary obect was signed by the same private key. This means that each signing is a particular event that can never be repeated.
+Signatures have a random component, so anything with a signature will have a non-deterministic (and therefore non-correlatable) digest. Therefore, the two results of signing the same object twice with the same private key will not compare as equal, even if the same binary obect was signed by the same private key. This means that each signing is a particular event that can never be repeated.
