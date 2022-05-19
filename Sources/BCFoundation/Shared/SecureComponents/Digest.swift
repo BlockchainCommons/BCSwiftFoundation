@@ -2,7 +2,6 @@ import Foundation
 import BLAKE3
 import URKit
 import WolfBase
-import Multibase
 
 /// A cryptographically secure digest.
 ///
