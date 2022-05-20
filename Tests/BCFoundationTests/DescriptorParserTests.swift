@@ -446,4 +446,34 @@ class DescriptorParserTests: XCTestCase {
         let sourceWithBadChecksum = sourceWithChecksum.dropLast().appending("b")
         XCTAssertThrowsError(try OutputDescriptor.validateChecksum(sourceWithBadChecksum))
     }
+    
+    func testAddressGeneration() throws {
+        let source = "wsh(multi(1,xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/1/0/*,xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH/0/0/*))"
+        let desc = try OutputDescriptor(source)
+        let addresses = desc.addresses(useInfo: .init(), indexes: 0..<20)
+        let sortedAddresses = addresses.keys.sorted().map { addresses[$0]!.description }
+        let expectedAddresses = [
+            "bc1qvjtfmrxu524qhdevl6yyyasjs7xmnzjlqlu60mrwepact60eyz9s9xjw0c",
+            "bc1qp6rfclasvmwys7w7j4svgc2mrujq9m73s5shpw4e799hwkdcqlcsj464fw",
+            "bc1qsflxzyj2f2evshspl9n5n745swcvs5k7p5t8qdww5unxpjwdvw5qx53ms4",
+            "bc1qmhmj2mswyvyj4az32mzujccvd4dgr8s0lfzaum4n4uazeqc7xxvsr7e28n",
+            "bc1qjeu2wa5jwvs90tv9t9xz99njnv3we3ux04fn7glw3vqsk4ewuaaq9kdc9t",
+            "bc1qc6626sa08a4ktk3nqjrr65qytt9k273u24mfy2ld004g76jzxmdqjgpm2c",
+            "bc1qwlq7jjqcklrcqypvdndjx0fyrudgrymm67gcx3e09sekgs28u47smq0lx5",
+            "bc1qx8qq9k2mtqarugg3ctcsm2um22ahmq5uttrecy5ufku0ukfgpwrs7epn38",
+            "bc1qgrs4qzvw4aat2k38fvmrqf3ucaanqz2wxe5yy5cewwmqn06evxgq02wv43",
+            "bc1qnkpr4y7fp7jwad3gfngczwsv9069rq96cl7lpq4h9j3eng9mwjzsssr520",
+            "bc1q7yzadku3kxs855wgjxnyr2nk3e44ed75p07lzhnj53ynpczg78nq0leae5",
+            "bc1qpg9ag0ugqeucujyagca0n3httpgrgcsxftfgpymvmdeuyyejq9ks79c99t",
+            "bc1qt2sv92tuklq28hptplvq7v75mmc8h6a0ynd7vd7y0h07mr8uzf5seh30gh",
+            "bc1qdyfk0c5ksrxg6klz93acchg0xvavduzv3g4zj02fa3tm2yfy445q27zmar",
+            "bc1qrpfz6zpargqu9s2qy0ef9uk82x6fcg6jfwjhxdaewgj880nxj2rqt0hwcm",
+            "bc1qz6l0ar69xhk209nfdna68fkkg9tqp7pz7eq8mmu6hf5lvpltfx9slc9y6y",
+            "bc1qgcttknnx6z65pdyqckexccvnshzv9wp76705704tpxcpw32y8f2suf5fx8",
+            "bc1q0pauhlw2y4nyc2hud7dsmtc97k6kc30nz5u05dt6stahrfwy68tsnvl7l6",
+            "bc1qhgv6v7jgxxpf0cpzxd9zga52mx3c5xrnkvchk35ypavesumh8yqscvxrjh",
+            "bc1qrshvtv8ldqpdtv4z9z8fsah3plkl57drk7d8xgasgwj6puxpcxessp57hv"
+        ]
+        XCTAssertEqual(sortedAddresses, expectedAddresses)
+    }
 }

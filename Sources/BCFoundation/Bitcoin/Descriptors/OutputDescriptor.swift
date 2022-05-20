@@ -100,3 +100,25 @@ extension OutputDescriptor {
         }
     }
 }
+
+extension OutputDescriptor {
+    public func address(useInfo: UseInfo, wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> Bitcoin.Address? {
+        guard let scriptPubKey = self.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {
+            return nil
+        }
+        return Bitcoin.Address(scriptPubKey: scriptPubKey, useInfo: useInfo)
+    }
+    
+    public func addresses(useInfo: UseInfo, indexes: IndexSet, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
+        var result: [UInt32: Bitcoin.Address] = [:]
+        for index in indexes.lazy.map({ UInt32($0) }) {
+            result[index] = address(useInfo: useInfo, wildcardChildNum: index, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+        }
+        return result
+    }
+    
+    public func addresses(useInfo: UseInfo, indexes: Range<UInt32>, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
+        let indexes = IndexSet(Int(indexes.startIndex)..<Int(indexes.endIndex))
+        return addresses(useInfo: useInfo, indexes: indexes, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+    }
+}
