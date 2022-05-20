@@ -37,7 +37,7 @@ fileprivate func polyMod(_ c: UInt64, _ val: Int) -> UInt64 {
 fileprivate let inputCharset = Array("0123456789()[],'/*abcdefgh@:$%{}IJKLMNOPQRSTUVWXYZ&+-.;<=>?!^_|~ijklmnopqrstuvwxyzABCDEFGH`#\"\\ ")
 
 /// The character set for the checksum itself (same as bech32).
-fileprivate let checksumCharset = Array("qpzry9x8gf2tvdw0s3jn54khce6mua7l")
+let descriptorChecksumCharset = Array("qpzry9x8gf2tvdw0s3jn54khce6mua7l")
 
 func descriptorChecksum(_ str: String) -> String? {
     var c: UInt64 = 1
@@ -65,5 +65,5 @@ func descriptorChecksum(_ str: String) -> String? {
     }
     c ^= 1 // Prevent appending zeroes from not affecting the checksum.
     
-    return String((0..<8).map { checksumCharset[Int((c >> (5 * (7 - $0))) & 31)] })
+    return String((0..<8).map { descriptorChecksumCharset[Int((c >> (5 * (7 - $0))) & 31)] })
 }

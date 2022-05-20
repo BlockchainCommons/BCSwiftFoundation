@@ -41,6 +41,8 @@ struct DescriptorToken: TokenProtocol {
         case data
         case int
         case isHardened
+        
+        case checksum
     }
 
     var range: Range<Index>

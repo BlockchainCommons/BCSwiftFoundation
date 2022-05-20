@@ -436,5 +436,14 @@ class DescriptorParserTests: XCTestCase {
         let expectedChecksum = "3428vapa"
         let checksum = OutputDescriptor.checksum(source)!
         XCTAssertEqual(checksum, expectedChecksum)
+        
+        let sourceWithChecksum = "pkh([00000000/0'/0']tprv8et1s5VnWCG3v3R6vXX5hprTpdCdcBp3jRuoDByaF9uAkCt5XjfuX52hgh63aWzCYpXNU2YyxAj78qg8PS2EuGUKE8Untk6NVe7FAG8RdLk/*')#3428vapa"
+        let desc = try OutputDescriptor(source)
+        XCTAssertEqual(desc.sourceWithChecksum, sourceWithChecksum)
+        
+        XCTAssertNoThrow(try OutputDescriptor.validateChecksum(sourceWithChecksum))
+        
+        let sourceWithBadChecksum = sourceWithChecksum.dropLast().appending("b")
+        XCTAssertThrowsError(try OutputDescriptor.validateChecksum(sourceWithBadChecksum))
     }
 }

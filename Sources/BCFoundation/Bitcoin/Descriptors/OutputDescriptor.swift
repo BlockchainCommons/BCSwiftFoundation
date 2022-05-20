@@ -7,6 +7,8 @@
 
 import Foundation
 @_exported import URKit
+import WolfBase
+import Flexer
 
 public struct OutputDescriptor {
     public let source: String
@@ -52,7 +54,15 @@ public struct OutputDescriptor {
     public var ur: UR {
         return try! UR(type: URType.output.type, cbor: untaggedCBOR)
     }
-    
+}
+
+extension OutputDescriptor: CustomStringConvertible {
+    public var description: String {
+        source
+    }
+}
+
+extension OutputDescriptor {
     public var checksum: String {
         Self.checksum(source)!
     }
@@ -64,10 +74,29 @@ public struct OutputDescriptor {
     public static func checksum(_ source: String) -> String? {
         descriptorChecksum(source)
     }
-}
-
-extension OutputDescriptor: CustomStringConvertible {
-    public var description: String {
-        source
+    
+    public static func extractChecksum(_ source: String) -> (String, String?, StringRange?) {
+        let regex = try! ~/".*#(.*)$"
+        let matches = regex ~?? source
+        if matches.isEmpty {
+            return (source, nil, nil)
+        }
+        let range = matches[0].stringRange(in: source, at: 1)
+        let checksum = String(source[range])
+        let strippedSource = String(source.dropLast(checksum.count + 1))
+        return (strippedSource, checksum, range)
+    }
+    
+    public static func validateChecksum(_ source: String) throws {
+        let (strippedSource, checksum, range) = extractChecksum(source)
+        if
+            let checksum = checksum,
+            let range = range
+        {
+            guard checksum == Self.checksum(strippedSource) else {
+                let token = DescriptorToken(kind: .checksum, range: range)
+                throw OutputDescriptorError("Invalid checksum.", token, source: source)
+            }
+        }
     }
 }
