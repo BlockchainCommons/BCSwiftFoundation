@@ -35,7 +35,8 @@ struct DescriptorKeyExpression {
 
 extension DescriptorKeyExpression {
     func pubKeyData(
-        wildcardChildNum: UInt32?,
+        chain: Chain?,
+        addressIndex: UInt32?,
         privateKeyProvider: PrivateKeyProvider?
     ) -> Data? {
         let data: Data
@@ -49,19 +50,47 @@ extension DescriptorKeyExpression {
         case .wif(let k):
             data = k.key.public.data
         case .hdKey(let k):
-            guard let k2 = try? HDKey(parent: k, childDerivationPath: k.children, wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider) else {
+            guard let k2 = try? HDKey(parent: k, childDerivationPath: k.children, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider) else {
                 return nil
             }
             data = k2.ecPublicKey.data
         }
         return data
     }
-    
-    var requiresWildcardChildNum: Bool {
+
+    func hdKey(
+        chain: Chain?,
+        addressIndex: UInt32?,
+        privateKeyProvider: PrivateKeyProvider?
+    ) -> HDKey? {
+        guard
+            case let .hdKey(k) = key,
+            let k2 = try? HDKey(parent: k, childDerivationPath: k.children, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider)
+        else {
+            return nil
+        }
+        return k2
+    }
+
+    var hdKey: HDKey? {
+        guard case let .hdKey(hdKey) = key else {
+            return nil
+        }
+        return hdKey
+    }
+
+    var requiresAddressIndex: Bool {
         guard case let .hdKey(k) = key else {
             return false
         }
-        return k.requiresWildcardChildNum
+        return k.requiresAddressIndex
+    }
+    
+    var requiresChain: Bool {
+        guard case let .hdKey(k) = key else {
+            return false
+        }
+        return k.requiresChain
     }
 }
 

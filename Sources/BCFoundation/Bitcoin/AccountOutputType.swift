@@ -13,6 +13,7 @@ public struct AccountOutputType: Hashable, Identifiable {
     public let shortName: String
     public let descriptorSource: String
     public let accountDerivationPath: String
+    public let addressDerivationPath: String?
     
     public var id: String {
         shortName
@@ -24,7 +25,11 @@ public struct AccountOutputType: Hashable, Identifiable {
     }
 
     public func descriptorSource(keyExpression: String) -> String {
-        self.descriptorSource.replacingOccurrences(of: "KEY", with: keyExpression)
+        var keyComponents = [keyExpression]
+        if let addressDerivationPath {
+            keyComponents.append(addressDerivationPath)
+        }
+        return self.descriptorSource.replacingOccurrences(of: "KEY", with: keyComponents.joined(separator: "/"))
     }
     
     public func accountDerivationPath(network: Network, account: UInt32) -> DerivationPath {
@@ -51,27 +56,33 @@ public struct AccountOutputType: Hashable, Identifiable {
             return false
         }
         for (step, myStep) in zip(path.steps, myPath.steps) {
-            guard step.isHardened == myStep.isHardened else {
+            guard let basicStep = step as? BasicDerivationStep else {
                 return false
             }
-            switch myStep.childIndexSpec {
+            guard let myBasicStep = myStep as? BasicDerivationStep else {
+                return false
+            }
+            guard basicStep.isHardened == myBasicStep.isHardened else {
+                return false
+            }
+            switch myBasicStep.childIndexSpec {
             case .index(let myIndex):
                 guard
-                    case let .index(index) = step.childIndexSpec,
+                    case let .index(index) = basicStep.childIndexSpec,
                     index == myIndex
                 else {
                     return false
                 }
             case .coinTypePlaceholder:
                 guard
-                    case let .index(index) = step.childIndexSpec,
+                    case let .index(index) = basicStep.childIndexSpec,
                     index == 0 || index == 1
                 else {
                     return false
                 }
             case .accountPlaceholder:
                 guard
-                    case .index = step.childIndexSpec
+                    case .index = basicStep.childIndexSpec
                 else {
                     return false
                 }
@@ -96,49 +107,56 @@ public struct AccountOutputType: Hashable, Identifiable {
         name: "Legacy Single Key",
         shortName: "legacy",
         descriptorSource: "pkh(KEY)",
-        accountDerivationPath: "44'/COIN_TYPE'/ACCOUNT'"
+        accountDerivationPath: "44'/COIN_TYPE'/ACCOUNT'",
+        addressDerivationPath: "<0;1>/*"
     )
 
     public static let shwpkh = AccountOutputType(
         name: "Nested Segwit Single Key",
         shortName: "nested",
         descriptorSource: "sh(wpkh(KEY))",
-        accountDerivationPath: "49'/COIN_TYPE'/ACCOUNT'"
+        accountDerivationPath: "49'/COIN_TYPE'/ACCOUNT'",
+        addressDerivationPath: "<0;1>/*"
     )
 
     public static let wpkh = AccountOutputType(
         name: "Native Segwit Single Key",
         shortName: "segwit",
         descriptorSource: "wpkh(KEY)",
-        accountDerivationPath: "84'/COIN_TYPE'/ACCOUNT'"
+        accountDerivationPath: "84'/COIN_TYPE'/ACCOUNT'",
+        addressDerivationPath: "<0;1>/*"
     )
 
     public static let shcosigner = AccountOutputType(
         name: "Legacy Multisig Cosigner",
         shortName: "legacymultisig",
         descriptorSource: "sh(cosigner(KEY))",
-        accountDerivationPath: "45'"
+        accountDerivationPath: "45'",
+        addressDerivationPath: "<0;1>/*"
     )
 
     public static let shwshcosigner = AccountOutputType(
         name: "Nested Segwit Multisig Cosigner",
         shortName: "nestedmultisig",
         descriptorSource: "sh(wsh(cosigner(KEY)))",
-        accountDerivationPath: "48'/COIN_TYPE'/ACCOUNT'/1'"
+        accountDerivationPath: "48'/COIN_TYPE'/ACCOUNT'/1'",
+        addressDerivationPath: "<0;1>/*"
     )
 
     public static let wshcosigner = AccountOutputType(
         name: "Native Segwit Multisig Cosigner",
         shortName: "segwitmultisig",
         descriptorSource: "wsh(cosigner(KEY))",
-        accountDerivationPath: "48'/COIN_TYPE'/ACCOUNT'/2'"
+        accountDerivationPath: "48'/COIN_TYPE'/ACCOUNT'/2'",
+        addressDerivationPath: "<0;1>/*"
     )
 
     public static let trsingle = AccountOutputType(
         name: "Taproot Single Key",
         shortName: "taproot",
         descriptorSource: "tr(KEY)",
-        accountDerivationPath: "86'/COIN_TYPE'/ACCOUNT'"
+        accountDerivationPath: "86'/COIN_TYPE'/ACCOUNT'",
+        addressDerivationPath: "<0;1>/*"
     )
     
     public static let bundleCases = [

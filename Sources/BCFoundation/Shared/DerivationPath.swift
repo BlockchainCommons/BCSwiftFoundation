@@ -17,9 +17,15 @@ public enum DerivationPathError: Error {
     case invalidDepth
 }
 
-public struct DerivationPath : Equatable {
+extension DerivationPath: Equatable {
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
+        isEqual(lhs.steps, rhs.steps)
+    }
+}
+
+public struct DerivationPath {
     public var origin: Origin?
-    public var steps: [DerivationStep]
+    public var steps: [any DerivationStep]
     public var depth: Int?
     
     public var isMaster: Bool {
@@ -54,14 +60,14 @@ public struct DerivationPath : Equatable {
         self.steps = []
     }
     
-    public init(steps: [DerivationStep], origin: Origin? = nil, depth: Int? = nil) {
+    public init(steps: [any DerivationStep], origin: Origin? = nil, depth: Int? = nil) {
         self.steps = steps
         self.origin = origin
         self.depth = depth
     }
 
     public init?(rawPath: [UInt32], origin: Origin? = nil, depth: Int? = nil) {
-        let steps = rawPath.map { DerivationStep(rawValue: $0) }
+        let steps = rawPath.map { BasicDerivationStep(rawValue: $0) }
         self.init(steps: steps, origin: origin, depth: depth)
     }
     
@@ -71,12 +77,12 @@ public struct DerivationPath : Equatable {
         self.depth = depth
     }
     
-    public init(step: DerivationStep, origin: Origin? = nil, depth: Int? = nil) {
+    public init(step: any DerivationStep, origin: Origin? = nil, depth: Int? = nil) {
         self.init(steps: [step], origin: origin, depth: depth)
     }
     
     public init(index: ChildIndex, origin: Origin? = nil, depth: Int? = nil) {
-        let step = DerivationStep(.index(index))
+        let step = BasicDerivationStep(.index(index))
         self.init(steps: [step], origin: origin, depth: depth)
     }
     
@@ -105,12 +111,13 @@ public struct DerivationPath : Equatable {
             }
         }
         
-        var steps: [DerivationStep] = []
+        var steps: [any DerivationStep] = []
         components.forEach {
-            guard let step = DerivationStep(string: String($0)) else {
-                return
+            if let step = BasicDerivationStep(string: String($0)) {
+                steps.append(step)
+            } else if let step = PairDerivationStep(string: String($0)) {
+                steps.append(step)
             }
-            steps.append(step)
         }
         guard steps.count == components.count else {
             return nil
@@ -156,8 +163,12 @@ public struct DerivationPath : Equatable {
         steps.contains(where: { $0.isWildcard })
     }
     
-    public func rawPath(wildcardChildNum: UInt32? = nil) -> [UInt32?] {
-        steps.map { $0.rawValue(wildcardChildNum: wildcardChildNum) }
+    public var hasPair: Bool {
+        steps.contains(where: { $0.isPair })
+    }
+    
+    public func rawPath(chain: Chain?, addressIndex: UInt32?) -> [UInt32?] {
+        steps.map { $0.rawValue(chain: chain, addressIndex: addressIndex) }
     }
     
     public func dropFirst(_ k: Int) -> DerivationPath? {
@@ -169,7 +180,7 @@ public struct DerivationPath : Equatable {
         return DerivationPath(steps: newSteps, origin: nil)
     }
     
-    public func toString(format: DerivationStepFormat = .tickMark) -> String {
+    public func toString(format: HardenedDerivationFormat = .tickMark) -> String {
         var comps: [String] = []
         if let origin = origin {
             comps.append(origin.description)
@@ -192,20 +203,22 @@ public struct DerivationPath : Equatable {
 extension DerivationPath {
     public var isBIP44: Bool {
         steps.count == 5 &&
-        steps.first! == DerivationStep(44, isHardened: true)
+        steps.first as? BasicDerivationStep == BasicDerivationStep(44, isHardened: true)
     }
     
     public var isBIP48: Bool {
         steps.count == 6 &&
-        steps.first == DerivationStep(48, isHardened: true)
+        steps.first as? BasicDerivationStep == BasicDerivationStep(48, isHardened: true)
     }
     
     public var isBIP44Change: Bool {
         guard isBIP44,
-           steps[3] == 1,
-           !steps[4].isHardened,
-           case let .index(i) = steps[4].childIndexSpec,
-           i <= 999999
+              let step3 = steps[3] as? BasicDerivationStep,
+              step3 == 1,
+              let step4 = steps[4] as? BasicDerivationStep,
+              !step4.isHardened,
+              case let .index(i) = step4.childIndexSpec,
+              i <= 999999
         else {
             return false
         }
@@ -214,10 +227,12 @@ extension DerivationPath {
     
     public var isBIP48Change: Bool {
         guard isBIP48,
-           steps[4] == 1,
-           !steps[5].isHardened,
-           case let .index(i) = steps[5].childIndexSpec,
-           i <= 999999
+              let step4 = steps[4] as? BasicDerivationStep,
+              step4 == 1,
+              let step5 = steps[5] as? BasicDerivationStep,
+              !step5.isHardened,
+              case let .index(i) = step5.childIndexSpec,
+              i <= 999999
         else {
             return false
         }
@@ -230,7 +245,7 @@ extension DerivationPath {
 }
 
 extension DerivationPath: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: DerivationStep...) {
+    public init(arrayLiteral elements: any DerivationStep...) {
         self.init(steps: elements)
     }
 }
@@ -279,12 +294,12 @@ extension DerivationPath {
             throw DerivationPathError.invalidDerivationPathComponents
         }
         
-        let steps: [DerivationStep] = try stride(from: 0, to: componentsItem.count, by: 2).map { i in
+        let steps: [any DerivationStep] = try stride(from: 0, to: componentsItem.count, by: 2).map { i in
             let childIndexSpec = try ChildIndexSpec.decode(cbor: componentsItem[i])
             guard case let CBOR.boolean(isHardened) = componentsItem[i + 1] else {
                 throw DerivationPathError.invalidPathComponent
             }
-            return DerivationStep(childIndexSpec, isHardened: isHardened)
+            return BasicDerivationStep(childIndexSpec, isHardened: isHardened)
         }
         
         let origin: Origin?

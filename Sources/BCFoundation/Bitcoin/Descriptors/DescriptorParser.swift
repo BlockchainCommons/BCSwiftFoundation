@@ -186,9 +186,42 @@ extension DescriptorParser {
             throw error("Expected comma.")
         }
     }
+    
+    func parseOpenAngleBracket() -> Bool {
+        parseKind(.openAngleBracket)
+    }
+    
+    func expectOpenAngleBracket() throws {
+        guard parseOpenAngleBracket() else {
+            throw error("Expected open angle bracket.")
+        }
+    }
+    
+    func parseCloseAngleBracket() -> Bool {
+        parseKind(.closeAngleBracket)
+    }
+    
+    func expectCloseAngleBracket() throws {
+        guard parseCloseAngleBracket() else {
+            throw error("Expected close angle bracket.")
+        }
+    }
+    
+    func parseSemicolon() -> Bool {
+        parseKind(.semicolon)
+    }
+    
+    func expectSemicolon() throws {
+        guard parseSemicolon() else {
+            throw error("Expected semicolon.")
+        }
+    }
 
-    func parseIndex() -> ChildIndexSpec? {
+    func parseIndex(requireFixed: Bool) throws -> ChildIndexSpec? {
         if parseWildcard() {
+            guard !requireFixed else {
+                throw error("Wildcard not allowed here.")
+            }
             return .indexWildcard
         }
         if let childNum = parseChildnum() {
@@ -197,8 +230,8 @@ extension DescriptorParser {
         return nil
     }
     
-    func expectIndex() throws -> ChildIndexSpec {
-        guard let index = parseIndex() else {
+    func expectIndex(requireFixed: Bool) throws -> ChildIndexSpec {
+        guard let index = try parseIndex(requireFixed: requireFixed) else {
             throw error("Expected index.")
         }
         return index
@@ -216,30 +249,61 @@ extension DescriptorParser {
         return true
     }
     
-    func parseDerivationStep() throws -> DerivationStep? {
+    func parseBasicDerivationStep(requireFixed: Bool) throws -> BasicDerivationStep? {
+        guard let index = try parseIndex(requireFixed: requireFixed) else {
+            return nil
+        }
+        let isHardened = parseIsHardened()
+        return BasicDerivationStep(index, isHardened: isHardened)
+    }
+    
+    func expectBasicDerivationStep(requireFixed: Bool) throws -> BasicDerivationStep {
+        guard let step = try parseBasicDerivationStep(requireFixed: requireFixed) else {
+            throw error("Expected basic derivation step.")
+        }
+        return step
+    }
+    
+    func parseIndexPair() throws -> PairDerivationStep? {
+        guard parseOpenAngleBracket() else {
+            return nil
+        }
+        let external = try expectBasicDerivationStep(requireFixed: true)
+        try expectSemicolon()
+        let `internal` = try expectBasicDerivationStep(requireFixed: true)
+        try expectCloseAngleBracket()
+        return PairDerivationStep(external: external, internal: `internal`)
+    }
+    
+    func parseDerivationStep(requireFixed: Bool) throws -> (any DerivationStep)? {
         guard parseSlash() else {
             return nil
         }
-        let index = try expectIndex()
-        let isHardened = parseIsHardened()
-        return DerivationStep(index, isHardened: isHardened)
+        if let pair = try parseIndexPair() {
+            guard !requireFixed else {
+                throw error("Index pair not allowed here.")
+            }
+            return pair
+        } else {
+            return try expectBasicDerivationStep(requireFixed: requireFixed)
+        }
     }
     
-    func parseDerivationSteps(allowFinalWildcard: Bool) throws -> [DerivationStep] {
-        var steps: [DerivationStep] = []
-        while let step = try parseDerivationStep() {
+    func parseDerivationSteps(requireFixed: Bool) throws -> [any DerivationStep] {
+        var steps: [any DerivationStep] = []
+        while let step = try parseDerivationStep(requireFixed: requireFixed) {
             steps.append(step)
         }
         if !steps.isEmpty {
-            guard steps.dropLast().allSatisfy({ $0.childIndexSpec != .indexWildcard }) else {
-                if allowFinalWildcard {
-                    throw error("Wildcard not allowed except on last step.")
-                } else {
+            guard steps.dropLast().allSatisfy({ !$0.isWildcard }) else {
+                if requireFixed {
                     throw error("Wildcard not allowed.")
+                } else {
+                    throw error("Wildcard not allowed except on last step.")
                 }
             }
-            if !allowFinalWildcard {
-                guard steps.last!.childIndexSpec != .indexWildcard else {
+            if requireFixed {
+                guard !steps.last!.isWildcard else {
                     throw error("Wildcard not allowed.")
                 }
             }
@@ -252,13 +316,13 @@ extension DescriptorParser {
             return nil
         }
         let fingerprint = try expectFingerprint()
-        let steps = try parseDerivationSteps(allowFinalWildcard: false)
+        let steps = try parseDerivationSteps(requireFixed: true)
         try expectCloseBracket()
         return DerivationPath(steps: steps, origin: .fingerprint(fingerprint))
     }
     
     func parseChildren() throws -> DerivationPath? {
-        let childSteps = try parseDerivationSteps(allowFinalWildcard: true)
+        let childSteps = try parseDerivationSteps(requireFixed: false)
         guard !childSteps.isEmpty else {
             return nil
         }

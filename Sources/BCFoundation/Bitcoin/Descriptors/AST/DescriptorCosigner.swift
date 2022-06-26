@@ -10,10 +10,14 @@ import Foundation
 struct DescriptorCosigner: DescriptorAST {
     let key: DescriptorKeyExpression
     
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
+    func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
         return nil
     }
     
+    func hdKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
+        key.hdKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider)
+    }
+
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.cosigner) else {
             return nil

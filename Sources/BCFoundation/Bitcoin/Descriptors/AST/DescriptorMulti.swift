@@ -12,11 +12,11 @@ struct DescriptorMulti: DescriptorAST {
     let keys: [DescriptorKeyExpression]
     let isSorted: Bool
     
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
+    func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
         var ops: [ScriptOperation] = []
         ops.append(.op(ScriptOpcode(int: threshold)!))
         
-        guard let ok = orderedKeys(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider) else {
+        guard let ok = orderedKeys(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider) else {
             return nil
         }
         for orderedKey in ok {
@@ -27,8 +27,12 @@ struct DescriptorMulti: DescriptorAST {
         return ScriptPubKey(Script(ops: ops))
     }
     
-    func orderedKeys(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?) -> [Data]? {
-        let rawKeys = keys.compactMap { $0.pubKeyData(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider) }
+    func hdKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
+        nil
+    }
+
+    func orderedKeys(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?) -> [Data]? {
+        let rawKeys = keys.compactMap { $0.pubKeyData(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider) }
         guard rawKeys.count == keys.count else {
             return nil
         }
@@ -39,8 +43,12 @@ struct DescriptorMulti: DescriptorAST {
         return orderedKeys.map { $0.1 }
     }
 
-    var requiresWildcardChildNum: Bool {
-        keys.contains(where: { $0.requiresWildcardChildNum })
+    var requiresAddressIndex: Bool {
+        keys.contains(where: { $0.requiresAddressIndex })
+    }
+    
+    var requiresChain: Bool {
+        keys.contains(where: { $0.requiresChain })
     }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {

@@ -83,9 +83,12 @@ final class DescriptorLexer: Parser {
         (.closeBracket, .closeBracket),
         (.openBrace, .openBrace),
         (.closeBrace, .closeBrace),
+        (.lessThan, .openAngleBracket),
+        (.greaterThan, .closeAngleBracket),
         (.comma, .comma),
         (.slash, .slash),
-        (.star, .star)
+        (.star, .star),
+        (.semicolon, .semicolon)
     ]
     
     func lexDelimiters() -> DescriptorToken? {

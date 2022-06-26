@@ -118,11 +118,11 @@ extension HDKeyProtocol {
             keyData = Data(of: key.pub_key)
         }
 
-        let steps: [DerivationStep]
+        let steps: [BasicDerivationStep]
         if key.child_num == 0 {
             steps = []
         } else {
-            steps = [DerivationStep(rawValue: key.child_num)]
+            steps = [BasicDerivationStep(rawValue: key.child_num)]
         }
         let newParent: DerivationPath
         if let parent = parent {
@@ -169,11 +169,11 @@ extension HDKeyProtocol {
         if let parent = parent {
             newParent = parent
         } else {
-            let steps: [DerivationStep]
+            let steps: [BasicDerivationStep]
             if key.child_num == 0 {
                 steps = []
             } else {
-                steps = [DerivationStep(rawValue: key.child_num)]
+                steps = [BasicDerivationStep(rawValue: key.child_num)]
             }
             let originFingerprint = overrideOriginFingerprint ?? Wally.fingerprint(for: key)
             let o = DerivationPath.Origin.fingerprint(originFingerprint)
@@ -226,7 +226,7 @@ extension HDKeyProtocol {
         try self.init(bip39Seed: BIP39.Seed(bip39: seed.bip39), useInfo: useInfo, parent: parent, children: children)
     }
 
-    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivation: DerivationStep, wildcardChildNum: UInt32? = nil) throws {
+    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivation: any DerivationStep, chain: Chain? = nil, addressIndex: UInt32? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.keyType == .private || derivedKeyType == .public else {
@@ -236,7 +236,7 @@ extension HDKeyProtocol {
             throw HDKeyError.cannotDeriveFromNonDerivable
         }
                 
-        guard let childNum = childDerivation.rawValue(wildcardChildNum: wildcardChildNum) else {
+        guard let childNum = childDerivation.rawValue(chain: chain, addressIndex: addressIndex) else {
             throw HDKeyError.cannotDeriveInspecificStep
         }
         guard let derivedKey = Wally.key(from: parent.wallyExtKey, childNum: childNum, isPrivate: derivedKeyType.isPrivate) else {
@@ -246,7 +246,7 @@ extension HDKeyProtocol {
         let origin: DerivationPath
         let parentOrigin = parent.parent
         var steps = parentOrigin.steps
-        steps.append(childDerivation)
+        steps.append(childDerivation.resolve(chain: chain, addressIndex: addressIndex)!)
         let sourceFingerprint = parentOrigin.originFingerprint ?? parent.keyFingerprint
         let depth: Int
         if let parentDepth = parentOrigin.depth {
@@ -269,7 +269,7 @@ extension HDKeyProtocol {
         )
     }
     
-    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
+    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.isDerivable else {
@@ -303,7 +303,7 @@ extension HDKeyProtocol {
 
         var derivedKey = workingKey
         for step in effectiveDerivationPath.steps {
-            derivedKey = try HDKey(parent: derivedKey, derivedKeyType: parent.keyType, childDerivation: step, wildcardChildNum: wildcardChildNum)
+            derivedKey = try HDKey(parent: derivedKey, derivedKeyType: parent.keyType, childDerivation: step, chain: chain, addressIndex: addressIndex)
         }
         derivedKey = try HDKey(key: derivedKey, derivedKeyType: derivedKeyType)
         self.init(
@@ -328,8 +328,12 @@ extension HDKeyProtocol {
         chainCode != nil
     }
 
-    public var requiresWildcardChildNum: Bool {
+    public var requiresAddressIndex: Bool {
         children.hasWildcard
+    }
+    
+    public var requiresChain: Bool {
+        children.hasPair
     }
 
     public var originFingerprint: UInt32? {
@@ -380,8 +384,8 @@ extension HDKeyProtocol {
         let effectiveDepth = parent.effectiveDepth
         if effectiveDepth > 0 {
             k.depth = UInt8(effectiveDepth)
-
-            if let lastStep = parent.steps.last,
+            
+            if let lastStep = parent.steps.last as? BasicDerivationStep,
                case let ChildIndexSpec.index(childIndex) = lastStep.childIndexSpec {
                 let value = childIndex.value
                 let isHardened = lastStep.isHardened

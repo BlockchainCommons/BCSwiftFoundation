@@ -10,15 +10,23 @@ import Foundation
 struct DescriptorWSH: DescriptorAST {
     let redeemScript: DescriptorAST
     
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
-        guard let redeemScript = redeemScript.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {
+    func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
+        guard let redeemScript = redeemScript.scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {
             return nil
         }
         return ScriptPubKey(Script(ops: [.op(.op_0), .data(redeemScript.script.data.sha256Digest)]))
     }
+    
+    func hdKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
+        nil
+    }
 
-    var requiresWildcardChildNum: Bool {
-        redeemScript.requiresWildcardChildNum
+    var requiresAddressIndex: Bool {
+        redeemScript.requiresAddressIndex
+    }
+    
+    var requiresChain: Bool {
+        redeemScript.requiresChain
     }
     
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {

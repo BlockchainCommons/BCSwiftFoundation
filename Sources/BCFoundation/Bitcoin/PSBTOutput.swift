@@ -40,7 +40,7 @@ public struct PSBTOutput {
         // Check that origin ends with 0/* or 1/*
         let steps = originPath.steps
         if steps.count < 2 ||
-                !(steps.reversed()[1] == .init(0) || steps.reversed()[1] == .init(1)) ||
+                !(steps.reversed()[1] as? BasicDerivationStep == BasicDerivationStep(0) || steps.reversed()[1] as? BasicDerivationStep == BasicDerivationStep(1)) ||
             steps.reversed()[0].isHardened
         {
             return false
@@ -141,7 +141,9 @@ public struct PSBTOutput {
             // When combined with the above constraints, change "hijacked" to an extreme index can
             // be covered by importing keys using Bitcoin Core's maximum range [0,999999].
             // This needs less than 1 GB of RAM, but is fairly slow.
-            let step = origin.path.steps.reversed()[0]
+            guard let step = origin.path.steps.reversed()[0] as? BasicDerivationStep else {
+                return false
+            }
             if !step.isHardened {
                 guard case let .index(i) = step.childIndexSpec else {
                     return false

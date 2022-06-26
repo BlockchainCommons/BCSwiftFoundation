@@ -275,10 +275,10 @@ class DescriptorParserTests: XCTestCase {
         let source = "pkh([d34db33f/44'/0'/0']xpub6CY2xt3mvQejPFUw26CychtL4GMq1yp41aMW2U27mvThqefpZYwXpGscV26JuVj13Fpg4kgSENheUSbTqm5f8z25zrhXpPVss5zWeMGnAKR/1/*)"
         let desc = try OutputDescriptor(source)
         XCTAssertEqual(desc.unparsed, desc.source)
-        XCTAssertTrue(desc.requiresWildcardChildNum)
+        XCTAssertTrue(desc.requiresAddressIndex)
         XCTAssertNil(desc.scriptPubKey()) // requires wildcard
-        XCTAssertEqual(desc.scriptPubKey(wildcardChildNum: 0)†, "pkh:[OP_DUP OP_HASH160 2a05c214617c9b0434c92d0583200a85ef61818f OP_EQUALVERIFY OP_CHECKSIG]")
-        XCTAssertEqual(desc.scriptPubKey(wildcardChildNum: 1)†, "pkh:[OP_DUP OP_HASH160 49b2f81eea1ecb5bc97d78f2d8f89d9c861c3cf2 OP_EQUALVERIFY OP_CHECKSIG]")
+        XCTAssertEqual(desc.scriptPubKey(addressIndex: 0)†, "pkh:[OP_DUP OP_HASH160 2a05c214617c9b0434c92d0583200a85ef61818f OP_EQUALVERIFY OP_CHECKSIG]")
+        XCTAssertEqual(desc.scriptPubKey(addressIndex: 1)†, "pkh:[OP_DUP OP_HASH160 49b2f81eea1ecb5bc97d78f2d8f89d9c861c3cf2 OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc.taggedCBOR.cborEncode, ‡"d90134d90193d9012fa503582102d2b36900396c9282fa14628566582f206a5dd0bcc8d5e892611806cafb0301f0045820637807030d55d01f9a0cb3a7839515d796bd07706386a6eddf06cc29a65a0e2906d90130a20186182cf500f500f5021ad34db33f07d90130a1018401f480f4081a78412e3a")
     }
     
@@ -300,8 +300,8 @@ class DescriptorParserTests: XCTestCase {
         let source = "pkh(\(accountPublicKey.fullDescription))"
         let desc = try OutputDescriptor(source)
         XCTAssertEqual(desc.unparsed, desc.source)
-        XCTAssertTrue(desc.requiresWildcardChildNum)
-        XCTAssertNil(desc.scriptPubKey(wildcardChildNum: 0)) // requires private key.
+        XCTAssertTrue(desc.requiresAddressIndex)
+        XCTAssertNil(desc.scriptPubKey(addressIndex: 0)) // requires private key.
         XCTAssertEqual(desc.taggedCBOR.cborEncode, ‡"d90134d90193d9012fa603582102b705663fa1839bc7de73fcb18038a75facb7509df15230379147011ebb343140045820d10491ab8729ef3ca5e7555f54f04605d06b01b35e379b2cdc2fcae271410a9805d90131a1020106d90130a20186182cf500f500f5021a4efd3ded07d90130a1018401f580f4081a10d66527")
         
         let lookup: [UInt32 : HDKey] = [
@@ -322,7 +322,7 @@ class DescriptorParserTests: XCTestCase {
             return privateKey
         }
         
-        XCTAssertEqual(desc.scriptPubKey(wildcardChildNum: 0, privateKeyProvider: privateKeyProvider)†, "pkh:[OP_DUP OP_HASH160 c3d4f598ec80d57820226529645b7805d078cab0 OP_EQUALVERIFY OP_CHECKSIG]")
+        XCTAssertEqual(desc.scriptPubKey(addressIndex: 0, privateKeyProvider: privateKeyProvider)†, "pkh:[OP_DUP OP_HASH160 c3d4f598ec80d57820226529645b7805d078cab0 OP_EQUALVERIFY OP_CHECKSIG]")
     }
     
     func test_SH_WPKH() throws {
@@ -376,7 +376,7 @@ class DescriptorParserTests: XCTestCase {
     func test_SH_WSH_MULTI() throws {
         let a = "sh(wsh(multi(1,03f28773c2d975288bc7d1d205c3748651b075fbc6610e58cddeeddf8f19405aa8,03499fdf9e895e719cfd64e67f07d38e3226aa7b63678949e6e49b241a60e823e4,02d7924d4f7d43ea965a465ae3095ff41131e5946f3c85f79e44adbcf8e27e080e)))"
         let desc = try OutputDescriptor(a)
-        XCTAssertFalse(desc.requiresWildcardChildNum)
+        XCTAssertFalse(desc.requiresAddressIndex)
         XCTAssertEqual(desc.scriptPubKey()†, "sh:[OP_HASH160 aec509e284f909f769bb7dda299a717c87cc97ac OP_EQUAL]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.cborEncode, ‡"d90134d90190d90191d90196a201010283d90132a103582103f28773c2d975288bc7d1d205c3748651b075fbc6610e58cddeeddf8f19405aa8d90132a103582103499fdf9e895e719cfd64e67f07d38e3226aa7b63678949e6e49b241a60e823e4d90132a103582102d7924d4f7d43ea965a465ae3095ff41131e5946f3c85f79e44adbcf8e27e080e")
@@ -385,8 +385,8 @@ class DescriptorParserTests: XCTestCase {
     func test_WSH_MULTI_HD() throws {
         let a = "wsh(multi(1,xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/1/0/*,xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH/0/0/*))"
         let desc = try OutputDescriptor(a)
-        XCTAssertTrue(desc.requiresWildcardChildNum)
-        XCTAssertEqual(desc.scriptPubKey(wildcardChildNum: 0)†, "wsh:[OP_0 64969d8cdca2aa0bb72cfe88427612878db98a5f07f9a7ec6ec87b85e9f9208b]")
+        XCTAssertTrue(desc.requiresAddressIndex)
+        XCTAssertEqual(desc.scriptPubKey(addressIndex: 0)†, "wsh:[OP_0 64969d8cdca2aa0bb72cfe88427612878db98a5f07f9a7ec6ec87b85e9f9208b]")
         XCTAssertEqual(desc.unparsed, desc.source)
         XCTAssertEqual(desc.taggedCBOR.cborEncode, ‡"d90134d90191d90196a201010282d9012fa401f503582103cbcaa9c98c877a26977d00825c956a238e8dddfbd322cce4f74b0b5bd6ace4a704582060499f801b896d83179a4374aeb7822aaeaceaa0db1f85ee3e904c4defbd968907d90130a1018601f400f480f4d9012fa403582102fc9e5af0ac8d9b3cecfe2a888e2117ba3d089d8585886c9c826b6b22a98d12ea045820f0909affaa7ee7abe5dd4e100598d4dc53cd709d5a5c2cac40e7412f232f7c9c07d90130a1018600f400f480f4081abd16bee5")
     }
@@ -395,8 +395,8 @@ class DescriptorParserTests: XCTestCase {
         // This test vector from: https://bitcoindevkit.org/descriptors/
         let a = "wsh(multi(2,tprv8ZgxMBicQKsPePmENhT9N9yiSfTtDoC1f39P7nNmgEyCB6Nm4Qiv1muq4CykB9jtnQg2VitBrWh8PJU8LHzoGMHTrS2VKBSgAz7Ssjf9S3P/0/*,tpubDBYDcH8P2PedrEN3HxWYJJJMZEdgnrqMsjeKpPNzwe7jmGwk5M3HRdSf5vudAXwrJPfUsfvUPFooKWmz79Lh111U51RNotagXiGNeJe3i6t/1/*))"
         let desc = try OutputDescriptor(a)
-        let scriptPubKey0 = desc.scriptPubKey(wildcardChildNum: 0)!
-        let scriptPubKey1 = desc.scriptPubKey(wildcardChildNum: 1)!
+        let scriptPubKey0 = desc.scriptPubKey(addressIndex: 0)!
+        let scriptPubKey1 = desc.scriptPubKey(addressIndex: 1)!
         XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKey0, network: .testnet)!.string, "tb1qqsat6c82fvdy73rfzye8f7nwxcz3xny7t56azl73g95mt3tmzvgs9a8vjs")
         XCTAssertEqual(Bitcoin.Address(scriptPubKey: scriptPubKey1, network: .testnet)!.string, "tb1q7sgx6gscgtau57jduend6a8l445ahpk3dt3u5zu58rx5qm27lhkqgfdjdr")
         XCTAssertEqual(desc.unparsed, desc.source)
@@ -409,7 +409,7 @@ class DescriptorParserTests: XCTestCase {
         let comboCompressed = "combo(022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01)"
         let desc = try OutputDescriptor(comboCompressed)
         XCTAssertTrue(desc.isCombo)
-        XCTAssertFalse(desc.requiresWildcardChildNum)
+        XCTAssertFalse(desc.requiresAddressIndex)
         XCTAssertEqual(desc.scriptPubKey(comboOutput: .pk)†, "pk:[022f01e5e15cca351daff3843fb70f3c2f0a1bdd05e5af888a67784ef3e10a2a01 OP_CHECKSIG]")
         XCTAssertEqual(desc.scriptPubKey(comboOutput: .pkh)†, "pkh:[OP_DUP OP_HASH160 9652d86bedf43ad264362e6e6eba6eb764508127 OP_EQUALVERIFY OP_CHECKSIG]")
         XCTAssertEqual(desc.scriptPubKey(comboOutput: .wpkh)†, "wpkh:[OP_0 9652d86bedf43ad264362e6e6eba6eb764508127]")
@@ -450,7 +450,7 @@ class DescriptorParserTests: XCTestCase {
     func testAddressGeneration() throws {
         let source = "wsh(multi(1,xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB/1/0/*,xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH/0/0/*))"
         let desc = try OutputDescriptor(source)
-        let addresses = desc.addresses(useInfo: .init(), indexes: 0..<20)
+        let addresses = desc.addresses(useInfo: .init(), chain: .external, indexes: 0..<20)
         let sortedAddresses = addresses.keys.sorted().map { addresses[$0]!.description }
         let expectedAddresses = [
             "bc1qvjtfmrxu524qhdevl6yyyasjs7xmnzjlqlu60mrwepact60eyz9s9xjw0c",
@@ -475,5 +475,41 @@ class DescriptorParserTests: XCTestCase {
             "bc1qrshvtv8ldqpdtv4z9z8fsah3plkl57drk7d8xgasgwj6puxpcxessp57hv"
         ]
         XCTAssertEqual(sortedAddresses, expectedAddresses)
+    }
+    
+    func testPairKey() throws {
+        let source = "wpkh([37b5eed4/84'/0'/0']xpub6BkU445MSEBXbPjD3g2c2ch6mn8yy1SXXQUM7EwjgYiq6Wt1NDwDZ45npqWcV8uQC5oi2gHuVukoCoZZyT4HKq8EpotPMqGqxdZRuapCQ23/<0;1>/*)"
+        let desc = try OutputDescriptor(source)
+
+        XCTAssertNil(desc.hdKey(chain: nil, addressIndex: 10))
+        XCTAssertNil(desc.hdKey(chain: .external, addressIndex: nil))
+
+        let hdKey1 = desc.hdKey(chain: .external, addressIndex: 10)!.fullDescription
+        XCTAssertEqual(hdKey1†, "[37b5eed4/84'/0'/0'/0/10]xpub6B7xKojKUGv71T4NppfMXVG3kpdJpGD4Q9293eCUeUK2seCWokQcfjrhss5jTyh7eL9xBmANUGCu4ouKndSaKSELp6TqCMREMBc59SjBXGo")
+        let hdKey2 = desc.hdKey(chain: .internal, addressIndex: 10)!.fullDescription
+        XCTAssertEqual(hdKey2†, "[37b5eed4/84'/0'/0'/1/10]xpub6BAS2fSgeDDjJuRizuj5sUeCWgYF5psPVAJxgHbeL2os6drBt9H9BJzWwqkVnn2J33V2vUcpHV5DzJj2UKoZctBLUVy7QBH9Y53XtpE92SE")
+        let hdKey3 = desc.hdKey(chain: .internal, addressIndex: 11)!.fullDescription
+        XCTAssertEqual(hdKey3†, "[37b5eed4/84'/0'/0'/1/11]xpub6BAS2fSgeDDjMMh78CyFAZgAifM4iuTHLMfjUbv3XYEVN69JfjQ6jgppmkrTfuRxyXzo9YCuPXw7kdEwtBwqRKwGymscqMPTGyqFcNc2uZC")
+    }
+    
+    func testPairAddress() throws {
+        let source = "wpkh([37b5eed4/84'/0'/0']xpub6BkU445MSEBXbPjD3g2c2ch6mn8yy1SXXQUM7EwjgYiq6Wt1NDwDZ45npqWcV8uQC5oi2gHuVukoCoZZyT4HKq8EpotPMqGqxdZRuapCQ23/<0;1>/*)"
+        let desc = try OutputDescriptor(source)
+        
+        XCTAssertNil(desc.address(useInfo: .init(), chain: nil, addressIndex: 10))
+        XCTAssertNil(desc.address(useInfo: .init(), chain: .external, addressIndex: nil))
+        
+        let address1 = desc.address(useInfo: .init(), chain: .external, addressIndex: 10)
+        XCTAssertEqual(address1†, "bc1qe6hd9hc3cxy8fc88rpc6zja0w8urkzs902qw56")
+        let address2 = desc.address(useInfo: .init(), chain: .internal, addressIndex: 10)
+        XCTAssertEqual(address2†, "bc1qcatr2qs60xldaftxltz7kshsnya354mdnvwswc")
+        let address3 = desc.address(useInfo: .init(), chain: .internal, addressIndex: 11)
+        XCTAssertEqual(address3†, "bc1qx3qm9wz8eykx37s40mqfnd8rdfrsv374qqnl43")
+    }
+    
+    func testParsePair() throws {
+        let source = "wpkh([37b5eed4/84'/0'/0']xpub6BkU445MSEBXbPjD3g2c2ch6mn8yy1SXXQUM7EwjgYiq6Wt1NDwDZ45npqWcV8uQC5oi2gHuVukoCoZZyT4HKq8EpotPMqGqxdZRuapCQ23/<0;1>/*)"
+        let desc = try OutputDescriptor(source)
+        print(desc)
     }
 }

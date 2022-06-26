@@ -87,7 +87,7 @@ class HDKeyTests: XCTestCase {
         let hdKey = try HDKey(bip39Seed: bip39Seed)
         XCTAssertEqual(hdKey.originFingerprint?.hex, "b4e3f5ed")
 
-        let childKey = try HDKey(parent: hdKey, childDerivation: 0)
+        let childKey = try HDKey(parent: hdKey, childDerivation: BasicDerivationStep(0))
         XCTAssertEqual(childKey.originFingerprint?.hex, "b4e3f5ed")
 
         let tpub = "tpubDDgEAMpHn8tX5Bs19WWJLZBeFzbpE7BYuP3Qo71abZnQ7FmN3idRPg4oPWt2Q6Uf9huGv7AGMTu8M2BaCxAdThQArjLWLDLpxVX2gYfh2YJ"
@@ -104,14 +104,14 @@ class HDKeyTests: XCTestCase {
     
     func testRelativePathFromString() {
         let path = DerivationPath(string: "0'/0")!
-        XCTAssertEqual(path.steps, [.init(0, isHardened: true), .init(0)])
+        XCTAssert(BCFoundation.isEqual(path.steps, [BasicDerivationStep(0, isHardened: true), BasicDerivationStep(0)]))
         XCTAssertEqual(path†, "0'/0")
         XCTAssertNil(path.origin)
     }
     
     func testAbsolutePathFromString() {
         let path = DerivationPath(string: "m/0h/0")! // 0' and 0h are treated the same
-        XCTAssertEqual(path.steps, [.init(0, isHardened: true), .init(0)])
+        XCTAssert(BCFoundation.isEqual(path.steps, [BasicDerivationStep(0, isHardened: true), BasicDerivationStep(0)]))
         XCTAssertEqual(path.toString(format: .tickMark), "m/0'/0")
         XCTAssertEqual(path.toString(format: .letter), "m/0h/0")
         XCTAssertEqual(path†, "m/0'/0")
@@ -121,7 +121,7 @@ class HDKeyTests: XCTestCase {
     func testRelativePathFromInt() {
         var path: DerivationPath
         path = DerivationPath(index: 0)
-        XCTAssertEqual(path.steps, [.init(0)])
+        XCTAssert(BCFoundation.isEqual(path.steps, [BasicDerivationStep(0)]))
         XCTAssertEqual(path†, "0")
         XCTAssertNil(ChildIndex(UInt32.max))
     }
@@ -146,7 +146,7 @@ class HDKeyTests: XCTestCase {
         let xpriv = "xprv9s21ZrQH143K3h3fDYiay8mocZ3afhfULfb5GX8kCBdno77K4HiA15Tg23wpbeF1pLfs1c5SPmYHrEpTuuRhxMwvKDwqdKiGJS9XFKzUsAF"
         let hdKey = try HDKey(base58: xpriv)
         
-        let derivation = DerivationPath(step: .init(0, isHardened: true))
+        let derivation = DerivationPath(step: BasicDerivationStep(0, isHardened: true))
         let childKey = try HDKey(parent: hdKey, childDerivationPath: derivation)
 
         XCTAssertEqual(childKey.base58PrivateKey, "xprv9vEG8CuLwbNkVNhb56dXckENNiU1SZEgwEAokv1yLodVwsHMRbAFyUMoMd5uyKEgPDgEPBwNfa42v5HYvCvT1ymQo1LQv9h5LtkBMvQD55b")

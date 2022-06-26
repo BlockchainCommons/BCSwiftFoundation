@@ -10,15 +10,23 @@ import Foundation
 struct DescriptorWPKH: DescriptorAST {
     let key: DescriptorKeyExpression
     
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
-        guard let data = key.pubKeyData(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider) else {
+    func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
+        guard let data = key.pubKeyData(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider) else {
             return nil
         }
         return ScriptPubKey(Script(ops: [.op(.op_0), .data(data.hash160)]))
     }
+    
+    func hdKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
+        key.hdKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider)
+    }
 
-    var requiresWildcardChildNum: Bool {
-        key.requiresWildcardChildNum
+    var requiresAddressIndex: Bool {
+        key.requiresAddressIndex
+    }
+    
+    var requiresChain: Bool {
+        key.requiresChain
     }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {

@@ -11,31 +11,39 @@ struct DescriptorCombo: DescriptorAST {
     let key: DescriptorKeyExpression
     
     // https://github.com/bitcoin/bips/blob/master/bip-0384.mediawiki
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
+    func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey? {
         guard let comboOutput = comboOutput else {
             return nil
         }
         switch comboOutput {
         case .pk:
-            return DescriptorPK(key: key).scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: nil)
+            return DescriptorPK(key: key).scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: nil)
         case .pkh:
-            return DescriptorPKH(key: key).scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: nil)
+            return DescriptorPKH(key: key).scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: nil)
         case .wpkh:
             if case .ecUncompressedPublicKey = key.key {
                 return nil
             }
-            return DescriptorWPKH(key: key).scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: nil)
+            return DescriptorWPKH(key: key).scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: nil)
         case .sh_wpkh:
             if case .ecUncompressedPublicKey = key.key {
                 return nil
             }
             let redeemScript = DescriptorWPKH(key: key)
-            return DescriptorSH(redeemScript: redeemScript).scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: nil)
+            return DescriptorSH(redeemScript: redeemScript).scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: nil)
         }
     }
+    
+    func hdKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
+        key.hdKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider)
+    }
 
-    var requiresWildcardChildNum: Bool {
-        key.requiresWildcardChildNum
+    var requiresAddressIndex: Bool {
+        key.requiresAddressIndex
+    }
+    
+    var requiresChain: Bool {
+        key.requiresChain
     }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {

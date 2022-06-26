@@ -21,6 +21,9 @@ struct DescriptorToken: TokenProtocol {
         case comma
         case slash
         case star
+        case openAngleBracket
+        case semicolon
+        case closeAngleBracket
         
         case sh
         case wsh

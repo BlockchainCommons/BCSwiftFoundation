@@ -20,8 +20,12 @@ public struct OutputDescriptor {
         self.astRoot = try DescriptorParser(tokens: tokens, source: source).parse()
     }
     
-    public func scriptPubKey(wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> ScriptPubKey? {
-        return astRoot.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+    public func scriptPubKey(chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> ScriptPubKey? {
+        astRoot.scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+    }
+    
+    public func hdKey(chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> HDKey? {
+        astRoot.hdKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
     }
     
     public var isCombo: Bool {
@@ -35,8 +39,12 @@ public struct OutputDescriptor {
         case sh_wpkh
     }
     
-    public var requiresWildcardChildNum: Bool {
-        astRoot.requiresWildcardChildNum
+    public var requiresAddressIndex: Bool {
+        astRoot.requiresAddressIndex
+    }
+    
+    public var requiresChain: Bool {
+        astRoot.requiresChain
     }
 
     public var unparsed: String {
@@ -102,23 +110,23 @@ extension OutputDescriptor {
 }
 
 extension OutputDescriptor {
-    public func address(useInfo: UseInfo, wildcardChildNum: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> Bitcoin.Address? {
-        guard let scriptPubKey = self.scriptPubKey(wildcardChildNum: wildcardChildNum, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {
+    public func address(useInfo: UseInfo, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> Bitcoin.Address? {
+        guard let scriptPubKey = self.scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {
             return nil
         }
         return Bitcoin.Address(scriptPubKey: scriptPubKey, useInfo: useInfo)
     }
     
-    public func addresses(useInfo: UseInfo, indexes: IndexSet, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
+    public func addresses(useInfo: UseInfo, chain: Chain?, indexes: IndexSet, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
         var result: [UInt32: Bitcoin.Address] = [:]
         for index in indexes.lazy.map({ UInt32($0) }) {
-            result[index] = address(useInfo: useInfo, wildcardChildNum: index, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+            result[index] = address(useInfo: useInfo, chain: chain, addressIndex: index, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
         }
         return result
     }
     
-    public func addresses(useInfo: UseInfo, indexes: Range<UInt32>, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
+    public func addresses(useInfo: UseInfo, chain: Chain, indexes: Range<UInt32>, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
         let indexes = IndexSet(Int(indexes.startIndex)..<Int(indexes.endIndex))
-        return addresses(useInfo: useInfo, indexes: indexes, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+        return addresses(useInfo: useInfo, chain: chain, indexes: indexes, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
     }
 }

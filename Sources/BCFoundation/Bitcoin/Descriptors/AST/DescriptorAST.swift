@@ -9,8 +9,10 @@ import Foundation
 @_exported import URKit
 
 protocol DescriptorAST: CustomStringConvertible {
-    func scriptPubKey(wildcardChildNum: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey?
-    var requiresWildcardChildNum: Bool { get }
+    func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey?
+    func hdKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey?
+    var requiresAddressIndex: Bool { get }
+    var requiresChain: Bool { get }
     var unparsed: String { get }
     var untaggedCBOR: CBOR { get }
     var taggedCBOR: CBOR { get }
@@ -19,7 +21,11 @@ protocol DescriptorAST: CustomStringConvertible {
 }
 
 extension DescriptorAST {
-    var requiresWildcardChildNum: Bool {
+    var requiresAddressIndex: Bool {
+        false
+    }
+    
+    var requiresChain: Bool {
         false
     }
     
