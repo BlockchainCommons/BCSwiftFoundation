@@ -7,4 +7,4 @@
 
 import Foundation
 
-public typealias PrivateKeyProvider = (HDKeyProtocol) -> HDKey?
+public typealias PrivateKeyProvider = (HDKeyProtocol) throws -> HDKey?

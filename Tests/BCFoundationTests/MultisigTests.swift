@@ -60,22 +60,23 @@ final class MultisigTests: XCTestCase {
         return descriptor.source
     }
 
-    func testMultisig() throws {
-//        let account = Account(policy: .init(quorum: 2, slots: 3), network: .testnet)
-        
-        let aliceSeed = Seed()
-        let aliceDescriptorSource = try makeDescriptor(seed: aliceSeed, outputType: .wpkh, accountIndex: 0, network: .testnet)
-        print(aliceDescriptorSource)
-//        try account.setSource(aliceDescriptorSource, slotIndex: 0)
+//    Alice:
+//    wpkh([55016b2f/84h/1h/0h]tpubDC8LiEDg3kCFJgZHhBSs6gY8WtpR1K3Y9rP3beDnR14tM5waXvgjYveW1Dmi6kr2LVdj8nPCu5myATRydoRFN2hGSwZ518rRg7KJirdAWmg/<0;1>/*)#w44vzfr8
+//
+//    Bob:
+//    wpkh([a7e8d06e/84h/1h/0h]tpubDCGrpJ7dTCwZJhsCy7jbXihZdx627sGBs32KUiSnVEghWak8GA6wVM1f4WEofTZBtMnKfRSwzTxYsJQ5DaBnt2G5dfHuX9saTSytUwVQKfE/<0;1>/*)#5zfxcrqr
+//
+//    Fawn:
+//    wpkh([f5d5473b/84h/1h/0h]tpubDDmMe9yuB5BWZXNmCDx9ByxrtasfgRLuVXhbD154dBGFBYGVCbC9MtLvMGZXfaG8WwFpZGNMrRWm8sHGuMsanh9ceFQJ5PDKH9rGJZbA1cs/<0;1>/*)#5kmtc5es
 
-//        let bobSeed = Seed()
-//        let bobDescriptorSource = try makeDescriptor(seed: bobSeed, outputType: .wpkh, accountIndex: 0, network: .testnet)
-//        try account.setSource(bobDescriptorSource, slotIndex: 1)
-//
-//        let fawnSeed = Seed()
-//        let fawnDescriptorSource = try makeDescriptor(seed: fawnSeed, outputType: .wpkh, accountIndex: 0, network: .testnet)
-//        try account.setSource(fawnDescriptorSource, slotIndex: 2)
-//
-//        XCTAssert(account.isComplete)
+    func testMultisig() throws {
+        let aliceSource = "wpkh([55016b2f/84h/1h/0h]tpubDC8LiEDg3kCFJgZHhBSs6gY8WtpR1K3Y9rP3beDnR14tM5waXvgjYveW1Dmi6kr2LVdj8nPCu5myATRydoRFN2hGSwZ518rRg7KJirdAWmg/<0;1>/*)#w44vzfr8"
+        let aliceDesc = try OutputDescriptor(aliceSource)
+        print(aliceDesc)
+        let indexRange: Range<UInt32> = 0..<20
+        let addresses = aliceDesc.addresses(useInfo: UseInfo(network: .testnet), chain: .external, indexes: indexRange)
+        for index in indexRange {
+            print("\(index): \(addresses[index]!)")
+        }
     }
 }

@@ -27,6 +27,7 @@ public struct TransactionRequest {
         case seed(SeedRequestBody)
         case key(KeyRequestBody)
         case psbtSignature(PSBTSignatureRequestBody)
+        case outputDescriptor(OutputDescriptorRequestBody)
     }
     
     public func cbor(noteLimit: Int = .max) -> CBOR {
@@ -38,6 +39,8 @@ public struct TransactionRequest {
         case .key(let body):
             a.append(2, body.taggedCBOR)
         case .psbtSignature(let body):
+            a.append(2, body.taggedCBOR)
+        case .outputDescriptor(let body):
             a.append(2, body.taggedCBOR)
         }
         
@@ -99,6 +102,8 @@ public struct TransactionRequest {
             body = Body.key(keyRequestBody)
         } else if let psbtSignatureRequestBody = try PSBTSignatureRequestBody(taggedCBOR: bodyItem) {
             body = Body.psbtSignature(psbtSignatureRequestBody)
+        } else if let outputDescriptorRequestBody = try OutputDescriptorRequestBody(taggedCBOR: bodyItem) {
+            body = Body.outputDescriptor(outputDescriptorRequestBody)
         } else {
             throw TransactionRequestError.unknownRequestType
         }

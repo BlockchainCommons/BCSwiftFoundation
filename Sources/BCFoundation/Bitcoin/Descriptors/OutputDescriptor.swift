@@ -15,6 +15,7 @@ public struct OutputDescriptor {
     private let astRoot: DescriptorAST
     
     public init(_ source: String) throws {
+        let source = try Self.validateChecksum(source)
         self.source = source
         let tokens = try DescriptorLexer(source: source).lex()
         self.astRoot = try DescriptorParser(tokens: tokens, source: source).parse()
@@ -24,8 +25,8 @@ public struct OutputDescriptor {
         astRoot.scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
     }
     
-    public func hdKey(chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> HDKey? {
-        astRoot.hdKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+    public func hdKey(keyType: KeyType = .public, chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> HDKey? {
+        astRoot.hdKey(keyType: keyType, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
     }
     
     public var isCombo: Bool {
@@ -64,6 +65,12 @@ public struct OutputDescriptor {
     }
 }
 
+extension OutputDescriptor: Equatable {
+    public static func ==(lhs: OutputDescriptor, rhs: OutputDescriptor) -> Bool {
+        lhs.source == rhs.source
+    }
+}
+
 extension OutputDescriptor: CustomStringConvertible {
     public var description: String {
         source
@@ -95,7 +102,7 @@ extension OutputDescriptor {
         return (strippedSource, checksum, range)
     }
     
-    public static func validateChecksum(_ source: String) throws {
+    public static func validateChecksum(_ source: String) throws -> String {
         let (strippedSource, checksum, range) = extractChecksum(source)
         if
             let checksum = checksum,
@@ -106,6 +113,7 @@ extension OutputDescriptor {
                 throw OutputDescriptorError("Invalid checksum.", token, source: source)
             }
         }
+        return strippedSource
     }
 }
 
@@ -128,5 +136,18 @@ extension OutputDescriptor {
     public func addresses(useInfo: UseInfo, chain: Chain, indexes: Range<UInt32>, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
         let indexes = IndexSet(Int(indexes.startIndex)..<Int(indexes.endIndex))
         return addresses(useInfo: useInfo, chain: chain, indexes: indexes, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+    }
+}
+
+extension OutputDescriptor: Codable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(sourceWithChecksum)
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let source = try container.decode(String.self)
+        try self.init(source)
     }
 }

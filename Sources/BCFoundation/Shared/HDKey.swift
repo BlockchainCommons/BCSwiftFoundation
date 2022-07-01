@@ -288,11 +288,18 @@ extension HDKeyProtocol {
         var workingKey = parent
         if parent.keyType == .public {
             if derivedKeyType == .private {
-                throw HDKeyError.cannotDerivePrivateFromPublic
+                guard
+                    let privateKeyProvider = privateKeyProvider,
+                    let privateKey = try privateKeyProvider(workingKey),
+                    privateKey.isPrivate
+                else {
+                    throw HDKeyError.cannotDerivePrivateFromPublic
+                }
+                workingKey = privateKey
             } else if effectiveDerivationPath.isHardened {
                 guard
                     let privateKeyProvider = privateKeyProvider,
-                    let privateKey = privateKeyProvider(workingKey),
+                    let privateKey = try privateKeyProvider(workingKey),
                     privateKey.isPrivate
                 else {
                     throw HDKeyError.cannotDeriveHardenedFromPublic
@@ -303,7 +310,7 @@ extension HDKeyProtocol {
 
         var derivedKey = workingKey
         for step in effectiveDerivationPath.steps {
-            derivedKey = try HDKey(parent: derivedKey, derivedKeyType: parent.keyType, childDerivation: step, chain: chain, addressIndex: addressIndex)
+            derivedKey = try HDKey(parent: derivedKey, derivedKeyType: derivedKey.keyType, childDerivation: step, chain: chain, addressIndex: addressIndex)
         }
         derivedKey = try HDKey(key: derivedKey, derivedKeyType: derivedKeyType)
         self.init(

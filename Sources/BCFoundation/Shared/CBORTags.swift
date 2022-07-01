@@ -60,6 +60,8 @@ extension CBOR.Tag {
     public static let seedRequestBody = CBOR.Tag(500)
     public static let keyRequestBody = CBOR.Tag(501)
     public static let psbtSignatureRequestBody = CBOR.Tag(502)
+    public static let outputDescriptorRequestBody = CBOR.Tag(503)
+    public static let outputDescriptorResponseBody = CBOR.Tag(504)
 }
 
 extension CBOR.Tag {

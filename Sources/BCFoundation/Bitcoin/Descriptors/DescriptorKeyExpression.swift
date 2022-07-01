@@ -59,13 +59,14 @@ extension DescriptorKeyExpression {
     }
 
     func hdKey(
+        keyType: KeyType,
         chain: Chain?,
         addressIndex: UInt32?,
         privateKeyProvider: PrivateKeyProvider?
     ) -> HDKey? {
         guard
             case let .hdKey(k) = key,
-            let k2 = try? HDKey(parent: k, childDerivationPath: k.children, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider)
+            let k2 = try? HDKey(parent: k, derivedKeyType: keyType, childDerivationPath: k.children, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider)
         else {
             return nil
         }

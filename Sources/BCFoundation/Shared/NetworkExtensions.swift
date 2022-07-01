@@ -11,7 +11,18 @@ import Foundation
 
 extension Network: Identifiable {
     public var id: String {
-        "network-\(description)"
+        description
+    }
+    
+    public init?(id: String) {
+        switch id {
+        case Network.mainnet.description:
+            self = .mainnet
+        case Network.testnet.description:
+            self = .testnet
+        default:
+            return nil
+        }
     }
 }
 
@@ -38,5 +49,21 @@ extension Network {
                 throw CBORError.invalidFormat
         }
         self = a
+    }
+}
+
+extension Network: Codable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(id)
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let id = try container.decode(String.self)
+        guard let n = Network(id: id) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid network."))
+        }
+        self = n
     }
 }
