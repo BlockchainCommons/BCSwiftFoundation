@@ -11,14 +11,21 @@ import Foundation
 
 extension Network: Identifiable {
     public var id: String {
-        description
+        switch self {
+        case .mainnet:
+            return "network-main"
+        case .testnet:
+            return "network-test"
+        }
     }
-    
+}
+
+extension Network {
     public init?(id: String) {
         switch id {
-        case Network.mainnet.description:
+        case "network-main":
             self = .mainnet
-        case Network.testnet.description:
+        case "network-test":
             self = .testnet
         default:
             return nil
