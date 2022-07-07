@@ -73,7 +73,7 @@ extension DescriptorKeyExpression {
         return k2
     }
 
-    var hdKey: HDKey? {
+    var baseKey: HDKey? {
         guard case let .hdKey(hdKey) = key else {
             return nil
         }

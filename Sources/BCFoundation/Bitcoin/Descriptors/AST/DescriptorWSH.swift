@@ -20,6 +20,10 @@ struct DescriptorWSH: DescriptorAST {
     func hdKey(keyType: KeyType, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
         redeemScript.hdKey(keyType: keyType, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
     }
+    
+    var baseKey: HDKey? {
+        redeemScript.baseKey
+    }
 
     var requiresAddressIndex: Bool {
         redeemScript.requiresAddressIndex

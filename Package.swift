@@ -34,6 +34,8 @@ let package = Package(
                 "Flexer",
                 "CryptoSwift",
                 "URKit",
+                "BCWally",
+                "SSKR",
                 .product(name: "BLAKE3", package: "blake3-swift"),
                 .product(name: "secp256k1", package: "secp256k1-zkp.swift"),
             ]

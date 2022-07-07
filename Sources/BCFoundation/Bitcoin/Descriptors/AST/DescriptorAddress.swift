@@ -17,6 +17,10 @@ struct DescriptorAddress: DescriptorAST {
     func hdKey(keyType: KeyType, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
         nil
     }
+    
+    var baseKey: HDKey? {
+        nil
+    }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.addr) else {

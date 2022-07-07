@@ -29,6 +29,10 @@ public struct OutputDescriptor {
         astRoot.hdKey(keyType: keyType, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
     }
     
+    public var baseKey: HDKey? {
+        astRoot.baseKey
+    }
+    
     public var isCombo: Bool {
         return (astRoot as? DescriptorCombo) != nil
     }

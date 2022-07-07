@@ -37,6 +37,10 @@ struct DescriptorCombo: DescriptorAST {
     func hdKey(keyType: KeyType, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
         key.hdKey(keyType: keyType, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider)
     }
+    
+    var baseKey: HDKey? {
+        key.baseKey
+    }
 
     var requiresAddressIndex: Bool {
         key.requiresAddressIndex

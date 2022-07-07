@@ -30,6 +30,10 @@ struct DescriptorMulti: DescriptorAST {
     func hdKey(keyType: KeyType, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey? {
         nil
     }
+    
+    var baseKey: HDKey? {
+        nil
+    }
 
     func orderedKeys(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?) -> [Data]? {
         let rawKeys = keys.compactMap { $0.pubKeyData(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider) }

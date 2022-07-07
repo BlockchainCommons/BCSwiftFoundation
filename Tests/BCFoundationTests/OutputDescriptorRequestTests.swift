@@ -1,5 +1,5 @@
 import XCTest
-@testable import BCFoundation
+import BCFoundation
 import WolfBase
 
 public struct GeneralError: LocalizedError {
@@ -12,7 +12,7 @@ public struct GeneralError: LocalizedError {
 
 class OutputDescriptorRequestTests: XCTestCase {
     let slotID = UUID()
-    let useInfo = UseInfo(asset: .eth, network: .testnet)
+    let useInfo = UseInfo(asset: .btc, network: .testnet)
     let challenge = SecureRandomNumberGenerator.shared.data(count: 16)
     
     func testOutputDescriptorRequest() throws {
@@ -53,6 +53,9 @@ class OutputDescriptorRequestTests: XCTestCase {
         let response = try TransactionResponse(ur: responseUR)
         guard case let .outputDescriptor(responseBody) = response.body else {
             throw GeneralError("Not a response for an output descriptor.")
+        }
+        guard responseBody.descriptor.baseKey != nil else {
+            throw GeneralError("Could not retrieve public key from returned descriptor.")
         }
         guard let validationKey = responseBody.descriptor.hdKey(chain: .external, addressIndex: 0) else {
             throw GeneralError("Could not derive validation key from returned descriptor.")

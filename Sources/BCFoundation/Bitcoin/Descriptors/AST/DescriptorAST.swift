@@ -11,6 +11,7 @@ import Foundation
 protocol DescriptorAST: CustomStringConvertible {
     func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey?
     func hdKey(keyType: KeyType, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey?
+    var baseKey: HDKey? { get }
     var requiresAddressIndex: Bool { get }
     var requiresChain: Bool { get }
     var unparsed: String { get }
