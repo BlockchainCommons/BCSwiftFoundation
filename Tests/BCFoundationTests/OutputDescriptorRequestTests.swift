@@ -16,8 +16,8 @@ class OutputDescriptorRequestTests: XCTestCase {
     let challenge = SecureRandomNumberGenerator.shared.data(count: 16)
     
     func testOutputDescriptorRequest() throws {
-        let masterKey = try HDKey(seed: Seed())
-        let bundle = OutputDescriptorBundle(masterKey: masterKey, network: .mainnet, account: 0)!
+        let masterKey = try HDKey(seed: Seed(), useInfo: useInfo)
+        let bundle = OutputDescriptorBundle(masterKey: masterKey, network: useInfo.network, account: 0)!
         let request = makeRequest()
         for descriptor in bundle.descriptors {
             let response = try makeResponse(to: request, descriptor: descriptor, masterKey: masterKey)
