@@ -14,10 +14,11 @@ class OutputDescriptorRequestTests: XCTestCase {
     let slotID = UUID()
     let useInfo = UseInfo(asset: .btc, network: .testnet)
     let challenge = SecureRandomNumberGenerator.shared.data(count: 16)
+    let accountNumber: UInt32 = 0
     
     func testOutputDescriptorRequest() throws {
         let masterKey = try HDKey(seed: Seed(), useInfo: useInfo)
-        let bundle = OutputDescriptorBundle(masterKey: masterKey, network: useInfo.network, account: 0)!
+        let bundle = OutputDescriptorBundle(masterKey: masterKey, network: useInfo.network, account: accountNumber)!
         let request = makeRequest()
         for descriptor in bundle.descriptors {
             let response = try makeResponse(to: request, descriptor: descriptor, masterKey: masterKey)
