@@ -12,11 +12,19 @@ public struct OutputDescriptorRequestBody {
     }
     
     public var untaggedCBOR: CBOR {
-        CBOR.orderedMap([
-            1: CBOR.utf8String(name),
-            2: useInfo.taggedCBOR,
-            3: CBOR.data(challenge)
-        ])
+        var a: OrderedMap = [:]
+        
+        if !name.isEmpty {
+            a.append(1, CBOR.utf8String(name))
+        }
+        
+        if !useInfo.isDefault {
+            a.append(2, useInfo.taggedCBOR)
+        }
+        
+        a.append(3, CBOR.data(challenge))
+        
+        return CBOR.orderedMap(a)
     }
     
     public var taggedCBOR: CBOR {
@@ -25,11 +33,25 @@ public struct OutputDescriptorRequestBody {
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.map(pairs) = untaggedCBOR,
-            let nameItem = pairs[1],
-            case let CBOR.utf8String(name) = nameItem,
-            let useInfoItem = pairs[2],
-            let useInfo = try? UseInfo(taggedCBOR: useInfoItem),
+            case let CBOR.map(pairs) = untaggedCBOR
+        else {
+            throw CBORError.invalidFormat
+        }
+        
+        guard
+            case let CBOR.utf8String(name) = pairs[1] ?? CBOR.utf8String("")
+        else {
+            throw CBORError.invalidFormat
+        }
+        
+        let useInfoItem = pairs[2] ?? UseInfo().taggedCBOR
+        guard
+            let useInfo = try? UseInfo(taggedCBOR: useInfoItem)
+        else {
+            throw CBORError.invalidFormat
+        }
+        
+        guard
             let challengeItem = pairs[3],
             case let CBOR.data(challenge) = challengeItem,
             challenge.count == 16
