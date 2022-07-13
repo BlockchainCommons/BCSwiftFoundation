@@ -4,13 +4,13 @@ import WolfBase
 import CryptoKit
 import SSKR
 
-public struct Simplex: DigestProvider {
+public struct Envelope: DigestProvider {
     public let subject: Subject
     public let assertions: [Assertion]
     public let digest: Digest
 }
 
-extension Simplex {
+extension Envelope {
     public init(subject: Subject, assertions: [Assertion] = []) {
         self.subject = subject
         let sortedAssertions = assertions.sorted()
@@ -27,7 +27,7 @@ extension Simplex {
     }
 }
 
-extension Simplex {
+extension Envelope {
     public var deepDigests: Set<Digest> {
         var result = subject.deepDigests.union([digest])
         for assertion in assertions {
@@ -41,19 +41,19 @@ extension Simplex {
     }
 }
 
-extension Simplex: CBOREncodable {
+extension Envelope: CBOREncodable {
     public var cbor: CBOR {
         taggedCBOR
     }
 }
 
-extension Simplex: CBORDecodable {
-    public static func cborDecode(_ cbor: CBOR) throws -> Simplex {
-        try Simplex(taggedCBOR: cbor)
+extension Envelope: CBORDecodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> Envelope {
+        try Envelope(taggedCBOR: cbor)
     }
 }
 
-extension Simplex {
+extension Envelope {
     public init(_ plaintext: CBOREncodable) {
         self.init(subject: Subject(plaintext: plaintext))
     }
@@ -73,8 +73,8 @@ extension Simplex {
         subject.plaintext
     }
     
-    public var simplex: Simplex? {
-        subject.simplex
+    public var envelope: Envelope? {
+        subject.envelope
     }
     
     public var predicate: Predicate? {
@@ -90,47 +90,47 @@ extension Simplex {
         return predicate
     }
     
-    public func enclose() -> Simplex {
-        Simplex(subject: Subject(plaintext: self))
+    public func enclose() -> Envelope {
+        Envelope(subject: Subject(plaintext: self))
     }
     
-    public func extract() throws -> Simplex {
+    public func extract() throws -> Envelope {
         guard
-            let simplex = simplex
+            let envelope = envelope
         else {
-            throw SimplexError.invalidFormat
+            throw EnvelopeError.invalidFormat
         }
-        return simplex
+        return envelope
     }
 }
 
-extension Simplex: Equatable {
-    public static func ==(lhs: Simplex, rhs: Simplex) -> Bool {
+extension Envelope: Equatable {
+    public static func ==(lhs: Envelope, rhs: Envelope) -> Bool {
         lhs.digest == rhs.digest
     }
 }
 
-extension Simplex: ExpressibleByIntegerLiteral {
+extension Envelope: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
         self.init(value)
     }
 }
 
-extension Simplex {
+extension Envelope {
     public func assertions(predicate: CBOREncodable) -> [Assertion] {
-        let predicate = Simplex(predicate)
+        let predicate = Envelope(predicate)
         return assertions.filter { $0.predicate == predicate }
     }
 
     public func assertion(predicate: CBOREncodable) throws -> Assertion {
         let a = assertions(predicate: predicate)
         guard a.count == 1 else {
-            throw SimplexError.invalidFormat
+            throw EnvelopeError.invalidFormat
         }
         return a.first!
     }
 
-    public func extract(predicate: CBOREncodable) throws -> Simplex {
+    public func extract(predicate: CBOREncodable) throws -> Envelope {
         try assertion(predicate: predicate).object
     }
     
@@ -139,21 +139,21 @@ extension Simplex {
     }
 }
 
-extension Simplex {
+extension Envelope {
     public func assertions(predicate: Predicate) -> [Assertion] {
-        let p = Simplex(predicate: predicate)
+        let p = Envelope(predicate: predicate)
         return assertions.filter { $0.predicate == p }
     }
     
     public func assertion(predicate: Predicate) throws -> Assertion {
         let a = assertions(predicate: predicate)
         guard a.count == 1 else {
-            throw SimplexError.invalidFormat
+            throw EnvelopeError.invalidFormat
         }
         return a.first!
     }
     
-    public func extract(predicate: Predicate) throws -> Simplex {
+    public func extract(predicate: Predicate) throws -> Envelope {
         try assertion(predicate: predicate).object
     }
     
@@ -162,33 +162,33 @@ extension Simplex {
     }
 }
 
-extension Simplex {
-    public func add(_ assertion: Assertion) -> Simplex {
+extension Envelope {
+    public func add(_ assertion: Assertion) -> Envelope {
         if !assertions.contains(assertion) {
-            return Simplex(subject: self.subject, assertions: assertions.appending(assertion))
+            return Envelope(subject: self.subject, assertions: assertions.appending(assertion))
         } else {
             return self
         }
     }
     
-    public func add(_ predicate: CBOREncodable, _ object: CBOREncodable) -> Simplex {
-        let p = predicate as? Simplex ?? Simplex(predicate)
-        let o = object as? Simplex ?? Simplex(object)
+    public func add(_ predicate: CBOREncodable, _ object: CBOREncodable) -> Envelope {
+        let p = predicate as? Envelope ?? Envelope(predicate)
+        let o = object as? Envelope ?? Envelope(object)
         return add(Assertion(p, o))
     }
 
-    public func add(_ predicate: Predicate, _ object: CBOREncodable) -> Simplex {
-        return add(Simplex(predicate: predicate), object)
+    public func add(_ predicate: Predicate, _ object: CBOREncodable) -> Envelope {
+        return add(Envelope(predicate: predicate), object)
     }
 }
 
-extension Simplex {
-    public func sign(with privateKeys: PrivateKeyBase, note: String? = nil, tag: Data? = nil) -> Simplex {
+extension Envelope {
+    public func sign(with privateKeys: PrivateKeyBase, note: String? = nil, tag: Data? = nil) -> Envelope {
         let signature = privateKeys.signingPrivateKey.schnorrSign(subject.digest, tag: tag)
         return add(.verifiedBy(signature: signature, note: note))
     }
     
-    public func sign(with privateKeys: [PrivateKeyBase], tag: Data? = nil) -> Simplex {
+    public func sign(with privateKeys: [PrivateKeyBase], tag: Data? = nil) -> Envelope {
         var result = self
         for keys in privateKeys {
             result = result.sign(with: keys)
@@ -196,15 +196,15 @@ extension Simplex {
         return result
     }
     
-    public func addRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Simplex {
+    public func addRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Envelope {
         add(.hasRecipient(recipient, contentKey: contentKey))
     }
     
-    public func addSSKRShare(_ share: SSKRShare) -> Simplex {
+    public func addSSKRShare(_ share: SSKRShare) -> Envelope {
         add(.sskrShare(share))
     }
     
-    public func split(groupThreshold: Int, groups: [(Int, Int)], contentKey: SymmetricKey) -> [[Simplex]] {
+    public func split(groupThreshold: Int, groups: [(Int, Int)], contentKey: SymmetricKey) -> [[Envelope]] {
         let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: contentKey)
         return shares.map { groupShares in
             groupShares.map { share in
@@ -213,7 +213,7 @@ extension Simplex {
         }
     }
     
-    public static func shares(in containers: [Simplex]) throws -> [UInt16: [SSKRShare]] {
+    public static func shares(in containers: [Envelope]) throws -> [UInt16: [SSKRShare]] {
         var result: [UInt16: [SSKRShare]] = [:]
         for container in containers {
             try container.assertions(predicate: .sskrShare)
@@ -229,9 +229,9 @@ extension Simplex {
         return result
     }
 
-    public init(shares containers: [Simplex]) throws {
+    public init(shares containers: [Envelope]) throws {
         guard !containers.isEmpty else {
-            throw SimplexError.invalidShares
+            throw EnvelopeError.invalidShares
         }
         for shares in try Self.shares(in: containers).values {
             guard let contentKey = try? SymmetricKey(SSKRCombine(shares: shares)) else {
@@ -240,11 +240,11 @@ extension Simplex {
             self = try containers.first!.decrypt(with: contentKey)
             return
         }
-        throw SimplexError.invalidShares
+        throw EnvelopeError.invalidShares
     }
 }
 
-extension Simplex {
+extension Envelope {
     public var signatures: [Signature] {
         get throws {
             try assertions(predicate: .verifiedBy)
@@ -257,9 +257,9 @@ extension Simplex {
     }
     
     @discardableResult
-    public func validateSignature(_ signature: Signature, key: SigningPublicKey) throws -> Simplex {
+    public func validateSignature(_ signature: Signature, key: SigningPublicKey) throws -> Envelope {
         guard isValidSignature(signature, key: key) else {
-            throw SimplexError.invalidSignature
+            throw EnvelopeError.invalidSignature
         }
         return self
     }
@@ -269,7 +269,7 @@ extension Simplex {
     }
     
     @discardableResult
-    public func validateSignature(_ signature: Signature, publicKeys: PublicKeyBase) throws -> Simplex {
+    public func validateSignature(_ signature: Signature, publicKeys: PublicKeyBase) throws -> Envelope {
         try validateSignature(signature, key: publicKeys.signingPublicKey)
     }
     
@@ -279,9 +279,9 @@ extension Simplex {
     }
     
     @discardableResult
-    public func validateSignature(key: SigningPublicKey) throws -> Simplex {
+    public func validateSignature(key: SigningPublicKey) throws -> Envelope {
         guard try hasValidSignature(key: key) else {
-            throw SimplexError.invalidSignature
+            throw EnvelopeError.invalidSignature
         }
         return self
     }
@@ -291,7 +291,7 @@ extension Simplex {
     }
     
     @discardableResult
-    public func validateSignature(from publicKeys: PublicKeyBase) throws -> Simplex {
+    public func validateSignature(from publicKeys: PublicKeyBase) throws -> Envelope {
         try validateSignature(key: publicKeys.signingPublicKey)
     }
     
@@ -310,9 +310,9 @@ extension Simplex {
     }
 
     @discardableResult
-    public func validateSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) throws -> Simplex {
+    public func validateSignatures(with keys: [SigningPublicKey], threshold: Int? = nil) throws -> Envelope {
         guard try hasValidSignatures(with: keys, threshold: threshold) else {
-            throw SimplexError.invalidSignature
+            throw EnvelopeError.invalidSignature
         }
         return self
     }
@@ -322,28 +322,28 @@ extension Simplex {
     }
 
     @discardableResult
-    public func validateSignatures(from publicKeysArray: [PublicKeyBase], threshold: Int? = nil) throws -> Simplex {
+    public func validateSignatures(from publicKeysArray: [PublicKeyBase], threshold: Int? = nil) throws -> Envelope {
         try validateSignatures(with: publicKeysArray.map { $0.signingPublicKey }, threshold: threshold)
     }
 }
 
-extension Simplex {
-    public func encrypt(with key: SymmetricKey, nonce: Nonce? = nil) throws -> Simplex {
+extension Envelope {
+    public func encrypt(with key: SymmetricKey, nonce: Nonce? = nil) throws -> Envelope {
         let subject = try self.subject.encrypt(with: key, nonce: nonce)
-        let result = Simplex(subject: subject, assertions: assertions)
+        let result = Envelope(subject: subject, assertions: assertions)
         assert(digest == result.digest)
         return result
     }
     
-    public func decrypt(with key: SymmetricKey) throws -> Simplex {
+    public func decrypt(with key: SymmetricKey) throws -> Envelope {
         let subject = try self.subject.decrypt(with: key)
-        let result = Simplex(subject: subject, assertions: assertions)
+        let result = Envelope(subject: subject, assertions: assertions)
         assert(digest == result.digest)
         return result
     }
 }
 
-extension Simplex {
+extension Envelope {
     public var recipients: [SealedMessage] {
         get throws {
             try assertions(predicate: .hasRecipient)
@@ -351,11 +351,11 @@ extension Simplex {
         }
     }
     
-    public func decrypt(to recipient: PrivateKeyBase) throws -> Simplex {
+    public func decrypt(to recipient: PrivateKeyBase) throws -> Envelope {
         guard
             let contentKeyData = try SealedMessage.firstPlaintext(in: recipients, for: recipient)
         else {
-            throw SimplexError.invalidRecipient
+            throw EnvelopeError.invalidRecipient
         }
         
         let cbor = try CBOR(contentKeyData)
@@ -364,14 +364,14 @@ extension Simplex {
     }
 }
 
-extension Simplex {
-    public func redact() -> Simplex {
-        let result = Simplex(digest: digest)
+extension Envelope {
+    public func redact() -> Envelope {
+        let result = Envelope(digest: digest)
         assert(result.digest == digest)
         return result
     }
     
-    public func redact(items: Set<Digest>) -> Simplex {
+    public func redact(items: Set<Digest>) -> Envelope {
         if items.contains(digest) {
             return redact()
         }
@@ -379,12 +379,12 @@ extension Simplex {
         let assertions = self.assertions.map {
             $0.redact(items: items)
         }
-        let result = Simplex(subject: subject, assertions: assertions)
+        let result = Envelope(subject: subject, assertions: assertions)
         assert(result.digest == digest)
         return result
     }
     
-    public func redact(revealing items: Set<Digest>) -> Simplex {
+    public func redact(revealing items: Set<Digest>) -> Envelope {
         if !items.contains(digest) {
             return redact()
         }
@@ -392,23 +392,23 @@ extension Simplex {
         let assertions = self.assertions.map {
             $0.redact(revealing: items)
         }
-        let result = Simplex(subject: subject, assertions: assertions)
+        let result = Envelope(subject: subject, assertions: assertions)
         assert(result.digest == digest)
         return result
     }
 }
 
-extension Simplex {
-    public func revoke(_ digest: Digest) -> Simplex {
+extension Envelope {
+    public func revoke(_ digest: Digest) -> Envelope {
         var assertions = self.assertions
         if let index = assertions.firstIndex(where: { $0.digest == digest }) {
             assertions.remove(at: index)
         }
-        return Simplex(subject: subject, assertions: assertions)
+        return Envelope(subject: subject, assertions: assertions)
     }
 }
 
-extension Simplex {
+extension Envelope {
     public var untaggedCBOR: CBOR {
         if assertions.isEmpty {
             return subject.cbor
@@ -420,7 +420,7 @@ extension Simplex {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.simplex.tag, untaggedCBOR)
+        CBOR.tagged(URType.envelope.tag, untaggedCBOR)
     }
     
     public init(untaggedCBOR: CBOR) throws {
@@ -437,20 +437,20 @@ extension Simplex {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.simplex.tag, untaggedCBOR) = taggedCBOR else {
+        guard case let CBOR.tagged(URType.envelope.tag, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)
     }
 }
 
-extension Simplex {
+extension Envelope {
     public var ur: UR {
-        return try! UR(type: URType.simplex.type, cbor: untaggedCBOR)
+        return try! UR(type: URType.envelope.type, cbor: untaggedCBOR)
     }
     
     public init(ur: UR) throws {
-        guard ur.type == URType.simplex.type else {
+        guard ur.type == URType.envelope.type else {
             throw URError.unexpectedType
         }
         let cbor = try CBOR(ur.cbor)

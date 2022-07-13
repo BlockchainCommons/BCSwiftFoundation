@@ -1,24 +1,24 @@
 import Foundation
 import WolfBase
 
-protocol SimplexFormat {
-    var formatItem: SimplexFormatItem { get }
+protocol EnvelopeFormat {
+    var formatItem: EnvelopeFormatItem { get }
 }
 
-extension Digest: SimplexFormat {
-    var formatItem: SimplexFormatItem {
+extension Digest: EnvelopeFormat {
+    var formatItem: EnvelopeFormatItem {
         return .item(data.prefix(8).hex)
     }
 }
 
-extension SCID: SimplexFormat {
-    var formatItem: SimplexFormatItem {
+extension SCID: EnvelopeFormat {
+    var formatItem: EnvelopeFormatItem {
         return .item(data.hex)
     }
 }
 
-extension CBOR: SimplexFormat {
-    var formatItem: SimplexFormatItem {
+extension CBOR: EnvelopeFormat {
+    var formatItem: EnvelopeFormatItem {
         do {
             switch self {
             case .unsignedInt(let n):
@@ -31,8 +31,8 @@ extension CBOR: SimplexFormat {
                     s = s.prefix(count: 10)
                 }
                 return .item(s)
-            case CBOR.tagged(URType.simplex.tag, _):
-                return try Simplex(taggedCBOR: cbor).formatItem
+            case CBOR.tagged(URType.envelope.tag, _):
+                return try Envelope(taggedCBOR: cbor).formatItem
             case CBOR.tagged(.predicate, let cbor):
                 guard
                     case let CBOR.unsignedInt(rawValue) = cbor,
@@ -66,13 +66,13 @@ extension CBOR: SimplexFormat {
     }
 }
 
-extension Subject: SimplexFormat {
-    var formatItem: SimplexFormatItem {
+extension Subject: EnvelopeFormat {
+    var formatItem: EnvelopeFormatItem {
         switch self {
         case .leaf(let cbor, _):
             return cbor.formatItem
-        case .simplex(let simplex):
-            return simplex.formatItem
+        case .envelope(let envelope):
+            return envelope.formatItem
         case .encrypted(_, _):
             return "EncryptedMessage"
         case .redacted(_):
@@ -81,18 +81,18 @@ extension Subject: SimplexFormat {
     }
 }
 
-extension Assertion: SimplexFormat {
-    var formatItem: SimplexFormatItem {
+extension Assertion: EnvelopeFormat {
+    var formatItem: EnvelopeFormatItem {
         .list([predicate.formatItem, ": ", object.formatItem])
     }
 }
 
-extension Simplex: SimplexFormat {
+extension Envelope: EnvelopeFormat {
     public var format: String {
         formatItem.format.trim()
     }
     
-    var formatItem: SimplexFormatItem {
+    var formatItem: EnvelopeFormatItem {
         let subjectItem = subject.formatItem
         let isList: Bool
         if case .list(_) = subjectItem {
@@ -104,7 +104,7 @@ extension Simplex: SimplexFormat {
         let assertionsItems = assertions.map { [$0.formatItem] }.sorted()
         let joinedAssertionsItems = Array(assertionsItems.joined(separator: [.separator]))
         let hasAssertions = !joinedAssertionsItems.isEmpty
-        var items: [SimplexFormatItem] = []
+        var items: [EnvelopeFormatItem] = []
         if isList {
             items.append(.begin("{"))
         }
@@ -128,21 +128,21 @@ extension Simplex: SimplexFormat {
     }
 }
 
-public enum SimplexFormatItem {
+public enum EnvelopeFormatItem {
     case begin(String)
     case end(String)
     case item(String)
     case separator
-    case list([SimplexFormatItem])
+    case list([EnvelopeFormatItem])
 }
 
-extension SimplexFormatItem: ExpressibleByStringLiteral {
+extension EnvelopeFormatItem: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self = .item(value)
     }
 }
 
-extension SimplexFormatItem: CustomStringConvertible {
+extension EnvelopeFormatItem: CustomStringConvertible {
     public var description: String {
         switch self {
         case .begin(let string):
@@ -159,8 +159,8 @@ extension SimplexFormatItem: CustomStringConvertible {
     }
 }
 
-extension SimplexFormatItem {
-    var flatten: [SimplexFormatItem] {
+extension EnvelopeFormatItem {
+    var flatten: [EnvelopeFormatItem] {
         if case let .list(items) = self {
             return items.map { $0.flatten }.flatMap { $0 }
         } else {
@@ -222,8 +222,8 @@ extension SimplexFormatItem {
     }
 }
 
-extension SimplexFormatItem: Equatable {
-    public static func ==(lhs: SimplexFormatItem, rhs: SimplexFormatItem) -> Bool {
+extension EnvelopeFormatItem: Equatable {
+    public static func ==(lhs: EnvelopeFormatItem, rhs: EnvelopeFormatItem) -> Bool {
         if case let .begin(l) = lhs, case let .begin(r) = rhs, l == r { return true }
         if case let .end(l) = lhs, case let .end(r) = rhs, l == r { return true }
         if case let .item(l) = lhs, case let .item(r) = rhs, l == r { return true }
@@ -233,7 +233,7 @@ extension SimplexFormatItem: Equatable {
     }
 }
 
-extension SimplexFormatItem {
+extension EnvelopeFormatItem {
     var index: Int {
         switch self {
         case .begin:
@@ -250,8 +250,8 @@ extension SimplexFormatItem {
     }
 }
 
-extension SimplexFormatItem: Comparable {
-    public static func <(lhs: SimplexFormatItem, rhs: SimplexFormatItem) -> Bool {
+extension EnvelopeFormatItem: Comparable {
+    public static func <(lhs: EnvelopeFormatItem, rhs: EnvelopeFormatItem) -> Bool {
         let lIndex = lhs.index
         let rIndex = rhs.index
         if lIndex < rIndex {
@@ -268,8 +268,8 @@ extension SimplexFormatItem: Comparable {
     }
 }
 
-extension Array: Comparable where Element == SimplexFormatItem {
-    public static func < (lhs: Array<SimplexFormatItem>, rhs: Array<SimplexFormatItem>) -> Bool {
+extension Array: Comparable where Element == EnvelopeFormatItem {
+    public static func < (lhs: Array<EnvelopeFormatItem>, rhs: Array<EnvelopeFormatItem>) -> Bool {
         lhs.lexicographicallyPrecedes(rhs)
     }
 }

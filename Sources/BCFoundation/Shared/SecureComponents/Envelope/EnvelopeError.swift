@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SimplexError: Error {
+public enum EnvelopeError: Error {
     case invalidOperation
     case invalidKey
     case invalidDigest

@@ -24,19 +24,19 @@ fileprivate let stateIdentifier = SCID(‡"04363d5ff99733bc0f1577baba440af1cf344
 fileprivate let statePrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
 fileprivate let statePublicKeys = statePrivateKeys.publicKeys
 
-class SimplexTests: XCTestCase {
+class EnvelopeTests: XCTestCase {
     func testPredicate() {
-        let container = Simplex(predicate: .verifiedBy)
+        let container = Envelope(predicate: .verifiedBy)
         XCTAssertEqual(container.format, "verifiedBy")
     }
     
     func testDate() throws {
-        let container = try Simplex(Date(iso8601: "2018-01-07"))
+        let container = try Envelope(Date(iso8601: "2018-01-07"))
         XCTAssertEqual(container.format, "2018-01-07")
     }
 
     func testNestingPlaintext() {
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
 
         let expectedFormat =
         """
@@ -55,7 +55,7 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingOnce() {
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
             .enclose()
 
         let expectedFormat =
@@ -66,7 +66,7 @@ class SimplexTests: XCTestCase {
         """
         XCTAssertEqual(container.format, expectedFormat)
 
-        let redactedContainer = Simplex(plaintext)
+        let redactedContainer = Envelope(plaintext)
             .redact()
             .enclose()
 
@@ -82,7 +82,7 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingTwice() throws {
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
             .enclose()
             .enclose()
 
@@ -112,7 +112,7 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingSigned() throws {
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
             .sign(with: alicePrivateKeys)
 
         let expectedFormat =
@@ -138,7 +138,7 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingEncloseThenSign() throws {
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
             .enclose()
             .sign(with: alicePrivateKeys)
 
@@ -187,7 +187,7 @@ class SimplexTests: XCTestCase {
     }
     
     func testNestingSignThenEnclose() {
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
             .sign(with: alicePrivateKeys)
             .enclose()
 
@@ -203,11 +203,11 @@ class SimplexTests: XCTestCase {
     }
 
     func testAssertionsOnAllPartsOfContainer() throws {
-        let predicate = Simplex("predicate")
+        let predicate = Envelope("predicate")
             .add("predicate-predicate", "predicate-object")
-        let object = Simplex("object")
+        let object = Envelope("object")
             .add("object-predicate", "object-object")
-        let container = Simplex("subject")
+        let container = Envelope("subject")
             .add(predicate, object)
 
         let expectedFormat =
@@ -226,7 +226,7 @@ class SimplexTests: XCTestCase {
 
     func testPlaintext() throws {
         // Alice sends a plaintext message to Bob.
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
         let ur = container.ur
 
 //        print(container.taggedCBOR.diag)
@@ -242,14 +242,14 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container and reads the message.
-        let receivedPlaintext = try Simplex(ur: ur)
+        let receivedPlaintext = try Envelope(ur: ur)
             .extract(String.self)
         XCTAssertEqual(receivedPlaintext, plaintext)
     }
 
     func testSignedPlaintext() throws {
         // Alice sends a signed plaintext message to Bob.
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
             .sign(with: alicePrivateKeys)
         let ur = container.ur
 
@@ -268,7 +268,7 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container.
-        let receivedContainer = try Simplex(ur: ur)
+        let receivedContainer = try Envelope(ur: ur)
         
         // Bob receives the message, validates Alice's signature, and reads the message.
         let receivedPlaintext = try receivedContainer.validateSignature(from: alicePublicKeys)
@@ -287,7 +287,7 @@ class SimplexTests: XCTestCase {
     
     func testMultisignedPlaintext() throws {
         // Alice and Carol jointly send a signed plaintext message to Bob.
-        let container = Simplex(plaintext)
+        let container = Envelope(plaintext)
             .sign(with: [alicePrivateKeys, carolPrivateKeys])
         let ur = container.ur
 
@@ -307,7 +307,7 @@ class SimplexTests: XCTestCase {
         // Alice & Carol ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container and verifies the message was signed by both Alice and Carol.
-        let receivedPlaintext = try Simplex(ur: ur)
+        let receivedPlaintext = try Envelope(ur: ur)
             .validateSignatures(from: [alicePublicKeys, carolPublicKeys])
             .extract(String.self)
 
@@ -320,7 +320,7 @@ class SimplexTests: XCTestCase {
         let key = SymmetricKey()
 
         // Alice sends a message encrypted with the key to Bob.
-        let container = try Simplex(plaintext)
+        let container = try Envelope(plaintext)
             .encrypt(with: key)
         let ur = container.ur
 
@@ -337,7 +337,7 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container.
-        let receivedContainer = try Simplex(ur: ur)
+        let receivedContainer = try Envelope(ur: ur)
         
         // Bob decrypts and reads the message.
         let receivedPlaintext = try receivedContainer
@@ -354,7 +354,7 @@ class SimplexTests: XCTestCase {
     
     func testEncryptDecrypt() throws {
         let key = SymmetricKey()
-        let plaintextContainer = Simplex(plaintext)
+        let plaintextContainer = Envelope(plaintext)
 //        print(plaintextContainer.format)
         let encryptedContainer = try plaintextContainer.encrypt(with: key)
 //        print(encryptedContainer.format)
@@ -369,7 +369,7 @@ class SimplexTests: XCTestCase {
         let key = SymmetricKey()
 
         // Alice signs a plaintext message, then encrypts it.
-        let container = try Simplex(plaintext)
+        let container = try Envelope(plaintext)
             .sign(with: alicePrivateKeys)
             .enclose()
             .encrypt(with: key)
@@ -388,7 +388,7 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container, decrypts it using the shared key, and then validates Alice's signature.
-        let receivedPlaintext = try Simplex(ur: ur)
+        let receivedPlaintext = try Envelope(ur: ur)
             .decrypt(with: key)
             .extract()
             .validateSignature(from: alicePublicKeys)
@@ -425,7 +425,7 @@ class SimplexTests: XCTestCase {
         // be performed first before the presence of signatures can be known or checked.
         // With this order of operations, the presence of signatures is known before
         // decryption, and may be checked before or after decryption.
-        let container = try Simplex(plaintext)
+        let container = try Envelope(plaintext)
             .encrypt(with: key)
             .sign(with: alicePrivateKeys)
         let ur = container.ur
@@ -445,7 +445,7 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container, validates Alice's signature, then decrypts the message.
-        let receivedPlaintext = try Simplex(ur: ur)
+        let receivedPlaintext = try Envelope(ur: ur)
             .validateSignature(from: alicePublicKeys)
             .decrypt(with: key)
             .extract(String.self)
@@ -456,7 +456,7 @@ class SimplexTests: XCTestCase {
     func testMultiRecipient() throws {
         // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
         let contentKey = SymmetricKey()
-        let container = try Simplex(plaintext)
+        let container = try Envelope(plaintext)
             .encrypt(with: contentKey)
             .addRecipient(bobPublicKeys, contentKey: contentKey)
             .addRecipient(carolPublicKeys, contentKey: contentKey)
@@ -479,7 +479,7 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Carol
 
         // The container is received
-        let receivedContainer = try Simplex(ur: ur)
+        let receivedContainer = try Envelope(ur: ur)
         
         // Bob decrypts and reads the message
         let bobReceivedPlaintext = try receivedContainer
@@ -500,7 +500,7 @@ class SimplexTests: XCTestCase {
     func testVisibleSignatureMultiRecipient() throws {
         // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
         let contentKey = SymmetricKey()
-        let container = try Simplex(plaintext)
+        let container = try Envelope(plaintext)
             .sign(with: alicePrivateKeys)
             .encrypt(with: contentKey)
             .addRecipient(bobPublicKeys, contentKey: contentKey)
@@ -525,7 +525,7 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Carol
 
         // The container is received
-        let receivedContainer = try Simplex(ur: ur)
+        let receivedContainer = try Envelope(ur: ur)
 
         // Bob validates Alice's signature, then decrypts and reads the message
         let bobReceivedPlaintext = try receivedContainer
@@ -551,7 +551,7 @@ class SimplexTests: XCTestCase {
         // Alice's signature, and requires recipients to decrypt the subject before they
         // are able to validate the signature.
         let contentKey = SymmetricKey()
-        let container = try Simplex(plaintext)
+        let container = try Envelope(plaintext)
             .sign(with: alicePrivateKeys)
             .enclose()
             .encrypt(with: contentKey)
@@ -576,7 +576,7 @@ class SimplexTests: XCTestCase {
         // Alice ➡️ ☁️ ➡️ Carol
 
         // The container is received
-        let receivedContainer = try Simplex(ur: ur)
+        let receivedContainer = try Envelope(ur: ur)
 
         // Bob decrypts the container, then extracts the inner container and validates
         // Alice's signature, then reads the message
@@ -610,11 +610,11 @@ class SimplexTests: XCTestCase {
         danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
         // Dan encrypts the seed and then splits the content key into a single group
-        // 2-of-3. This returns an array of arrays of Simplex, the outer arrays
+        // 2-of-3. This returns an array of arrays of Envelope, the outer arrays
         // representing SSKR groups and the inner array elements each holding the encrypted
         // seed and a single share.
         let contentKey = SymmetricKey()
-        let containers = try Simplex(danSeed)
+        let containers = try Envelope(danSeed)
             .encrypt(with: contentKey)
             .split(groupThreshold: 1, groups: [(2, 3)], contentKey: contentKey)
         
@@ -633,21 +633,22 @@ class SimplexTests: XCTestCase {
         
         // Dan sends one container to each of Alice, Bob, and Carol.
 
-//        print(sentContainers[0].taggedCBOR.diag)
-//        print(sentContainers[0].taggedCBOR.dump)
-//        print(sentContainers[0].ur)
+        print(sentContainers[0].format)
+        print(sentContainers[0].taggedCBOR.diag)
+        print(sentContainers[0].taggedCBOR.dump)
+        print(sentContainers[0].ur)
 
         // Dan ➡️ ☁️ ➡️ Alice
         // Dan ➡️ ☁️ ➡️ Bob
         // Dan ➡️ ☁️ ➡️ Carol
 
-        // let aliceContainer = Container(ur: sentURs[0]) // UNRECOVERED
-        let bobContainer = try Simplex(ur: sentURs[1])
-        let carolContainer = try Simplex(ur: sentURs[2])
+        // let aliceContainer = try Envelope(ur: sentURs[0]) // UNRECOVERED
+        let bobContainer = try Envelope(ur: sentURs[1])
+        let carolContainer = try Envelope(ur: sentURs[2])
 
         // At some future point, Dan retrieves two of the three containers so he can recover his seed.
         let recoveredContainers = [bobContainer, carolContainer]
-        let recoveredSeed = try Simplex(shares: recoveredContainers)
+        let recoveredSeed = try Envelope(shares: recoveredContainers)
             .extract(Seed.self)
 
         // The recovered seed is correct.
@@ -657,26 +658,26 @@ class SimplexTests: XCTestCase {
         XCTAssertEqual(danSeed.note, recoveredSeed.note)
 
         // Attempting to recover with only one of the containers won't work.
-        XCTAssertThrowsError(try Simplex(shares: [bobContainer]))
+        XCTAssertThrowsError(try Envelope(shares: [bobContainer]))
     }
 
     func testComplexMetadata() throws {
         // Assertions made about an SCID are considered part of a distributed set. Which
         // assertions are returned depends on who resolves the SCID and when it is
         // resolved. In other words, the referent of an SCID is mutable.
-        let author = Simplex(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
+        let author = Envelope(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
             .add(.dereferenceVia, "LibraryOfCongress")
             .add(.hasName, "Ayn Rand")
         
         // Assertions made on a literal value are considered part of the same set of
         // assertions made on the digest of that value.
-        let name_en = Simplex("Atlas Shrugged")
+        let name_en = Envelope("Atlas Shrugged")
             .add(.language, "en")
 
-        let name_es = Simplex("La rebelión de Atlas")
+        let name_es = Envelope("La rebelión de Atlas")
             .add(.language, "es")
         
-        let work = Simplex(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
+        let work = Envelope(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
             .add(.isA, "novel")
             .add("isbn", "9780451191144")
             .add("author", author)
@@ -687,7 +688,7 @@ class SimplexTests: XCTestCase {
         let bookData = "This is the entire book “Atlas Shrugged” in EPUB format."
         // Assertions made on a digest are considered associated with that specific binary
         // object and no other. In other words, the referent of a Digest is immutable.
-        let bookMetadata = Simplex(Digest(bookData))
+        let bookMetadata = Envelope(Digest(bookData))
             .add("work", work)
             .add("format", "EPUB")
             .add(.dereferenceVia, "IPFS")
@@ -722,7 +723,7 @@ class SimplexTests: XCTestCase {
         // document itself can be referred to by its SCID, while the signed document
         // can be referred to by its digest.
         
-        let aliceUnsignedDocument = Simplex(aliceIdentifier)
+        let aliceUnsignedDocument = Envelope(aliceIdentifier)
             .add(.controller, aliceIdentifier)
             .add(.publicKeys, alicePublicKeys)
         
@@ -769,7 +770,7 @@ class SimplexTests: XCTestCase {
         // The registrar creates its own registration document using Alice's SCID as the
         // subject, incorporating Alice's signed document, and adding its own signature.
         let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.data.hex)")!
-        let aliceRegistration = Simplex(aliceSCID)
+        let aliceRegistration = Envelope(aliceSCID)
             .add(.entity, aliceSignedDocument)
             .add(.dereferenceVia, aliceURL)
             .enclose()
@@ -809,7 +810,7 @@ class SimplexTests: XCTestCase {
         
         // Alice wants to introduce herself to Bob, so Bob needs to know she controls her
         // identifier. Bob sends a challenge:
-        let aliceChallenge = Simplex(Nonce())
+        let aliceChallenge = Envelope(Nonce())
             .add(.note, "Challenge to Alice from Bob.")
         
         let aliceChallengeExpectedFormat =
@@ -877,19 +878,19 @@ class SimplexTests: XCTestCase {
         let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
 
         // A photo of John Smith
-        let johnSmithImage = Simplex(Digest("John Smith smiling"))
+        let johnSmithImage = Envelope(Digest("John Smith smiling"))
             .add(.note, "This is an image of John Smith.")
             .add(.dereferenceVia, "https://exampleledger.com/digest/36be30726befb65ca13b136ae29d8081f64792c2702415eb60ad1c56ed33c999")
         
         // John Smith's Permanent Resident Card issued by the State of Example
-        let johnSmithResidentCard = try Simplex(SCID(‡"174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8")!)
+        let johnSmithResidentCard = try Envelope(SCID(‡"174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8")!)
             .add(.isA, "credential")
             .add("dateIssued", Date(iso8601: "2022-04-27"))
-            .add(.issuer, Simplex(stateIdentifier)
+            .add(.issuer, Envelope(stateIdentifier)
                 .add(.note, "Issued by the State of Example")
                 .add(.dereferenceVia, URL(string: "https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8")!)
             )
-            .add(.holder, Simplex(johnSmithIdentifier)
+            .add(.holder, Envelope(johnSmithIdentifier)
                 .add(.isA, "Person")
                 .add(.isA, "Permanent Resident")
                 .add("givenName", "JOHN")
@@ -899,7 +900,7 @@ class SimplexTests: XCTestCase {
                 .add("image", johnSmithImage)
                 .add("lprCategory", "C09")
                 .add("lprNumber", "999-999-999")
-                .add("birthCountry", Simplex("bs").add(.note, "The Bahamas"))
+                .add("birthCountry", Envelope("bs").add(.note, "The Bahamas"))
                 .add("residentSince", Date(iso8601: "2018-01-07"))
             )
             .add(.note, "The State of Example recognizes JOHN SMITH as a Permanent Resident.")
@@ -970,7 +971,7 @@ class SimplexTests: XCTestCase {
         try revealSet.insert(top.assertion(predicate: .verifiedBy).deepDigests)
 
         // Reveal the top level subject of the card. This is John Smith's SCID.
-        let topContent = top.subject.simplex!
+        let topContent = top.subject.envelope!
         revealSet.insert(topContent.shallowDigests)
 
         // Reveal everything about the `isA` and `issuer` assertions at the top level of the card.
@@ -1041,14 +1042,14 @@ class SimplexTests: XCTestCase {
 //        let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
 //        let johnSmithPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
 //        let johnSmithPublicKeys = johnSmithPrivateKeys.publicKeys
-//        let johnSmithDocument = Simplex(johnSmithIdentifier)
+//        let johnSmithDocument = Envelope(johnSmithIdentifier)
 //            .add(.hasName, "John Smith")
 //            .add(.dereferenceVia, URL(string: "https://exampleledger.com/scid/78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!)
 
 //        let acmeCorpPrivateKeys = PrivateKeyBase(Seed(data: ‡"3e9271f46cdb85a3b584e7220b976918")!)
 //        let acmeCorpPublicKeys = acmeCorpPrivateKeys.publicKeys
         let acmeCorpIdentifier = SCID(‡"361235424efc81cedec7eb983a97bbe74d7972f778486f93881e5eed577d0aa7")!
-        let acmeCorpDocument = Simplex(acmeCorpIdentifier)
+        let acmeCorpDocument = Envelope(acmeCorpIdentifier)
             .add(.hasName, "Acme Corp.")
             .add(.dereferenceVia, URL(string: "https://exampleledger.com/scid/361235424efc81cedec7eb983a97bbe74d7972f778486f93881e5eed577d0aa7")!)
         
@@ -1056,13 +1057,13 @@ class SimplexTests: XCTestCase {
         // Declare Products
         //
 
-        let qualityProduct = Simplex(SCID(‡"5bcca01f5f370ceb3b7365f076e9600e294d4da6ddf7a616976c87775ea8f0f1")!)
+        let qualityProduct = Envelope(SCID(‡"5bcca01f5f370ceb3b7365f076e9600e294d4da6ddf7a616976c87775ea8f0f1")!)
             .add(.isA, "Product")
             .add(.hasName, "Quality Widget")
             .add("seller", acmeCorpDocument)
             .add("priceEach", "10.99")
 
-        let cheapProduct = Simplex(SCID(‡"ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64")!)
+        let cheapProduct = Envelope(SCID(‡"ae464c5f9569ae23ff9a75e83caf485fb581d1ef9da147ca086d10e3d6f93e64")!)
             .add(.isA, "Product")
             .add(.hasName, "Cheap Widget")
             .add("seller", acmeCorpDocument)
@@ -1075,7 +1076,7 @@ class SimplexTests: XCTestCase {
         // Since the line items of a PurchaseOrder may be mutated before being finalized,
         // they are not declared as part of the creation of the PurchaseOrder itself.
         
-        let purchaseOrder = Simplex(SCID(‡"1bebb5b6e447f819d5a4cb86409c5da1207d1460672dfe903f55cde833549625")!)
+        let purchaseOrder = Envelope(SCID(‡"1bebb5b6e447f819d5a4cb86409c5da1207d1460672dfe903f55cde833549625")!)
             .add(.isA, "PurchaseOrder")
             .add(.hasName, "PO 123")
         
@@ -1092,14 +1093,14 @@ class SimplexTests: XCTestCase {
         // be updated. The line item therefore captures the current price from the product
         // document in its priceEach assertion.
         
-        let line1 = try Simplex(purchaseOrder.digest)
+        let line1 = try Envelope(purchaseOrder.digest)
             .add(.isA, "PurchaseOrderLineItem")
             .add("product", qualityProduct.extract(SCID.self))
             .add(.hasName, qualityProduct.extract(predicate: .hasName))
             .add("priceEach", qualityProduct.extract(predicate: "priceEach"))
             .add("quantity", 4)
 
-        let line2 = try Simplex(purchaseOrder.digest)
+        let line2 = try Envelope(purchaseOrder.digest)
             .add(.isA, "PurchaseOrderLineItem")
             .add("product", cheapProduct.extract(SCID.self))
             .add(.hasName, cheapProduct.extract(predicate: .hasName))
@@ -1118,7 +1119,7 @@ class SimplexTests: XCTestCase {
         """
         XCTAssertEqual(line2.format, line2ExpectedFormat)
         
-//        let revokeLine1 = Simplex(purchaseOrder.digest)
+//        let revokeLine1 = Envelope(purchaseOrder.digest)
 //            .add(Assertion(revoke: Reference(digest: line1.digest)))
 //        print(revokeLine1.format)
         

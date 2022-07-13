@@ -9,9 +9,9 @@
 ## Contents
 
 * [Overview](1-OVERVIEW.md)
-* [Simplex Overview](2-SIMPLEX.md)
-* [Simplex Notation](3-SIMPLEX-NOTATION.md)
-* [Simplex Expressions](4-SIMPLEX-EXPRESSIONS.md)
+* [Envelope Overview](2-ENVELOPE.md)
+* [Envelope Notation](3-ENVELOPE-NOTATION.md)
+* [Envelope Expressions](4-ENVELOPE-EXPRESSIONS.md)
 * [Definitions](5-DEFINITIONS.md)
 * [Examples](6-EXAMPLES.md): This document
 
@@ -19,7 +19,7 @@
 
 ## Introduction
 
-This section includes a set of high-level examples of API usage in Swift involving `Simplex`.
+This section includes a set of high-level examples of API usage in Swift involving `Envelope`.
 
 ## Status
 
@@ -65,18 +65,18 @@ In this example no signing or encryption is performed.
 
 ```swift
 // Alice sends a plaintext message to Bob.
-let container = Simplex(plaintext)
+let container = Envelope(plaintext)
 let ur = container.ur
 
 // Alice ➡️ ☁️ ➡️ Bob
 
 // Bob receives the container and reads the message.
-let receivedPlaintext = try Simplex(ur: ur)
+let receivedPlaintext = try Envelope(ur: ur)
     .extract(String.self)
 XCTAssertEqual(receivedPlaintext, plaintext)
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 "Hello."
@@ -86,14 +86,14 @@ XCTAssertEqual(receivedPlaintext, plaintext)
 
 ```swift
 // Alice sends a signed plaintext message to Bob.
-let container = Simplex(plaintext)
+let container = Envelope(plaintext)
     .sign(with: alicePrivateKeys)
 let ur = container.ur
 
 // Alice ➡️ ☁️ ➡️ Bob
 
 // Bob receives the container.
-let receivedContainer = try Simplex(ur: ur)
+let receivedContainer = try Envelope(ur: ur)
 
 // Bob receives the message, validates Alice's signature, and reads the message.
 let receivedPlaintext = try receivedContainer.validateSignature(from: alicePublicKeys)
@@ -110,7 +110,7 @@ try receivedContainer.verifySignatures(from: [alicePublicKeys, carolPublicKeys],
 XCTAssertThrowsError(try receivedContainer.verifySignatures(from: [alicePublicKeys, carolPublicKeys], threshold: 2))
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 "Hello." [
@@ -122,14 +122,14 @@ XCTAssertThrowsError(try receivedContainer.verifySignatures(from: [alicePublicKe
 
 ```swift
 // Alice and Carol jointly send a signed plaintext message to Bob.
-let container = Simplex(plaintext)
+let container = Envelope(plaintext)
     .sign(with: [alicePrivateKeys, carolPrivateKeys])
 let ur = container.ur
 
 // Alice & Carol ➡️ ☁️ ➡️ Bob
 
 // Bob receives the container and verifies the message was signed by both Alice and Carol.
-let receivedPlaintext = try Simplex(ur: ur)
+let receivedPlaintext = try Envelope(ur: ur)
     .verifySignatures(from: [alicePublicKeys, carolPublicKeys])
     .extract(String.self)
 
@@ -137,7 +137,7 @@ let receivedPlaintext = try Simplex(ur: ur)
 XCTAssertEqual(receivedPlaintext, plaintext)
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 "Hello." [
@@ -153,14 +153,14 @@ XCTAssertEqual(receivedPlaintext, plaintext)
         let key = SymmetricKey()
 
         // Alice sends a message encrypted with the key to Bob.
-        let container = try Simplex(plaintext)
+        let container = try Envelope(plaintext)
             .encrypt(with: key)
         let ur = container.ur
 
         // Alice ➡️ ☁️ ➡️ Bob
 
         // Bob receives the container.
-        let receivedContainer = try Simplex(ur: ur)
+        let receivedContainer = try Envelope(ur: ur)
 
         // Bob decrypts and reads the message.
         let receivedPlaintext = try receivedContainer
@@ -175,7 +175,7 @@ XCTAssertEqual(receivedPlaintext, plaintext)
         try XCTAssertThrowsError(receivedContainer.decrypt(with: SymmetricKey()))
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 EncryptedMessage
@@ -188,7 +188,7 @@ EncryptedMessage
 let key = SymmetricKey()
 
 // Alice signs a plaintext message, then encrypts it.
-let container = try Simplex(plaintext)
+let container = try Envelope(plaintext)
     .sign(with: alicePrivateKeys)
     .enclose()
     .encrypt(with: key)
@@ -197,7 +197,7 @@ let ur = container.ur
 // Alice ➡️ ☁️ ➡️ Bob
 
 // Bob receives the container, decrypts it using the shared key, and then validates Alice's signature.
-let receivedPlaintext = try Simplex(ur: ur)
+let receivedPlaintext = try Envelope(ur: ur)
     .decrypt(with: key)
     .extract()
     .validateSignature(from: alicePublicKeys)
@@ -206,7 +206,7 @@ let receivedPlaintext = try Simplex(ur: ur)
 XCTAssertEqual(receivedPlaintext, plaintext)
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 EncryptedMessage
@@ -227,7 +227,7 @@ The main difference between this order of operations and the sign-then-encrypt o
 let key = SymmetricKey()
 
 // Alice encryptes a plaintext message, then signs it.
-let container = try Simplex(plaintext)
+let container = try Envelope(plaintext)
     .encrypt(with: key)
     .sign(with: alicePrivateKeys)
 let ur = container.ur
@@ -235,7 +235,7 @@ let ur = container.ur
 // Alice ➡️ ☁️ ➡️ Bob
 
 // Bob receives the container, validates Alice's signature, then decrypts the message.
-let receivedPlaintext = try Simplex(ur: ur)
+let receivedPlaintext = try Envelope(ur: ur)
     .validateSignature(from: alicePublicKeys)
     .decrypt(with: key)
     .extract(String.self)
@@ -243,7 +243,7 @@ let receivedPlaintext = try Simplex(ur: ur)
 XCTAssertEqual(receivedPlaintext, plaintext)
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 EncryptedMessage [
@@ -256,7 +256,7 @@ EncryptedMessage [
 ```swift
 // Alice encrypts a message so that it can only be decrypted by Bob or Carol.
 let contentKey = SymmetricKey()
-let container = try Simplex(plaintext)
+let container = try Envelope(plaintext)
     .encrypt(with: contentKey)
     .addRecipient(bobPublicKeys, contentKey: contentKey)
     .addRecipient(carolPublicKeys, contentKey: contentKey)
@@ -266,7 +266,7 @@ let ur = container.ur
 // Alice ➡️ ☁️ ➡️ Carol
 
 // The container is received
-let receivedContainer = try Simplex(ur: ur)
+let receivedContainer = try Envelope(ur: ur)
 
 // Bob decrypts and reads the message
 let bobReceivedPlaintext = try receivedContainer
@@ -284,7 +284,7 @@ XCTAssertEqual(carolReceivedPlaintext, plaintext)
 XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 EncryptedMessage [
@@ -298,7 +298,7 @@ EncryptedMessage [
 ```swift
 // Alice signs a message, and then encrypts it so that it can only be decrypted by Bob or Carol.
 let contentKey = SymmetricKey()
-let container = try Simplex(plaintext)
+let container = try Envelope(plaintext)
     .sign(with: alicePrivateKeys)
     // .enclose() // Add if you want to encrypt the signature
     .encrypt(with: contentKey)
@@ -310,7 +310,7 @@ let ur = container.ur
 // Alice ➡️ ☁️ ➡️ Carol
 
 // The container is received
-let receivedContainer = try Simplex(ur: ur)
+let receivedContainer = try Envelope(ur: ur)
 
 // Bob validates Alice's signature, then decrypts and reads the message
 let bobReceivedPlaintext = try receivedContainer
@@ -330,7 +330,7 @@ XCTAssertEqual(carolReceivedPlaintext, plaintext)
 XCTAssertThrowsError(try receivedContainer.decrypt(to: alicePrivateKeys))
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 EncryptedMessage [
@@ -352,11 +352,11 @@ danSeed.creationDate = try! Date(iso8601: "2021-02-24")
 danSeed.note = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
 // Dan encrypts the seed and then splits the content key into a single group
-// 2-of-3. This returns an array of arrays of Simplex, the outer arrays
+// 2-of-3. This returns an array of arrays of Envelope, the outer arrays
 // representing SSKR groups and the inner array elements each holding the encrypted
 // seed and a single share.
 let contentKey = SymmetricKey()
-let containers = try Simplex(danSeed)
+let containers = try Envelope(danSeed)
     .encrypt(with: contentKey)
     .split(groupThreshold: 1, groups: [(2, 3)], contentKey: contentKey)
 
@@ -369,13 +369,13 @@ let sentURs = sentContainers.map { $0.ur }
 // Dan ➡️ ☁️ ➡️ Bob
 // Dan ➡️ ☁️ ➡️ Carol
 
-// let aliceContainer = Simplex(ur: sentURs[0]) // UNRECOVERED
-let bobContainer = try Simplex(ur: sentURs[1])
-let carolContainer = try Simplex(ur: sentURs[2])
+// let aliceContainer = Envelope(ur: sentURs[0]) // UNRECOVERED
+let bobContainer = try Envelope(ur: sentURs[1])
+let carolContainer = try Envelope(ur: sentURs[2])
 
 // At some future point, Dan retrieves two of the three containers so he can recover his seed.
 let recoveredContainers = [bobContainer, carolContainer]
-let recoveredSeed = try Simplex(shares: recoveredContainers)
+let recoveredSeed = try Envelope(shares: recoveredContainers)
     .extract(Seed.self)
 
 // The recovered seed is correct.
@@ -385,10 +385,10 @@ XCTAssertEqual(danSeed.name, recoveredSeed.name)
 XCTAssertEqual(danSeed.note, recoveredSeed.note)
 
 // Attempting to recover with only one of the containers won't work.
-XCTAssertThrowsError(try Simplex(shares: [bobContainer]))
+XCTAssertThrowsError(try Envelope(shares: [bobContainer]))
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 EncryptedMessage [
@@ -402,19 +402,19 @@ EncryptedMessage [
 // Assertions made about an SCID are considered part of a distributed set. Which
 // assertions are returned depends on who resolves the SCID and when it is
 // resolved. In other words, the referent of an SCID is mutable.
-let author = Simplex(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
+let author = Envelope(SCID(‡"9c747ace78a4c826392510dd6285551e7df4e5164729a1b36198e56e017666c8")!)
     .add(.dereferenceVia, "LibraryOfCongress")
     .add(.hasName, "Ayn Rand")
 
 // Assertions made on a literal value are considered part of the same set of
 // assertions made on the digest of that value.
-let name_en = Simplex("Atlas Shrugged")
+let name_en = Envelope("Atlas Shrugged")
     .add(.language, "en")
 
-let name_es = Simplex("La rebelión de Atlas")
+let name_es = Envelope("La rebelión de Atlas")
     .add(.language, "es")
 
-let work = Simplex(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
+let work = Envelope(SCID(‡"7fb90a9d96c07f39f75ea6acf392d79f241fac4ec0be2120f7c82489711e3e80")!)
     .add(.isA, "novel")
     .add("isbn", "9780451191144")
     .add("author", author)
@@ -426,13 +426,13 @@ let bookData = "This is the entire book “Atlas Shrugged” in EPUB format."
 
 // Assertions made on a digest are considered associated with that specific binary
 // object and no other. In other words, the referent of a Digest is immutable.
-let bookMetadata = Simplex(Digest(bookData))
+let bookMetadata = Envelope(Digest(bookData))
     .add("work", work)
     .add("format", "EPUB")
     .add(.dereferenceVia, "IPFS")
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
@@ -461,7 +461,7 @@ Digest(886d35d99ded5e20c61868e57af2f112700b73f1778d48284b0e078503d00ac1) [
 An analogue of a DID document, which identifies a self-sovereign entity. The document itself can be referred to by its SCID, while the signed document can be referred to by its digest.
 
 ```swift
-let aliceUnsignedDocument = Simplex(aliceIdentifier)
+let aliceUnsignedDocument = Envelope(aliceIdentifier)
     .add(.controller, aliceIdentifier)
     .add(.publicKeys, alicePublicKeys)
 
@@ -470,7 +470,7 @@ let aliceSignedDocument = aliceUnsignedDocument
     .sign(with: alicePrivateKeys, note: "Made by Alice.")
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 {
@@ -509,14 +509,14 @@ let aliceSCID = try aliceSignedDocument.validateSignature(from: alicePublicKeys)
 // The registrar creates its own registration document using Alice's SCID as the
 // subject, incorporating Alice's signed document, and adding its own signature.
 let aliceURL = URL(string: "https://exampleledger.com/scid/\(aliceSCID.data.hex)")!
-let aliceRegistration = Simplex(aliceSCID)
+let aliceRegistration = Envelope(aliceSCID)
     .add(.entity, aliceSignedDocument)
     .add(.dereferenceVia, aliceURL)
     .enclose()
     .sign(with: exampleLedgerPrivateKeys, note: "Made by ExampleLedger.")
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 {
@@ -551,11 +551,11 @@ XCTAssertEqual(aliceURI†, "https://exampleledger.com/scid/d44c5e0afd353f47b02f
 
 // Alice wants to introduce herself to Bob, so Bob needs to know she controls her
 // identifier. Bob sends a challenge:
-let aliceChallenge = Simplex(Nonce())
+let aliceChallenge = Envelope(Nonce())
     .add(.note, "Challenge to Alice from Bob.")
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 Nonce [
@@ -572,7 +572,7 @@ let aliceChallengeResponse = aliceChallenge
     .sign(with: alicePrivateKeys, note: "Made by Alice.")
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 {
@@ -625,19 +625,19 @@ try aliceChallengeResponse.validateSignature(from: aliceDocumentPublicKeys)
 let johnSmithIdentifier = SCID(‡"78bc30004776a3905bccb9b8a032cf722ceaf0bbfb1a49eaf3185fab5808cadc")!
 
 // A photo of John Smith
-let johnSmithImage = Simplex(Digest("John Smith smiling"))
+let johnSmithImage = Envelope(Digest("John Smith smiling"))
     .add(.note, "This is an image of John Smith.")
     .add(.dereferenceVia, "https://exampleledger.com/digest/4d55aabd82301eaa2d6b0a96c00c93e5535e82967f057fd1c99bee94ffcdad54")
 
 // John Smith's Permanent Resident Card issued by the State of Example
-let johnSmithResidentCard = try Simplex(SCID(‡"174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8")!)
+let johnSmithResidentCard = try Envelope(SCID(‡"174842eac3fb44d7f626e4d79b7e107fd293c55629f6d622b81ed407770302c8")!)
     .add(.isA, "credential")
     .add("dateIssued", Date(iso8601: "2022-04-27"))
-    .add(.issuer, Simplex(stateIdentifier)
+    .add(.issuer, Envelope(stateIdentifier)
         .add(.note, "Issued by the State of Example")
         .add(.dereferenceVia, URL(string: "https://exampleledger.com/scid/04363d5ff99733bc0f1577baba440af1cf344ad9e454fad9d128c00fef6505e8")!)
     )
-    .add(.holder, Simplex(johnSmithIdentifier)
+    .add(.holder, Envelope(johnSmithIdentifier)
         .add(.isA, "Person")
         .add(.isA, "Permanent Resident")
         .add("givenName", "JOHN")
@@ -647,7 +647,7 @@ let johnSmithResidentCard = try Simplex(SCID(‡"174842eac3fb44d7f626e4d79b7e107
         .add("image", johnSmithImage)
         .add("lprCategory", "C09")
         .add("lprNumber", "999-999-999")
-        .add("birthCountry", Simplex("bs").add(.note, "The Bahamas"))
+        .add("birthCountry", Envelope("bs").add(.note, "The Bahamas"))
         .add("residentSince", Date(iso8601: "2018-01-07"))
     )
     .add(.note, "The State of Example recognizes JOHN SMITH as a Permanent Resident.")
@@ -658,7 +658,7 @@ let johnSmithResidentCard = try Simplex(SCID(‡"174842eac3fb44d7f626e4d79b7e107
 try johnSmithResidentCard.validateSignature(from: statePublicKeys)
 ```
 
-### Simplex Notation
+### Envelope Notation
 
 ```
 {
@@ -720,7 +720,7 @@ revealSet.insert(top)
 try revealSet.insert(top.assertion(predicate: .verifiedBy).deepDigests)
 
 // Reveal the top level subject of the card. This is John Smith's SCID.
-let topContent = top.subject.simplex!
+let topContent = top.subject.envelope!
 revealSet.insert(topContent.shallowDigests)
 
 // Reveal everything about the `isA` and `issuer` assertions at the top level of the card.
@@ -746,7 +746,7 @@ XCTAssertEqual(redactedCredential, johnSmithResidentCard)
 try redactedCredential.validateSignature(from: statePublicKeys)
 ```
 
-### Simplex Notation for Redacted Credential
+### Envelope Notation for Redacted Credential
 
 ```
 {

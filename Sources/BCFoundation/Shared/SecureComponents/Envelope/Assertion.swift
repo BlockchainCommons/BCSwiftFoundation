@@ -4,13 +4,13 @@ import SSKR
 import URKit
 
 public struct Assertion: DigestProvider {
-    public let predicate: Simplex
-    public let object: Simplex
+    public let predicate: Envelope
+    public let object: Envelope
     public let digest: Digest
 }
 
 extension Assertion {
-    public init(_ predicate: Simplex, _ object: Simplex) {
+    public init(_ predicate: Envelope, _ object: Envelope) {
         self.predicate = predicate
         self.object = object
         self.digest = Digest(predicate.digest.data + object.digest.data)
@@ -55,28 +55,28 @@ extension Assertion: Comparable {
 
 extension Assertion {
     public static func verifiedBy(signature: Signature, note: String? = nil) -> Assertion {
-        var object = Simplex(signature)
+        var object = Envelope(signature)
         if let note = note {
             object = object.add(.note, note)
         }
-        return Assertion(Simplex(predicate: .verifiedBy), object)
+        return Assertion(Envelope(predicate: .verifiedBy), object)
     }
     
     public static func hasRecipient(_ recipient: PublicKeyBase, contentKey: SymmetricKey) -> Assertion {
         let sealedMessage = SealedMessage(plaintext: contentKey.taggedCBOR, recipient: recipient)
-        return Assertion(Simplex(predicate: .hasRecipient), Simplex(sealedMessage))
+        return Assertion(Envelope(predicate: .hasRecipient), Envelope(sealedMessage))
     }
     
     public static func sskrShare(_ share: SSKRShare) -> Assertion {
-        Assertion(Simplex(predicate: .sskrShare), Simplex(share))
+        Assertion(Envelope(predicate: .sskrShare), Envelope(share))
     }
     
-    public static func isA(_ object: Simplex) -> Assertion {
-        Assertion(Simplex(predicate: .isA), object)
+    public static func isA(_ object: Envelope) -> Assertion {
+        Assertion(Envelope(predicate: .isA), object)
     }
     
     public static func id(_ id: SCID) -> Assertion {
-        Assertion(Simplex(predicate: .id), Simplex(id))
+        Assertion(Envelope(predicate: .id), Envelope(id))
     }
 }
 
@@ -119,8 +119,8 @@ extension Assertion {
             throw CBORError.invalidFormat
         }
 
-        let predicate = try Simplex(taggedCBOR: elements[0])
-        let object = try Simplex(taggedCBOR: elements[1])
+        let predicate = try Envelope(taggedCBOR: elements[0])
+        let object = try Envelope(taggedCBOR: elements[1])
 
         self.init(predicate, object)
     }

@@ -1,4 +1,4 @@
-# Secure Components - Simplex Notation
+# Secure Components - Envelope Notation
 
 **Authors:** Wolf McNally, Christopher Allen, Blockchain Commons</br>
 **Revised:** May 16, 2022</br>
@@ -9,9 +9,9 @@
 ## Contents
 
 * [Overview](1-OVERVIEW.md)
-* [Simplex Overview](2-SIMPLEX.md)
-* [Simplex Notation](3-SIMPLEX-NOTATION.md): This document
-* [Simplex Expressions](4-SIMPLEX-EXPRESSIONS.md)
+* [Envelope Overview](2-ENVELOPE.md)
+* [Envelope Notation](3-ENVELOPE-NOTATION.md): This document
+* [Envelope Expressions](4-ENVELOPE-EXPRESSIONS.md)
 * [Definitions](5-DEFINITIONS.md)
 * [Examples](6-EXAMPLES.md)
 
@@ -19,15 +19,15 @@
 
 ## Introduction
 
-We provide a simplified textual notation for pretty-printing and reading instances of the `Simplex` type.
+We provide a simplified textual notation for pretty-printing and reading instances of the `Envelope` type.
 
 ## Status
 
 This document is a draft with a reference implementation in [BCSwiftFoundation](https://github.com/blockchaincommons/BCSwiftFoundation).
 
-* Braces `{ }` are used to delimit the contents of a nested `Simplex`.
-* Top-level braces representing the outermost `Simplex` are omitted.
-* Square brackets `[ ]` may come after the `subject` of a `Simplex` and are used to delimit the list of `Assertion`s.
+* Braces `{ }` are used to delimit the contents of a nested `Envelope`.
+* Top-level braces representing the outermost `Envelope` are omitted.
+* Square brackets `[ ]` may come after the `subject` of an `Envelope` and are used to delimit the list of `Assertion`s.
 * Type names, enumeration cases, and empty assertion lists are elided.
 
 For example, instead of writing:
@@ -53,9 +53,9 @@ If we were to output the [CBOR diagnostic notation](https://www.rfc-editor.org/r
 )
 ```
 
-`49` is the CBOR tag for `Simplex` and `60` is the tag for `.leaf`. Wrapping this 5-byte UTF-8 string in a `Simplex` only adds 2 bytes (1 for each tag) and 1 byte that identifies the string's type and length, for a total of 8 bytes. CBOR (and hence `Simplex`) is therefore completely self-describing.
+`49` is the CBOR tag for `Envelope` and `60` is the tag for `.leaf`. Wrapping this 5-byte UTF-8 string in an `Envelope` only adds 2 bytes (1 for each tag) and 1 byte that identifies the string's type and length, for a total of 8 bytes. CBOR (and hence `Envelope`) is therefore completely self-describing.
 
-Generally, a `Simplex` output in Simplex Notation looks like this:
+Generally, a `Envelope` output in Envelope Notation looks like this:
 
 ```
 Subject [
@@ -65,7 +65,7 @@ Subject [
 ]
 ```
 
-The three roles `Subject`, `Predicate`, and `Object` are *themselves* Simplexes, allowing for *complex metadata*, i.e., meta assertions about any part of a Simplex:
+The three roles `Subject`, `Predicate`, and `Object` are *themselves* Envelopes, allowing for *complex metadata*, i.e., meta assertions about any part of a Envelope:
 
 ```
 {
@@ -78,11 +78,11 @@ The three roles `Subject`, `Predicate`, and `Object` are *themselves* Simplexes,
         ]
     ]
 } [
-    note: "A note about the Simplex as a whole."
+    note: "A note about the Envelope as a whole."
 ]
 ```
 
-Even leaf objects like strings and numbers can be transformed into Simplexes with their own assertions:
+Even leaf objects like strings and numbers can be transformed into Envelopes with their own assertions:
 
 ```
 {
@@ -108,14 +108,14 @@ Even leaf objects like strings and numbers can be transformed into Simplexes wit
     ]
 } [
     note: {
-        "A note about the Simplex as a whole." [
+        "A note about the Envelope as a whole." [
             lang: "en"
         ]
     }
 ]
 ```
 
-Thus, the `Simplex` type provides a flexible foundation for constructing solutions for various applications. Here are some high-level schematics of such applications in Simplex Notation. See the [EXAMPLES](6-EXAMPLES.md) chapter for more detail.
+Thus, the `Envelope` type provides a flexible foundation for constructing solutions for various applications. Here are some high-level schematics of such applications in Envelope Notation. See the [EXAMPLES](6-EXAMPLES.md) chapter for more detail.
 
 ## Examples
 
@@ -156,7 +156,7 @@ Although you cannot have duplicate assertions every signature is unique, hence t
 
 ## A container containing a symmetrically encrypted message.
 
-The subject is just an `EncryptedMessage`. Because this `EncryptedMessage` is the `subject` of a `Simplex`, we do know that its plaintext MUST be CBOR. This CBOR plaintext may be a leaf or another `Simplex` with more layers of assertions possibly  including signatures, but the receiver will have to decrypt it to find out.
+The subject is just an `EncryptedMessage`. Because this `EncryptedMessage` is the `subject` of an `Envelope`, we do know that its plaintext MUST be CBOR. This CBOR plaintext may be a leaf or another `Envelope` with more layers of assertions possibly  including signatures, but the receiver will have to decrypt it to find out.
 
 ```
 EncryptedMessage
@@ -203,7 +203,7 @@ EncryptedMessage [
 
 ---
 
-## Several Simplexes containing a message split into several SSKR shares.
+## Several Envelopes containing a message split into several SSKR shares.
 
 A message has been split into a three shares using SSKR and distributed to three trustees. Two of these shares must be recovered to reconstruct the original message.
 
@@ -335,15 +335,15 @@ Redaction is performed by building a set of `Digest`s that will be revealed. All
 ]
 ```
 
-## Simplex Notation vs. CBOR Diagnostic Notation
+## Envelope Notation vs. CBOR Diagnostic Notation
 
-Simplex Notation compactly describes the potentially complex semantic structure of a `Simplex` in a friendly, human-readable format. For comparison, below is the same structure from the Credential example in CBOR diagnostic notation. The tags this CBOR structure uses are:
+Envelope Notation compactly describes the potentially complex semantic structure of a `Envelope` in a friendly, human-readable format. For comparison, below is the same structure from the Credential example in CBOR diagnostic notation. The tags this CBOR structure uses are:
 
 |CBOR Tag|Type|
 |---|---|
 |1|`Date`|
 |32|`URI`|
-|49|`Simplex`|
+|49|`Envelope`|
 |56|`Digest`|
 |58|`SCID`|
 |59|`Predicate`|

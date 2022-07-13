@@ -1,4 +1,4 @@
-# Secure Components - Simplex Expressions
+# Secure Components - Envelope Expressions
 
 **Authors:** Wolf McNally, Christopher Allen, Blockchain Commons</br>
 **Revised:** May 16, 2022</br>
@@ -9,9 +9,9 @@
 ## Contents
 
 * [Overview](1-OVERVIEW.md)
-* [Simplex Overview](2-SIMPLEX.md)
-* [Simplex Notation](3-SIMPLEX-NOTATION.md)
-* [Simplex Expressions](4-SIMPLEX-EXPRESSIONS.md): This document
+* [Envelope Overview](2-ENVELOPE.md)
+* [Envelope Notation](3-ENVELOPE-NOTATION.md)
+* [Envelope Expressions](4-ENVELOPE-EXPRESSIONS.md): This document
 * [Definitions](5-DEFINITIONS.md)
 * [Examples](6-EXAMPLES.md)
 
@@ -19,36 +19,36 @@
 
 ## Introduction
 
-We provide a method for encoding machine-evaluatable expressions using `Simplex`. Evaluating expressions results in results that can substitute in-place for the original unevaluated expression, although the replacement may have a different digest.
+We provide a method for encoding machine-evaluatable expressions using `Envelope`. Evaluating expressions results in results that can substitute in-place for the original unevaluated expression, although the replacement may have a different digest.
 
 Ideally the method of encoding would have the following traits:
 
 * Allow any mathematical or algorithmic expressions, including the evalution of spending conditions and smart contracts.
 * Be easy for humans to read.
-* Leverage the existing Simplex notation.
+* Leverage the existing Envelope notation.
 * Support easy [composition](https://en.wikipedia.org/wiki/Function_composition).
 * Support scoped variable substitution.
 * Be [homoiconic](https://en.wikipedia.org/wiki/Homoiconicity).
 
 ## Status
 
-This document is an early draft. While there is a reference implementation of `Simplex` in [BCSwiftFoundation](https://github.com/blockchaincommons/BCSwiftFoundation), there is currently no reference implementation of Simplex Expressions.
+This document is an early draft. While there is a reference implementation of `Envelope` in [BCSwiftFoundation](https://github.com/blockchaincommons/BCSwiftFoundation), there is currently no reference implementation of Envelope Expressions.
 
 ## Well-Known Expressions
 
-Since every Simplex has a unique digest, any Simplex expression can be replaced by its digest as long as the expression can eventually be found that matches it. In some cases, certain expressions may be so common as to be designated "well-known". In this case they can be represented by their digest alone or even a small tagged integer, trusting that the recipient of a Simplex can resolve the expression should they wish to evaluate it. Expressions that solve problems in specific domains and include placeholders for their arguments may be good candidates for this, one example being common cryptocurrency spending conditions.
+Since every Envelope has a unique digest, any Envelope expression can be replaced by its digest as long as the expression can eventually be found that matches it. In some cases, certain expressions may be so common as to be designated "well-known". In this case they can be represented by their digest alone or even a small tagged integer, trusting that the recipient of a Envelope can resolve the expression should they wish to evaluate it. Expressions that solve problems in specific domains and include placeholders for their arguments may be good candidates for this, one example being common cryptocurrency spending conditions.
 
-Even for expressions that are not "well known," like any other `Simplex`, an expression could appear as a reference to a `Digest` with one or more `dereferenceBy` assertions that tell the evaluator how to retrieve the expression that belongs in that place.
+Even for expressions that are not "well known," like any other `Envelope`, an expression could appear as a reference to a `Digest` with one or more `dereferenceBy` assertions that tell the evaluator how to retrieve the expression that belongs in that place.
 
 ## Example Expressions
 
-All of these examples are in Simplex Notation.
+All of these examples are in Envelope Notation.
 
 ---
 
 ## Constants
 
-Constants like numbers, strings, and even compound data types like `EncryptedMessage` are directly encodable as a Simplex whose `subject` is an instance of the constant's CBOR type. Obviously, they evaluate to themselves.
+Constants like numbers, strings, and even compound data types like `EncryptedMessage` are directly encodable as an Envelope whose `subject` is an instance of the constant's CBOR type. Obviously, they evaluate to themselves.
 
 ```
 2
@@ -76,7 +76,7 @@ An error in a sub-expression likewise causes the containing expression to fail a
 
 ## Binary Operator
 
-The subject of a Simplex that may be evaluated as an expression is tagged `func`, and each parameter to the function is a predicate tagged `param` with the object that supplies the argument. The Simplex expression language therefore uses a form of named parameters, although it is not limited to this paradigm. The purpose of tagging functions and parameters is to make them easily machine-distinguishable from other metadata.
+The subject of an Envelope that may be evaluated as an expression is tagged `func`, and each parameter to the function is a predicate tagged `param` with the object that supplies the argument. The Envelope expression language therefore uses a form of named parameters, although it is not limited to this paradigm. The purpose of tagging functions and parameters is to make them easily machine-distinguishable from other metadata.
 
 Assertions that are not tagged as parameters are ignored by the expression evaluator. Assertions that are tagged as parameters but are either not expected by the function, or have duplicate predicates are an error. Functions may have parameters that are required or optional, and not supplying all required parameters is an error.
 
@@ -90,7 +90,7 @@ func(add) [
 ]
 ```
 
-When evaluated, the result is a Simplex that may be substituted for the original expression:
+When evaluated, the result is a Envelope that may be substituted for the original expression:
 
 ```
 5
@@ -126,7 +126,7 @@ The composition `f(g(x))`:
 
 ## Logical Predicates
 
-Operators that evaluate to boolean values are often known as "predicates". To avoid confusing them with the "predicate" role in the Simplex type and in the nomenclature of semantic triples, we refer to these operations as "logical predicates" and where further clarification is needed, the other type as "semantic predicates".
+Operators that evaluate to boolean values are often known as "predicates". To avoid confusing them with the "predicate" role in the Envelope type and in the nomenclature of semantic triples, we refer to these operations as "logical predicates" and where further clarification is needed, the other type as "semantic predicates".
 
 `5 > 2` may be encoded as:
 
@@ -177,7 +177,7 @@ FooBarBaz
 
 ## Variable Substitution and Partially-Applied Expressions
 
-Simplex expressions support scoped variable substitution.
+Envelope expressions support scoped variable substitution.
 
 Subjects that are CBOR unsigned integers or CBOR strings and tagged `placeholder` (`$`) identify the targets of subtitutions.
 
@@ -201,7 +201,7 @@ Corresponsing predicates that are CBOR unsigned integers or CBOR strings and tag
 
 ### Complete Replacement
 
-The scope of replacement is recursive, but stops at any separately enclosed simplexes.
+The scope of replacement is recursive, but stops at any separately enclosed envelopes.
 
 In this example, there is only a top set of replacements, so all variables are substituted. The result of evaluating this expression is `610`:
 

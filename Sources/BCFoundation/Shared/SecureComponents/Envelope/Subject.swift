@@ -3,7 +3,7 @@ import URKit
 
 public indirect enum Subject {
     case leaf(CBOR, Digest)
-    case simplex(Simplex)
+    case envelope(Envelope)
     case encrypted(EncryptedMessage, Digest)
     case redacted(Digest)
 }
@@ -13,8 +13,8 @@ extension Subject: DigestProvider {
         switch self {
         case .leaf(_, let digest):
             return digest
-        case .simplex(let simplex):
-            return simplex.digest
+        case .envelope(let envelope):
+            return envelope.digest
         case .encrypted(_, let digest):
             return digest
         case .redacted(let digest):
@@ -26,8 +26,8 @@ extension Subject: DigestProvider {
         switch self {
         case .leaf(_, let digest):
             return [digest]
-        case .simplex(let simplex):
-            return simplex.deepDigests
+        case .envelope(let envelope):
+            return envelope.deepDigests
         case .encrypted(_, let digest):
             return [digest]
         case .redacted(let digest):
@@ -47,8 +47,8 @@ extension Subject {
         switch self {
         case .leaf(_, let digest):
             return .redacted(digest)
-        case .simplex(let simplex):
-            return .redacted(simplex.digest)
+        case .envelope(let envelope):
+            return .redacted(envelope.digest)
         case .encrypted(_, let digest):
             return .redacted(digest)
         case .redacted(_):
@@ -64,8 +64,8 @@ extension Subject {
         switch self {
         case .leaf(_, _):
             return self
-        case .simplex(let simplex):
-            return .simplex(simplex.redact(items: items))
+        case .envelope(let envelope):
+            return .envelope(envelope.redact(items: items))
         case .encrypted(_, _):
             return self
         case .redacted(_):
@@ -81,8 +81,8 @@ extension Subject {
         switch self {
         case .leaf(_, _):
             return self
-        case .simplex(let simplex):
-            return .simplex(simplex.redact(revealing: items))
+        case .envelope(let envelope):
+            return .envelope(envelope.redact(revealing: items))
         case .encrypted(_, _):
             return self
         case .redacted(_):
@@ -93,8 +93,8 @@ extension Subject {
 
 extension Subject {
     init(plaintext: CBOREncodable) {
-        if let simplex = plaintext as? Simplex {
-            self = .simplex(simplex)
+        if let envelope = plaintext as? Envelope {
+            self = .envelope(envelope)
         } else {
             let cbor = plaintext.cbor
             let encodedCBOR = cbor.cborEncode
@@ -113,19 +113,19 @@ extension Subject {
         return plaintext
     }
     
-    var simplex: Simplex? {
-        guard case let .simplex(simplex) = self else {
+    var envelope: Envelope? {
+        guard case let .envelope(envelope) = self else {
             return nil
         }
-        return simplex
+        return envelope
     }
 }
 
 extension Subject {
     var cbor: CBOR {
         switch self {
-        case .simplex(let simplex):
-            return simplex.taggedCBOR
+        case .envelope(let envelope):
+            return envelope.taggedCBOR
         case .leaf(let plaintext, _):
             return CBOR.tagged(.plaintext, plaintext)
         case .encrypted(let message, _):
@@ -136,8 +136,8 @@ extension Subject {
     }
     
     init(cbor: CBOR) throws {
-        if case CBOR.tagged(URType.simplex.tag, _) = cbor {
-            self = try .simplex(Simplex(taggedCBOR: cbor))
+        if case CBOR.tagged(URType.envelope.tag, _) = cbor {
+            self = try .envelope(Envelope(taggedCBOR: cbor))
         } else if case let CBOR.tagged(.plaintext, plaintext) = cbor {
             self = .leaf(plaintext, Digest(plaintext.cborEncode))
         } else if case CBOR.tagged(URType.message.tag, _) = cbor {
@@ -146,7 +146,7 @@ extension Subject {
         } else if case CBOR.tagged(URType.digest.tag, _) = cbor {
             self = try .redacted(Digest(taggedCBOR: cbor))
         } else {
-            throw SimplexError.invalidFormat
+            throw EnvelopeError.invalidFormat
         }
     }
 }
@@ -159,13 +159,13 @@ extension Subject {
         case .leaf(let c, _):
             encodedCBOR = c.cborEncode
             digest = Digest(encodedCBOR)
-        case .simplex(let s):
+        case .envelope(let s):
             encodedCBOR = s.taggedCBOR.cborEncode
             digest = s.digest
         case .encrypted(_, _):
-            throw SimplexError.invalidOperation
+            throw EnvelopeError.invalidOperation
         case .redacted(_):
-            throw SimplexError.invalidOperation
+            throw EnvelopeError.invalidOperation
         }
         
         let encryptedMessage = key.encrypt(plaintext: encodedCBOR, digest: digest, nonce: nonce)
@@ -176,25 +176,25 @@ extension Subject {
         guard
             case let .encrypted(encryptedMessage, _) = self
         else {
-            throw SimplexError.invalidOperation
+            throw EnvelopeError.invalidOperation
         }
         
         guard
             let encodedCBOR = key.decrypt(message: encryptedMessage)
         else {
-            throw SimplexError.invalidKey
+            throw EnvelopeError.invalidKey
         }
         
         let cbor = try CBOR(encodedCBOR)
-        if case CBOR.tagged(URType.simplex.tag, _) = cbor {
-            let simplex = try Simplex(taggedCBOR: cbor)
-            guard simplex.digest == digest else {
-                throw SimplexError.invalidDigest
+        if case CBOR.tagged(URType.envelope.tag, _) = cbor {
+            let envelope = try Envelope(taggedCBOR: cbor)
+            guard envelope.digest == digest else {
+                throw EnvelopeError.invalidDigest
             }
-            return .simplex(simplex)
+            return .envelope(envelope)
         } else {
             guard try Digest.validate(encodedCBOR, digest: encryptedMessage.digest) else {
-                throw SimplexError.invalidDigest
+                throw EnvelopeError.invalidDigest
             }
             return .leaf(cbor, digest)
         }

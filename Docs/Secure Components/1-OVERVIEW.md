@@ -9,9 +9,9 @@
 ## Contents
 
 * [Overview](1-OVERVIEW.md): This document
-* [Simplex Overview](2-SIMPLEX.md)
-* [Simplex Notation](3-SIMPLEX-NOTATION.md)
-* [Simplex Expressions](4-SIMPLEX-EXPRESSIONS.md)
+* [Envelope Overview](2-ENVELOPE.md)
+* [Envelope Notation](3-ENVELOPE-NOTATION.md)
+* [Envelope Expressions](4-ENVELOPE-EXPRESSIONS.md)
 * [Definitions](5-DEFINITIONS.md)
 * [Examples](6-EXAMPLES.md)
 
@@ -69,11 +69,11 @@ Other goals we are considering include:
 
 The types defined in the Secure Components suite are designed to be minimal, easy to use, and composable. They can all be used independently, but are designed to work together. Here is a quick summary of these types:
 
-* `Simplex` is the central "top level" type of Secure Components. It is a "simple container for complex concepts" supporting everything from enclosing the most basic of plaintext messages, to innumerable recursive permutations of encryption, signing, sharding, and the representation of semantic graphs.
+* `Envelope` is the central "top level" type of Secure Components. Envelopes support everything from enclosing the most basic of plaintext messages, to innumerable recursive permutations of encryption, signing, sharding, and the representation of semantic graphs.
 * `EncryptedMessage` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
 * `PrivateKeyBase` holds key material such as a Seed belonging to an identifiable entity, and can produce all the private and public keys needed to use this suite. It is usually only serialized for purposes of backup.
 * `PublicKeyBase` holds the public keys of an identifiable entity, and can be made public. It is not simply called a "public key" because it holds at least _two_ public keys: one for signing and another for encryption.
-* `SealedMessage` is a message that has been one-way encrypted to a specific `PublicKeyBase`, and is used to implement multi-recipient public key encryption using `Simplex`.
+* `SealedMessage` is a message that has been one-way encrypted to a specific `PublicKeyBase`, and is used to implement multi-recipient public key encryption using `Envelope`.
 * `Digest` is a cryptographic hash that uniquely identifies an immutable binary object.
 * `SCID` is a "self-certifying identifier" that uniquely identifies a mutable set of traits.
 
@@ -82,7 +82,7 @@ Many of the types defined herein are assigned CBOR tags for use when encoding th
 |CBOR Tag|UR Type|Swift Type|
 |---|---|---|
 |48|`crypto-msg`|`EncryptedMessage`|
-|49|`crypto-simplex`|`Simplex`|
+|49|`crypto-envelope`|`Envelope`|
 |50|`crypto-prvkeys`|`PrivateKeyBase`|
 |51|`crypto-pubkeys`|`PublicKeyBase`|
 |55|`crypto-sealed`|`SealedMessage`|
@@ -92,7 +92,7 @@ Many of the types defined herein are assigned CBOR tags for use when encoding th
 
 ## Tagged Types
 
-Types that do not define a UR type generally would never be serialized as a top-level object, but are frequently serialized as part of a larger structure. Some of the types below have a single-byte CBOR tag due to their frequency of use in the `Simplex` type.
+Types that do not define a UR type generally would never be serialized as a top-level object, but are frequently serialized as part of a larger structure. Some of the types below have a single-byte CBOR tag due to their frequency of use in the `Envelope` type.
 
 |CBOR Tag|Swift Type|
 |---|---|

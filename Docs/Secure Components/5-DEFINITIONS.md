@@ -9,9 +9,9 @@
 ## Contents
 
 * [Overview](1-OVERVIEW.md)
-* [Simplex Overview](2-SIMPLEX.md)
-* [Simplex Notation](3-SIMPLEX-NOTATION.md)
-* [Simplex Expressions](4-SIMPLEX-EXPRESSIONS.md)
+* [Envelope Overview](2-ENVELOPE.md)
+* [Envelope Notation](3-ENVELOPE-NOTATION.md)
+* [Envelope Expressions](4-ENVELOPE-EXPRESSIONS.md)
 * [Definitions](5-DEFINITIONS.md): This document
 * [Examples](6-EXAMPLES.md)
 
@@ -21,54 +21,54 @@
 
 This section describes each component, and provides its CDDL definition for CBOR serialization.
 
-## Simplex
+## Envelope
 
-Please see [here](3-SIMPLEX.md) for a full description.
+Please see [here](3-ENVELOPE.md) for a full description.
 
-### Simplex: Swift Definition
+### Envelope: Swift Definition
 
 For clarity, the Swift definitions here may be slightly simplifed from the reference implementation.
 
-A Simplex consists of a `subject` and a list of zero or more `assertion`s.
+An Envelope consists of a `subject` and a list of zero or more `assertion`s.
 
 ```swift
-struct Simplex {
+struct Envelope {
     let subject: Subject
     let assertions: [Assertion]
 }
 ```
 
-The `Subject` of a `Simplex` is an enumerated type. `.leaf` represents any terminal CBOR object. `.simplex` represents a nested `Simplex`, `.encrypted` represents an `EncryptedMessage` that could be a `.leaf` or a `.simplex`, and `.redacted` represents a value that has been elided with its place held by its `Digest`.
+The `Subject` of an `Envelope` is an enumerated type. `.leaf` represents any terminal CBOR object. `.envelope` represents a nested `Envelope`, `.encrypted` represents an `EncryptedMessage` that could be a `.leaf` or a `.envelope`, and `.redacted` represents a value that has been elided with its place held by its `Digest`.
 
 ```swift
 enum Subject {
     case leaf(CBOR)
-    case simplex(Simplex)
+    case envelope(Envelope)
     case encrypted(EncryptedMessage)
     case redacted(Digest)
 }
 ```
 
-An assertion is a `predicate`-`object` pair, each of which is also a `Simplex`.
+An assertion is a `predicate`-`object` pair, each of which is also an `Envelope`.
 
 ```swift
 struct Assertion {
-    let predicate: Simplex
-    let object: Simplex
+    let predicate: Envelope
+    let object: Envelope
 }
 ```
 
-### Simplex: CDDL
+### Envelope: CDDL
 
 |CBOR Tag|UR Type|Type|
 |---|---|---|
-|49|`crypto-simplex`|`Simplex`|
+|49|`crypto-envelope`|`Envelope`|
 |60||`plaintext`|
 
-If the `Simplex` has no assertions, the encoding is simply the `subject`. If the `Simplex` has one or more assertions, then the encoding is an array of two or more elements with the `subject` as the first element, followed by the assertions threaded into the array.
+If the `Envelope` has no assertions, the encoding is simply the `subject`. If the `Envelope` has one or more assertions, then the encoding is an array of two or more elements with the `subject` as the first element, followed by the assertions threaded into the array.
 
 ```
-simplex = #6.49(
+envelope = #6.49(
     subject /
     [ subject, ~assertions ]
 )
@@ -80,11 +80,11 @@ The `assertions` are a sequence of one or more `assertion`.
 assertions = [ 1* assertion ]
 ```
 
-A subject can be a `simplex` as define above, or one of three other types defined below.
+A subject can be a `envelope` as define above, or one of three other types defined below.
 
 ```
 subject =
-    simplex /
+    envelope /
     leaf /
     encrypted /
     redacted
@@ -108,7 +108,7 @@ A `redacted` is the `Digest` of the redacted item.
 redacted = digest
 ```
 
-An `assertion` is a two-element array with the `predicate` as its first element and the `object` as its second. The `predicate` and `object` are `simplex`es as defined above.
+An `assertion` is a two-element array with the `predicate` as its first element and the `object` as its second. The `predicate` and `object` are `envelope`es as defined above.
 
 ```
 assertion = [
@@ -116,8 +116,8 @@ assertion = [
     object
 ]
 
-predicate = simplex
-object = simplex
+predicate = envelope
+object = envelope
 ```
 
 ---
@@ -148,7 +148,7 @@ scid-data = bytes .size 32
 
 `EncryptedMessage` is a symmetrically-encrypted message and is specified in full in [BCR-2022-001](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2022-001-secure-message.md).
 
-When used as part of Secure Components, and particularly with `Simplex`, the `aad` field contains the `Digest` of the encrypted plaintext. If non-correlation is necessary, then add random salt to the CBOR plaintext before encrypting.
+When used as part of Secure Components, and particularly with `Envelope`, the `aad` field contains the `Digest` of the encrypted plaintext. If non-correlation is necessary, then add random salt to the CBOR plaintext before encrypting.
 
 ### EncryptedMessage: Swift Definition
 
@@ -242,7 +242,7 @@ crypto-pubkeys = #6.51([signing-public-key, agreement-public-key])
 
 ## SealedMessage
 
-`SealedMessage` is a message that has been one-way encrypted to a particular `PublicKeyBase`, and is used to implement multi-recipient public key encryption using `Simplex`. The sender of the message is generated at encryption time, and the ephemeral sender's public key is included, enabling the receipient to decrypt the message without identifying the real sender.
+`SealedMessage` is a message that has been one-way encrypted to a particular `PublicKeyBase`, and is used to implement multi-recipient public key encryption using `Envelope`. The sender of the message is generated at encryption time, and the ephemeral sender's public key is included, enabling the receipient to decrypt the message without identifying the real sender.
 
 ### SealedMessage: Swift Definition
 
