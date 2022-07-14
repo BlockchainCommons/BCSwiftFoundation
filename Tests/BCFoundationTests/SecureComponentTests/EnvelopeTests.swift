@@ -614,14 +614,14 @@ class EnvelopeTests: XCTestCase {
         // representing SSKR groups and the inner array elements each holding the encrypted
         // seed and a single share.
         let contentKey = SymmetricKey()
-        let containers = try Envelope(danSeed)
+        let envelopes = try Envelope(danSeed)
             .encrypt(with: contentKey)
             .split(groupThreshold: 1, groups: [(2, 3)], contentKey: contentKey)
         
         // Flattening the array of arrays gives just a single array of all the containers
         // to be distributed.
-        let sentContainers = containers.flatMap { $0 }
-        let sentURs = sentContainers.map { $0.ur }
+        let sentEnvelopes = envelopes.flatMap { $0 }
+        let sentURs = sentEnvelopes.map { $0.ur }
 
         let expectedFormat =
         """
@@ -629,26 +629,26 @@ class EnvelopeTests: XCTestCase {
             sskrShare: SSKRShare
         ]
         """
-        XCTAssertEqual(sentContainers[0].format, expectedFormat)
+        XCTAssertEqual(sentEnvelopes[0].format, expectedFormat)
         
         // Dan sends one container to each of Alice, Bob, and Carol.
 
-        print(sentContainers[0].format)
-        print(sentContainers[0].taggedCBOR.diag)
-        print(sentContainers[0].taggedCBOR.dump)
-        print(sentContainers[0].ur)
+        print(sentEnvelopes[0].format)
+        print(sentEnvelopes[0].taggedCBOR.diag)
+        print(sentEnvelopes[0].taggedCBOR.dump)
+        print(sentEnvelopes[0].ur)
 
         // Dan ➡️ ☁️ ➡️ Alice
         // Dan ➡️ ☁️ ➡️ Bob
         // Dan ➡️ ☁️ ➡️ Carol
 
-        // let aliceContainer = try Envelope(ur: sentURs[0]) // UNRECOVERED
-        let bobContainer = try Envelope(ur: sentURs[1])
-        let carolContainer = try Envelope(ur: sentURs[2])
+        // let aliceEnvelope = try Envelope(ur: sentURs[0]) // UNRECOVERED
+        let bobEnvelope = try Envelope(ur: sentURs[1])
+        let carolEnvelope = try Envelope(ur: sentURs[2])
 
         // At some future point, Dan retrieves two of the three containers so he can recover his seed.
-        let recoveredContainers = [bobContainer, carolContainer]
-        let recoveredSeed = try Envelope(shares: recoveredContainers)
+        let recoveredEnvelopes = [bobEnvelope, carolEnvelope]
+        let recoveredSeed = try Envelope(shares: recoveredEnvelopes)
             .extract(Seed.self)
 
         // The recovered seed is correct.
@@ -658,7 +658,7 @@ class EnvelopeTests: XCTestCase {
         XCTAssertEqual(danSeed.note, recoveredSeed.note)
 
         // Attempting to recover with only one of the containers won't work.
-        XCTAssertThrowsError(try Envelope(shares: [bobContainer]))
+        XCTAssertThrowsError(try Envelope(shares: [bobEnvelope]))
     }
 
     func testComplexMetadata() throws {
