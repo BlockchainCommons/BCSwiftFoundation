@@ -7,6 +7,7 @@
 
 import Foundation
 import CryptoSwift
+import protocol WolfBase.DataProvider
 
 //    ByteVector deterministic_random(const ByteVector &entropy, size_t n) {
 //        ByteVector result;
@@ -22,8 +23,8 @@ import CryptoSwift
 //        return result;
 //    }
 
-public func deterministicRandom(entropy: Data, count: Int) -> Data {
-    let seed = entropy.sha256()
+public func deterministicRandom(entropy: DataProvider, count: Int) -> Data {
+    let seed = entropy.providedData.sha256()
     return hkdfSHA256(input: seed, count: count)
 }
 

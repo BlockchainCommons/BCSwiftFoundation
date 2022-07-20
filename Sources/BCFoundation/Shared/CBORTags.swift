@@ -13,6 +13,11 @@ import Foundation
 public struct URType {
     public let type: String
     public let tag: CBOR.Tag
+    
+    public init(type: String, tag: UInt64) {
+        self.type = type
+        self.tag = CBOR.Tag(tag, type)
+    }
 }
 
 /// UR types and CBOR tags for objects that can be top-level.
@@ -42,43 +47,42 @@ extension URType {
 
 /// Tags for subtypes specific to AccountBundle (crypto-output)
 extension CBOR.Tag {
-    public static let outputScriptHash = CBOR.Tag(400)
-    public static let outputWitnessScriptHash = CBOR.Tag(401)
-    public static let outputPublicKey = CBOR.Tag(402)
-    public static let outputPublicKeyHash = CBOR.Tag(403)
-    public static let outputWitnessPublicKeyHash = CBOR.Tag(404)
-    public static let outputCombo = CBOR.Tag(405)
-    public static let outputMultisig = CBOR.Tag(406)
-    public static let outputSortedMultisig = CBOR.Tag(407)
-    public static let outputRawScript = CBOR.Tag(408)
-    public static let outputTaproot = CBOR.Tag(409)
-    public static let outputCosigner = CBOR.Tag(410)
+    public static let outputScriptHash = CBOR.Tag(400, "output-script-hash")
+    public static let outputWitnessScriptHash = CBOR.Tag(401, "output-witness-script-hash")
+    public static let outputPublicKey = CBOR.Tag(402, "output-public-key")
+    public static let outputPublicKeyHash = CBOR.Tag(403, "output-public-key-hash")
+    public static let outputWitnessPublicKeyHash = CBOR.Tag(404, "output-witness-public-key-hash")
+    public static let outputCombo = CBOR.Tag(405, "output-combo")
+    public static let outputMultisig = CBOR.Tag(406, "output-multisig")
+    public static let outputSortedMultisig = CBOR.Tag(407, "output-sorted-multisig")
+    public static let outputRawScript = CBOR.Tag(408, "output-raw-script")
+    public static let outputTaproot = CBOR.Tag(409, "output-taproot")
+    public static let outputCosigner = CBOR.Tag(410, "output-cosigner")
 }
 
 /// Tags for subtypes specific to crypto-request
 extension CBOR.Tag {
-    public static let seedRequestBody = CBOR.Tag(500)
-    public static let keyRequestBody = CBOR.Tag(501)
-    public static let psbtSignatureRequestBody = CBOR.Tag(502)
-    public static let outputDescriptorRequestBody = CBOR.Tag(503)
-    public static let outputDescriptorResponseBody = CBOR.Tag(504)
+    public static let seedRequestBody = CBOR.Tag(500, "seed-request-body")
+    public static let keyRequestBody = CBOR.Tag(501, "key-request-body")
+    public static let psbtSignatureRequestBody = CBOR.Tag(502, "psbt-signature-request-body")
+    public static let outputDescriptorRequestBody = CBOR.Tag(503, "output-descriptor-request-body")
+    public static let outputDescriptorResponseBody = CBOR.Tag(504, "output-descriptor-response-body")
 }
 
 extension CBOR.Tag {
-    public static let seedDigest = CBOR.Tag(600)
+    public static let seedDigest = CBOR.Tag(600, "seed-digest")
 }
 
 /// Tags for subtypes specific to Secure Components
 extension CBOR.Tag {
-    public static let predicate = CBOR.Tag(59)
-    public static let plaintext = CBOR.Tag(60)
-    public static let signature = CBOR.Tag(61)
-    public static let agreementPublicKey = CBOR.Tag(62)
+    public static let predicate = CBOR.Tag(59, "predicate")
+    public static let plaintext = CBOR.Tag(60, "plaintext")
+    public static let signature = CBOR.Tag(61, "signature")
+    public static let agreementPublicKey = CBOR.Tag(62, "agreement-public-key")
     
-    public static let password = CBOR.Tag(700)
-    public static let permit = CBOR.Tag(701)
-    public static let agreementPrivateKey = CBOR.Tag(702)
-    public static let signingPrivateKey = CBOR.Tag(704)
-    public static let signingPublicKey = CBOR.Tag(705)
-    public static let nonce = CBOR.Tag(707)
+    public static let password = CBOR.Tag(700, "password")
+    public static let agreementPrivateKey = CBOR.Tag(702, "agreement-private-key")
+    public static let signingPrivateKey = CBOR.Tag(704, "signing-private-key")
+    public static let signingPublicKey = CBOR.Tag(705, "signing-public-key")
+    public static let nonce = CBOR.Tag(707, "nonce")
 }

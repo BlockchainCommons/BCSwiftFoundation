@@ -7,6 +7,7 @@
 
 import Foundation
 import Security
+import WolfBase
 
 public final class SecureRandomNumberGenerator: RandomNumberGenerator {
     public init() { }

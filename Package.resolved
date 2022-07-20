@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WolfMcNally/WolfBase",
       "state" : {
-        "revision" : "81a1ddeb4e21dadc34ed23faed3b61e475eb4fab",
-        "version" : "4.0.0"
+        "revision" : "7791f91841795939eb43a33950d08d142b7df558",
+        "version" : "4.4.0"
       }
     }
   ],

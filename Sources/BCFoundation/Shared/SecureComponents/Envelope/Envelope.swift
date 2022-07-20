@@ -204,8 +204,8 @@ extension Envelope {
         add(.sskrShare(share))
     }
     
-    public func split(groupThreshold: Int, groups: [(Int, Int)], contentKey: SymmetricKey) -> [[Envelope]] {
-        let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: contentKey)
+    public func split(groupThreshold: Int, groups: [(Int, Int)], contentKey: SymmetricKey, randomGenerator: ((Int) -> Data)? = nil) -> [[Envelope]] {
+        let shares = try! SSKRGenerate(groupThreshold: groupThreshold, groups: groups, secret: contentKey, randomGenerator: randomGenerator)
         return shares.map { groupShares in
             groupShares.map { share in
                 self.addSSKRShare(share)
