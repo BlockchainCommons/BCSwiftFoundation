@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import URKit
+import URKit
 
 public enum TransactionResponseError: Swift.Error {
     case unknownResponseType

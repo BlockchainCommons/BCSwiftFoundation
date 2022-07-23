@@ -7,7 +7,7 @@
 
 import Foundation
 import WolfBase
-@_exported import URKit
+import URKit
 
 public protocol SeedProtocol: IdentityDigestable {
     var data: Data { get }
@@ -220,3 +220,4 @@ extension Seed: CBORDecodable {
         try Seed(taggedCBOR: cbor)
     }
 }
+

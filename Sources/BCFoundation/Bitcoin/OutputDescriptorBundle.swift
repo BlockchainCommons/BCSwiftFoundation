@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import URKit
+import URKit
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md
 

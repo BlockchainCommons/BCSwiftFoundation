@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import BCWally
+import BCWally
 
 extension Ethereum {
     public struct Address: AddressProtocol {

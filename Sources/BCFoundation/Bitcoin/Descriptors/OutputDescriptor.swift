@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import URKit
+import URKit
 import WolfBase
 import Flexer
 

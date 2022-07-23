@@ -7,8 +7,8 @@
 
 import Foundation
 import WolfBase
-@_exported import SSKR
-@_exported import URKit
+import SSKR
+import URKit
 
 public func SSKRGenerate(groupThreshold: Int, groups: [SSKRGroupDescriptor], secret: DataProvider, randomGenerator: ((Int) -> Data)? = nil) throws -> [[SSKRShare]] {
     let randomGenerator = randomGenerator ?? {

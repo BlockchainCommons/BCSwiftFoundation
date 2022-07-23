@@ -7,7 +7,7 @@
 
 import Foundation
 import WolfBase
-@_exported import BCWally
+import BCWally
 
 extension Wally {
     public static func hdKeyToAddress(hdKey: HDKey, type: Bitcoin.Address.AddressType) -> String {

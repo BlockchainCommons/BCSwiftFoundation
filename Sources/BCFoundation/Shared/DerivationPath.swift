@@ -7,7 +7,7 @@
 
 import Foundation
 import WolfBase
-@_exported import URKit
+import URKit
 
 public enum DerivationPathError: Error {
     case invalidDerivationPath

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import URKit
+import URKit
 
 extension UUID {
     public var untaggedCBOR: CBOR {

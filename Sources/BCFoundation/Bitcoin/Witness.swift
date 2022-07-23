@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import BCWally
+import BCWally
 
 public struct Witness {
     public let type: WitnessType

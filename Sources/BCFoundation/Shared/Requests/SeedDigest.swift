@@ -1,6 +1,6 @@
 import Foundation
 import CryptoSwift
-@_exported import URKit
+import URKit
 
 public struct SeedDigest {
     public let digest: Data

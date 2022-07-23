@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import BCWally
+import BCWally
 
 public struct PSBTOutput {
     public let txOutput: TxOutput

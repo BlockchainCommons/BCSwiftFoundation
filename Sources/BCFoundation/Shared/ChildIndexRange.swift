@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import URKit
+import URKit
 
 public struct ChildIndexRange: Equatable {
     public let low: ChildIndex

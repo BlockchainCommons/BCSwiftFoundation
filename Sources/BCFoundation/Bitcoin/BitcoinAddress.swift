@@ -7,8 +7,8 @@
 //  license, see the accompanying file LICENSE.md
 
 import Foundation
-@_exported import BCWally
-@_exported import URKit
+import BCWally
+import URKit
 
 extension Bitcoin {
     public struct Address: AddressProtocol {

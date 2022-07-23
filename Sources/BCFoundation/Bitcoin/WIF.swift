@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import BCWally
+import BCWally
 
 public struct WIF : CustomStringConvertible {
     public let key: ECPrivateKey

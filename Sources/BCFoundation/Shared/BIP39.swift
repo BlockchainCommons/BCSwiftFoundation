@@ -5,7 +5,7 @@
 
 import Foundation
 import WolfBase
-@_exported import BCWally
+import BCWally
 
 public struct BIP39 {
     public let mnemonic: String

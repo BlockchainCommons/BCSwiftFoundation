@@ -6,7 +6,7 @@
 //  license, see the accompanying file LICENSE.md
 
 import Foundation
-@_exported import BCWally
+import BCWally
 
 public struct ScriptPubKey : Equatable {
     public let script: Script

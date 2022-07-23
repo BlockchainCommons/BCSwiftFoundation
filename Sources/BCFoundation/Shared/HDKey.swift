@@ -7,8 +7,8 @@
 
 import Foundation
 import WolfBase
-@_exported import BCWally
-@_exported import URKit
+import BCWally
+import URKit
 
 public enum HDKeyError: Error {
     case invalidSeed

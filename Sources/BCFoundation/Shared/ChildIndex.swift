@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@_exported import URKit
+import URKit
 
 public struct ChildIndex: ExpressibleByIntegerLiteral, Comparable {
     public let value: UInt32

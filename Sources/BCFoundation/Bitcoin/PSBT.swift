@@ -7,8 +7,8 @@
 //  license, see the accompanying file LICENSE.md
 
 import Foundation
-@_exported import BCWally
-@_exported import URKit
+import BCWally
+import URKit
 
 public struct PSBT : Equatable {
     public let inputs: [PSBTInput]

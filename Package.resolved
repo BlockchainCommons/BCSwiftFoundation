@@ -77,8 +77,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/URKit.git",
       "state" : {
-        "revision" : "6b650d315c15b42b46cf9633352d236035a72758",
-        "version" : "7.0.3"
+        "revision" : "160f72e767be7be10d6b4e0c6635c81295877a60",
+        "version" : "7.2.0"
       }
     },
     {

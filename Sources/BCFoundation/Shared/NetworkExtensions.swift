@@ -6,8 +6,8 @@
 //
 
 import Foundation
-@_exported import BCWally
-@_exported import URKit
+import BCWally
+import URKit
 
 extension Network: Identifiable {
     public var id: String {

@@ -6,8 +6,8 @@
 //
 
 import Foundation
-@_exported import BCWally
-@_exported import URKit
+import BCWally
+import URKit
 
 public protocol DerivationStep: Equatable, CustomStringConvertible {
     var isWildcard: Bool { get }
