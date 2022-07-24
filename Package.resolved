@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "bcswiftsecurecomponents",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
+      "state" : {
+        "revision" : "4bcea593c748451306da29ecd6a8ff9914d30111",
+        "version" : "0.1.1"
+      }
+    },
+    {
       "identity" : "blake3-swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/blake3-swift.git",
