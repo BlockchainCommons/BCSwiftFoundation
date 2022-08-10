@@ -16,21 +16,36 @@ public struct TransactionRequest {
     public let id: UUID
     public let body: Body
     public let note: String?
-
+    
     public init(id: UUID = UUID(), body: Body, note: String? = nil) {
         self.id = id
         self.body = body
         self.note = note
     }
-
+    
     public enum Body {
         case seed(SeedRequestBody)
         case key(KeyRequestBody)
         case psbtSignature(PSBTSignatureRequestBody)
         case outputDescriptor(OutputDescriptorRequestBody)
+        
+        var envelope: Envelope {
+            switch self {
+            case .seed(let body):
+                return body.envelope
+            case .key(let body):
+                return body.envelope
+            case .psbtSignature(let body):
+                return body.envelope
+            case .outputDescriptor(let body):
+                return body.envelope
+            }
+        }
     }
-    
-    public func cbor(noteLimit: Int = .max) -> CBOR {
+}
+
+public extension TransactionRequest {
+    func cbor(noteLimit: Int = .max) -> CBOR {
         var a: OrderedMap = [1: id.taggedCBOR]
         
         switch body {
@@ -51,11 +66,11 @@ public struct TransactionRequest {
         return CBOR.orderedMap(a)
     }
 
-    public var taggedCBOR: CBOR {
+    var taggedCBOR: CBOR {
         CBOR.tagged(URType.transactionRequest.tag, cbor())
     }
     
-    public init(ur: UR) throws {
+    init(ur: UR) throws {
         switch ur.type {
         case URType.transactionRequest.type:
             try self.init(cborData: ur.cbor)
@@ -66,7 +81,7 @@ public struct TransactionRequest {
         }
     }
     
-    public init(cborData: Data, isRawPSBT: Bool = false) throws {
+    init(cborData: Data, isRawPSBT: Bool = false) throws {
         let cbor = try CBOR(cborData)
         if isRawPSBT {
             let psbt = try PSBT(untaggedCBOR: cbor)
@@ -77,7 +92,7 @@ public struct TransactionRequest {
         }
     }
     
-    public init(untaggedCBOR: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         guard case let CBOR.map(pairs) = untaggedCBOR else {
             // CBOR doesn't contain a map.
             throw CBORError.invalidFormat
@@ -123,11 +138,18 @@ public struct TransactionRequest {
         self.init(id: id, body: body, note: note)
     }
 
-    public var ur: UR {
+    var ur: UR {
         try! UR(type: URType.transactionRequest.type, cbor: cbor())
     }
     
-    public func sizeLimitedUR(noteLimit: Int = 500) -> UR {
+    func sizeLimitedUR(noteLimit: Int = 500) -> UR {
         try! UR(type: URType.transactionRequest.type, cbor: cbor(noteLimit: noteLimit))
+    }
+}
+
+public extension TransactionRequest {
+    var envelope: Envelope {
+        Envelope(request: id, body: body.envelope)
+            .addIf(!(note?.isEmpty ?? true), .note, note!)
     }
 }

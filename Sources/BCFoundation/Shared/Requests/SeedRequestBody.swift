@@ -11,27 +11,29 @@ import URKit
 public struct SeedRequestBody {
     public let seedDigest: SeedDigest
     
-    public var digest: Data {
-        seedDigest.digest
-    }
-    
-    public var untaggedCBOR: CBOR {
-        CBOR.orderedMap([1: seedDigest.taggedCBOR])
-    }
-    
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(.seedRequestBody, untaggedCBOR)
-    }
-    
     public init(seedDigest: SeedDigest) {
         self.seedDigest = seedDigest
     }
+
+    public var digest: Data {
+        seedDigest.digest
+    }
+}
+
+public extension SeedRequestBody {
+    var untaggedCBOR: CBOR {
+        CBOR.orderedMap([1: seedDigest.taggedCBOR])
+    }
     
-    public init(digest: Data) throws {
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.seedRequestBody, untaggedCBOR)
+    }
+    
+    init(digest: Data) throws {
         self.seedDigest = try SeedDigest(digest: digest)
     }
     
-    public init(untaggedCBOR: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         guard case let CBOR.map(pairs) = untaggedCBOR else {
             // Seed request doesn't contain map
             throw CBORError.invalidFormat
@@ -44,14 +46,21 @@ public struct SeedRequestBody {
             // Seed request doesn't contain valid digest
             throw CBORError.invalidFormat
         }
-                
+
         self.init(seedDigest: seedDigest)
     }
     
-    public init?(taggedCBOR: CBOR) throws {
+    init?(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.seedRequestBody, untaggedCBOR) = taggedCBOR else {
             return nil
         }
         try self.init(untaggedCBOR: untaggedCBOR)
+    }
+}
+
+public extension SeedRequestBody {
+    var envelope: Envelope {
+        Envelope(function: .getSeed)
+            .add(.parameter(.seedDigest, value: seedDigest))
     }
 }

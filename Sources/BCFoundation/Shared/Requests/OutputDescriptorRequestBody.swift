@@ -4,14 +4,16 @@ public struct OutputDescriptorRequestBody {
     public let name: String
     public let useInfo: UseInfo
     public let challenge: Data
-
+    
     public init(name: String, useInfo: UseInfo, challenge: Data) {
         self.name = name
         self.useInfo = useInfo
         self.challenge = challenge
     }
-    
-    public var untaggedCBOR: CBOR {
+}
+
+public extension OutputDescriptorRequestBody {
+    var untaggedCBOR: CBOR {
         var a: OrderedMap = [:]
         
         if !name.isEmpty {
@@ -27,11 +29,11 @@ public struct OutputDescriptorRequestBody {
         return CBOR.orderedMap(a)
     }
     
-    public var taggedCBOR: CBOR {
+    var taggedCBOR: CBOR {
         CBOR.tagged(.outputDescriptorRequestBody, untaggedCBOR)
     }
     
-    public init(untaggedCBOR: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         guard
             case let CBOR.map(pairs) = untaggedCBOR
         else {
@@ -64,10 +66,19 @@ public struct OutputDescriptorRequestBody {
         self.challenge = challenge
     }
 
-    public init?(taggedCBOR: CBOR) throws {
+    init?(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.outputDescriptorRequestBody, untaggedCBOR) = taggedCBOR else {
             return nil
         }
         try self.init(untaggedCBOR: untaggedCBOR)
+    }
+}
+
+public extension OutputDescriptorRequestBody {
+    var envelope: Envelope {
+        Envelope(function: .getOutputDescriptor)
+            .add(.parameter(.challenge, value: challenge))
+            .addIf(!name.isEmpty, .parameter(.name, value: name))
+            .addIf(!useInfo.isDefault, .parameter(.useInfo, value: useInfo))
     }
 }

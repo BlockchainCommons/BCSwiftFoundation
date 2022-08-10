@@ -328,3 +328,9 @@ extension PSBT {
         try self.init(untaggedCBOR: untaggedCBOR)
     }
 }
+
+extension PSBT: CBOREncodable {
+    public var cbor: CBOR {
+        taggedCBOR
+    }
+}

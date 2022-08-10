@@ -16,6 +16,10 @@ class OutputDescriptorRequestTests: XCTestCase {
     let challenge = SecureRandomNumberGenerator.shared.data(count: 16)
     let accountNumber: UInt32 = 0
     
+    override class func setUp() {
+        addKnownFunctionExtensions()
+    }
+
     func testOutputDescriptorRequest() throws {
         let masterKey = try HDKey(seed: Seed(), useInfo: useInfo)
         let bundle = OutputDescriptorBundle(masterKey: masterKey, network: useInfo.network, account: accountNumber)!
@@ -31,6 +35,9 @@ class OutputDescriptorRequestTests: XCTestCase {
         let note = "Alice is requesting an output descriptor from Bob."
         let body = OutputDescriptorRequestBody(name: name, useInfo: useInfo, challenge: challenge)
         let request = TransactionRequest(id: slotID, body: .outputDescriptor(body), note: note)
+        
+        //print(request.envelope.format)
+        
         return request.ur
     }
     

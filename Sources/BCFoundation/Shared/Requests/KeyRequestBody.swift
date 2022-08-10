@@ -13,8 +13,17 @@ public struct KeyRequestBody {
     public let path: DerivationPath
     public let useInfo: UseInfo
     public let isDerivable: Bool
-    
-    public var untaggedCBOR: CBOR {
+
+    public init(keyType: KeyType, path: DerivationPath, useInfo: UseInfo, isDerivable: Bool = true) {
+        self.keyType = keyType
+        self.path = path
+        self.useInfo = useInfo
+        self.isDerivable = isDerivable
+    }
+}
+
+public extension KeyRequestBody {
+    var untaggedCBOR: CBOR {
         var a: OrderedMap = [
             1: .boolean(keyType.isPrivate),
             2: path.taggedCBOR
@@ -31,18 +40,11 @@ public struct KeyRequestBody {
         return CBOR.orderedMap(a)
     }
     
-    public var taggedCBOR: CBOR {
+    var taggedCBOR: CBOR {
         return CBOR.tagged(.keyRequestBody, untaggedCBOR)
     }
 
-    public init(keyType: KeyType, path: DerivationPath, useInfo: UseInfo, isDerivable: Bool = true) {
-        self.keyType = keyType
-        self.path = path
-        self.useInfo = useInfo
-        self.isDerivable = isDerivable
-    }
-
-    public init(untaggedCBOR: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         guard case let CBOR.map(pairs) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
@@ -77,10 +79,20 @@ public struct KeyRequestBody {
         self.init(keyType: KeyType(isPrivate: isPrivate), path: path, useInfo: useInfo, isDerivable: isDerivable)
     }
 
-    public init?(taggedCBOR: CBOR) throws {
+    init?(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.keyRequestBody, untaggedCBOR) = taggedCBOR else {
             return nil
         }
         try self.init(untaggedCBOR: untaggedCBOR)
+    }
+}
+
+public extension KeyRequestBody {
+    var envelope: Envelope {
+        Envelope(function: .getKey)
+            .add(.parameter(.derivationPath, value: path))
+            .addIf(!keyType.isPrivate, .parameter(.isPrivate, value: false))
+            .addIf(!useInfo.isDefault, .parameter(.useInfo, value: useInfo))
+            .addIf(!isDerivable, .parameter(.isDerivable, value: false))
     }
 }

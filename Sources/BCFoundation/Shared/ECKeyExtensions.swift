@@ -1,5 +1,4 @@
 import Foundation
-import BCSecureComponents
 
 public extension ECPublicKey {
     func address(version: UInt8) -> String {

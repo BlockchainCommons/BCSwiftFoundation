@@ -339,3 +339,9 @@ extension DerivationPath {
         try self.init(untaggedCBOR: untaggedCBOR)
     }
 }
+
+extension DerivationPath: CBOREncodable {
+    public var cbor: CBOR {
+        taggedCBOR
+    }
+}

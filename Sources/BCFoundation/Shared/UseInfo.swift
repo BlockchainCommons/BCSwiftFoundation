@@ -116,3 +116,9 @@ extension UseInfo {
         try self.init(untaggedCBOR: untaggedCBOR)
     }
 }
+
+extension UseInfo: CBOREncodable {
+    public var cbor: CBOR {
+        taggedCBOR
+    }
+}

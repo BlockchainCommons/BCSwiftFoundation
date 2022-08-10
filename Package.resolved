@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "revision" : "4bcea593c748451306da29ecd6a8ff9914d30111",
-        "version" : "0.1.1"
+        "revision" : "a33ca9d04565e0bf1d0f8f0d6718b16d0f1a5d3f",
+        "version" : "0.3.0"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
       "state" : {
-        "revision" : "4b0565384d3c4c588af09e660535b2c7c9bf5b39",
-        "version" : "1.4.2"
+        "revision" : "039f56c5d7960f277087a0be51f5eb04ed0ec073",
+        "version" : "1.5.1"
       }
     },
     {

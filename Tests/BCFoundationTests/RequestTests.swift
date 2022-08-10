@@ -10,6 +10,10 @@ class RequestTests: XCTestCase {
     
     static let masterKey = try! HDKey(seed: seed)
     static let masterKeyFingerprint = masterKey.keyFingerprint.hex
+    
+    override class func setUp() {
+        addKnownFunctionExtensions()
+    }
 
     func testSeedRequest() throws {
         let body = try SeedRequestBody(digest: Self.seed.identityDigest)
@@ -17,6 +21,19 @@ class RequestTests: XCTestCase {
         let urString = "ur:crypto-request/otadtpdagdfrghbbemhyftfebdmyvydacerfdnfhreaotaadwkoyadtaaohdhdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdaxieghihjkjypdmncygy"
         XCTAssertEqual(request.ur.string, urString)
         
+        let expectedFormat = """
+        request(UUID(3B541437-5E3A-450B-8FE1-251CBC2B3FB5)) [
+            body: «getSeed» [
+                ❰seedDigest❱: CBOR
+            ]
+            note: "Test"
+        ]
+        """
+        XCTAssertEqual(request.envelope.format, expectedFormat)
+        
+        let envelopeURString = "ur:envelope/lstpfntaaxcptpdagdfrghbbemhyftfebdmyvydacerfdnfhrelftpehtpfntpfrbstpehlftpfntaaxcxcsielftpehtpfntaaxclcssptpehtpfntaaohdhdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdlftpehtpfntpfraatpehtpfnieghihjkjynbmkflwf"
+        XCTAssertEqual(request.envelope.ur.string, envelopeURString)
+
         let request2 = try TransactionRequest(ur: UR(urString: urString))
         XCTAssertEqual(request2.id, Self.id)
         XCTAssertEqual(request2.note, Self.note)
@@ -34,6 +51,20 @@ class RequestTests: XCTestCase {
         let urString = "ur:crypto-request/otadtpdagdfrghbbemhyftfebdmyvydacerfdnfhreaotaadykotadykaotaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwzaxtaadehoyaoadaxieghihjkjyhddsoees"
         XCTAssertEqual(request.ur.string, urString)
         
+        let expectedFormat = """
+        request(UUID(3B541437-5E3A-450B-8FE1-251CBC2B3FB5)) [
+            body: «getKey» [
+                ❰derivationPath❱: CBOR
+                ❰useInfo❱: CBOR
+            ]
+            note: "Test"
+        ]
+        """
+        XCTAssertEqual(request.envelope.format, expectedFormat)
+
+        let envelopeURString = "ur:envelope/lstpfntaaxcptpdagdfrghbbemhyftfebdmyvydacerfdnfhrelftpehtpfntpfrbstpehlstpfntaaxcxcsihlftpehtpfntaaxclcssbtpehtpfntaadehoyaoadlftpehtpfntaaxclcssotpehtpfntaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwzlftpehtpfntpfraatpehtpfnieghihjkjytooxhyia"
+        XCTAssertEqual(request.envelope.ur.string, envelopeURString)
+
         let request2 = try TransactionRequest(ur: UR(urString: urString))
         XCTAssertEqual(request2.id, Self.id)
         XCTAssertEqual(request2.note, Self.note)
@@ -52,6 +83,20 @@ class RequestTests: XCTestCase {
         let urString = "ur:crypto-request/otadtpdagdfrghbbemhyftfebdmyvydacerfdnfhreaotaadykotadykaotaaddyoyadlocsdyykaeykaeykaoykaxtaadehoyaoadaxieghihjkjyvlgswkwk"
         XCTAssertEqual(request.ur.string, urString)
 
+        let expectedFormat = """
+        request(UUID(3B541437-5E3A-450B-8FE1-251CBC2B3FB5)) [
+            body: «getKey» [
+                ❰derivationPath❱: CBOR
+                ❰useInfo❱: CBOR
+            ]
+            note: "Test"
+        ]
+        """
+        XCTAssertEqual(request.envelope.format, expectedFormat)
+
+        let envelopeURString = "ur:envelope/lstpfntaaxcptpdagdfrghbbemhyftfebdmyvydacerfdnfhrelftpehtpfntpfrbstpehlstpfntaaxcxcsihlftpehtpfntaaxclcssotpehtpfntaaddyoyadlocsdyykaeykaeykaoyklftpehtpfntaaxclcssbtpehtpfntaadehoyaoadlftpehtpfntpfraatpehtpfnieghihjkjyuthfbkoe"
+        XCTAssertEqual(request.envelope.ur.string, envelopeURString)
+        
         let request2 = try TransactionRequest(ur: UR(urString: urString))
         XCTAssertEqual(request2.id, Self.id)
         XCTAssertEqual(request2.note, Self.note)
@@ -70,6 +115,21 @@ class RequestTests: XCTestCase {
         let request = TransactionRequest(id: Self.id, body: .psbtSignature(body), note: Self.note)
         let urString = "ur:crypto-request/otadtpdagdfrghbbemhyftfebdmyvydacerfdnfhreaotaadynoyadtaadenhkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeaxieghihjkjyialyeolb"
         XCTAssertEqual(request.ur.string, urString)
+
+        let expectedFormat = """
+        request(UUID(3B541437-5E3A-450B-8FE1-251CBC2B3FB5)) [
+            body: «signPSBT» [
+                ❰psbt❱: CBOR
+            ]
+            note: "Test"
+        ]
+        """
+        XCTAssertEqual(request.envelope.format, expectedFormat)
+
+        let envelopeURString = "ur:envelope/lstpfntaaxcptpdagdfrghbbemhyftfebdmyvydacerfdnfhrelftpehtpfntpfrbstpehlftpfntaaxcxcsiylftpehtpfntaaxclcssntpehtpfntaadenhkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaelftpehtpfntpfraatpehtpfnieghihjkjydwvyzcwk"
+        XCTAssertEqual(request.envelope.ur.string, envelopeURString)
+//        print(request.envelope.ur.string)
+//        print(request.envelope.format)
 
         let request2 = try TransactionRequest(ur: UR(urString: urString))
         XCTAssertEqual(request2.id, Self.id)

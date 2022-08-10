@@ -16,16 +16,18 @@ public struct PSBTSignatureRequestBody {
         self.psbt = psbt
         self.isRawPSBT = isRawPSBT
     }
-    
-    public var untaggedCBOR: CBOR {
+}
+
+public extension PSBTSignatureRequestBody {
+    var untaggedCBOR: CBOR {
         CBOR.orderedMap([1: psbt.taggedCBOR])
     }
 
-    public var taggedCBOR: CBOR {
+    var taggedCBOR: CBOR {
         return CBOR.tagged(.psbtSignatureRequestBody, untaggedCBOR)
     }
     
-    public init(untaggedCBOR: CBOR) throws {
+    init(untaggedCBOR: CBOR) throws {
         guard case let CBOR.map(pairs) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
@@ -36,10 +38,17 @@ public struct PSBTSignatureRequestBody {
         try self.init(psbt: PSBT(taggedCBOR: taggedCBORItem))
     }
     
-    public init?(taggedCBOR: CBOR) throws {
+    init?(taggedCBOR: CBOR) throws {
         guard case let CBOR.tagged(.psbtSignatureRequestBody, untaggedCBOR) = taggedCBOR else {
             return nil
         }
         try self.init(untaggedCBOR: untaggedCBOR)
+    }
+}
+
+public extension PSBTSignatureRequestBody {
+    var envelope: Envelope {
+        Envelope(function: .signPSBT)
+            .add(.parameter(.psbt, value: psbt))
     }
 }
