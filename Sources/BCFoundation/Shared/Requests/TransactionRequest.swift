@@ -1,155 +1,105 @@
-//
-//  TransactionRequest.swift
-//  
-//
-//  Created by Wolf McNally on 12/1/21.
-//
-
 import Foundation
 import URKit
+import WolfBase
+import BCSecureComponents
 
 public enum TransactionRequestError: Swift.Error {
+    case invalidFormat
     case unknownRequestType
 }
 
-public struct TransactionRequest {
-    public let id: UUID
+public struct TransactionRequest: Equatable {
+    public let id: CID
     public let body: Body
     public let note: String?
     
-    public init(id: UUID = UUID(), body: Body, note: String? = nil) {
+    public init(id: CID = CID(), body: Body, note: String? = nil) {
         self.id = id
         self.body = body
         self.note = note
     }
     
-    public enum Body {
+    public enum Body: Equatable {
         case seed(SeedRequestBody)
         case key(KeyRequestBody)
         case psbtSignature(PSBTSignatureRequestBody)
         case outputDescriptor(OutputDescriptorRequestBody)
-        
-        var envelope: Envelope {
-            switch self {
-            case .seed(let body):
-                return body.envelope
-            case .key(let body):
-                return body.envelope
-            case .psbtSignature(let body):
-                return body.envelope
-            case .outputDescriptor(let body):
-                return body.envelope
-            }
-        }
     }
 }
 
 public extension TransactionRequest {
-    func cbor(noteLimit: Int = .max) -> CBOR {
-        var a: OrderedMap = [1: id.taggedCBOR]
-        
-        switch body {
-        case .seed(let body):
-            a.append(2, body.taggedCBOR)
-        case .key(let body):
-            a.append(2, body.taggedCBOR)
-        case .psbtSignature(let body):
-            a.append(2, body.taggedCBOR)
-        case .outputDescriptor(let body):
-            a.append(2, body.taggedCBOR)
-        }
-        
-        if let note = note {
-            a.append(3, CBOR.utf8String(note.prefix(count: noteLimit)))
-        }
-        
-        return CBOR.orderedMap(a)
-    }
-
-    var taggedCBOR: CBOR {
-        CBOR.tagged(URType.transactionRequest.tag, cbor())
-    }
-    
     init(ur: UR) throws {
         switch ur.type {
-        case URType.transactionRequest.type:
-            try self.init(cborData: ur.cbor)
+        case URType.envelope.type:
+            try self.init(untaggedCBOR: CBOR(ur.cbor))
         case URType.psbt.type:
-            try self.init(cborData: ur.cbor, isRawPSBT: true)
+            try self.init(psbtCBOR: ur.cbor)
         default:
             throw URError.unexpectedType
         }
     }
     
-    init(cborData: Data, isRawPSBT: Bool = false) throws {
-        let cbor = try CBOR(cborData)
-        if isRawPSBT {
-            let psbt = try PSBT(untaggedCBOR: cbor)
-            let body = TransactionRequest.Body.psbtSignature(PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true))
-            self.init(id: UUID(), body: body, note: nil)
-        } else {
-            try self.init(untaggedCBOR: cbor)
-        }
+    init(psbtCBOR: Data) throws {
+        let cbor = try CBOR(psbtCBOR)
+        let psbt = try PSBT(untaggedCBOR: cbor)
+        let body = TransactionRequest.Body.psbtSignature(PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true))
+        self.init(id: CID(), body: body, note: nil)
     }
     
-    init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR else {
-            // CBOR doesn't contain a map.
-            throw CBORError.invalidFormat
+    init(untaggedCBOR cbor: CBOR) throws {
+        let envelope = try Envelope(untaggedCBOR: cbor)
+        guard
+            let requestItem = envelope.leaf,
+            case CBOR.tagged(.request, let idItem) = requestItem
+        else {
+            throw TransactionRequestError.invalidFormat
         }
-        
-        guard let idItem = pairs[1] else {
-            // CBOR doesn't contain a transaction ID.
-            throw CBORError.invalidFormat
-        }
-        let id = try UUID(taggedCBOR: idItem)
-        
-        guard let bodyItem = pairs[2] else {
-            // CBOR doesn't contain a body.
-            throw CBORError.invalidFormat
-        }
-        
-        let body: Body
-        
-        if let seedRequestBody = try SeedRequestBody(taggedCBOR: bodyItem) {
-            body = Body.seed(seedRequestBody)
-        } else if let keyRequestBody = try KeyRequestBody(taggedCBOR: bodyItem) {
-            body = Body.key(keyRequestBody)
-        } else if let psbtSignatureRequestBody = try PSBTSignatureRequestBody(taggedCBOR: bodyItem) {
-            body = Body.psbtSignature(psbtSignatureRequestBody)
-        } else if let outputDescriptorRequestBody = try OutputDescriptorRequestBody(taggedCBOR: bodyItem) {
-            body = Body.outputDescriptor(outputDescriptorRequestBody)
-        } else {
+        self.id = try CID(taggedCBOR: idItem)
+        self.note = try? envelope.extractObject(String.self, forPredicate: .note)
+        let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
+        let function = try bodyEnvelope.extractSubject(FunctionIdentifier.self)
+        switch function {
+        case .getSeed:
+            self.body = try .seed(SeedRequestBody(bodyEnvelope))
+        case .getKey:
+            self.body = try .key(KeyRequestBody(bodyEnvelope))
+        case .signPSBT:
+            self.body = try .psbtSignature(PSBTSignatureRequestBody(bodyEnvelope))
+        case .getOutputDescriptor:
+            self.body = try .outputDescriptor(OutputDescriptorRequestBody(bodyEnvelope))
+        default:
             throw TransactionRequestError.unknownRequestType
         }
-        
-        let note: String?
-        
-        if let noteItem = pairs[3] {
-            guard case let CBOR.utf8String(d) = noteItem else {
-                // note is not a string
-                throw CBORError.invalidFormat
-            }
-            note = d
-        } else {
-            note = nil
-        }
-        
-        self.init(id: id, body: body, note: note)
-    }
-
-    var ur: UR {
-        try! UR(type: URType.transactionRequest.type, cbor: cbor())
-    }
-    
-    func sizeLimitedUR(noteLimit: Int = 500) -> UR {
-        try! UR(type: URType.transactionRequest.type, cbor: cbor(noteLimit: noteLimit))
     }
 }
 
 public extension TransactionRequest {
+    func envelope(noteLimit: Int = .max) -> Envelope {
+        let n = (note ?? "").prefix(count: noteLimit)
+        return Envelope(request: id, body: body.envelope)
+            .addAssertion(if: !n.isEmpty, .note, n)
+    }
+    
+    var ur: UR {
+        envelope().ur
+    }
+    
+    func sizeLimitedUR(noteLimit: Int = 500) -> UR {
+        envelope(noteLimit: noteLimit).ur
+    }
+}
+
+public extension TransactionRequest.Body {
     var envelope: Envelope {
-        Envelope(request: id, body: body.envelope)
-            .addIf(!(note?.isEmpty ?? true), .note, note!)
+        switch self {
+        case .seed(let body):
+            return body.envelope
+        case .key(let body):
+            return body.envelope
+        case .psbtSignature(let body):
+            return body.envelope
+        case .outputDescriptor(let body):
+            return body.envelope
+        }
     }
 }

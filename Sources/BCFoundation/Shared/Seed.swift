@@ -9,7 +9,7 @@ import Foundation
 import WolfBase
 import URKit
 
-public protocol SeedProtocol: IdentityDigestable {
+public protocol SeedProtocol: IdentityDigestable, Equatable {
     var data: Data { get }
     var name: String { get set }
     var note: String { get set }
@@ -18,7 +18,7 @@ public protocol SeedProtocol: IdentityDigestable {
     init?(data: DataProvider, name: String, note: String, creationDate: Date?)
     init?(data: DataProvider)
     /// Copy constructor
-    init(_ seed: SeedProtocol)
+    init(_ seed: any SeedProtocol)
     init()
 }
 
@@ -44,7 +44,7 @@ public struct Seed: SeedProtocol {
     }
 
     /// Copy constructor
-    public init(_ seed: SeedProtocol) {
+    public init(_ seed: any SeedProtocol) {
         self.init(data: seed.data, name: seed.name, note: seed.note, creationDate: seed.creationDate)!
     }
 

@@ -11,7 +11,7 @@ public struct GeneralError: LocalizedError {
 }
 
 class OutputDescriptorRequestTests: XCTestCase {
-    let slotID = UUID()
+    let slotID = CID()
     let useInfo = UseInfo(asset: .btc, network: .testnet)
     let challenge = SecureRandomNumberGenerator.shared.data(count: 16)
     let accountNumber: UInt32 = 0

@@ -311,7 +311,7 @@ class DescriptorParserTests: XCTestCase {
         let fullPath = purposePath + accountPath
         XCTAssertEqual(fullPath†, "44'/0'/0'")
         
-        func privateKeyProvider(key: HDKeyProtocol) -> HDKey? {
+        func privateKeyProvider(key: any HDKeyProtocol) -> HDKey? {
             guard
                 case let .fingerprint(originFingerprint) = key.parent.origin,
                 let masterKey = lookup[originFingerprint],

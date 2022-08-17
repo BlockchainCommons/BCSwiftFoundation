@@ -340,8 +340,12 @@ extension DerivationPath {
     }
 }
 
-extension DerivationPath: CBOREncodable {
+extension DerivationPath: CBORCodable {
     public var cbor: CBOR {
         taggedCBOR
+    }
+    
+    public static func cborDecode(_ cbor: CBOR) throws -> DerivationPath {
+        try DerivationPath(taggedCBOR: cbor)
     }
 }

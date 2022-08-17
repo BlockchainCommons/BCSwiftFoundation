@@ -19,7 +19,7 @@ public struct AccountOutputType: Hashable, Identifiable {
         shortName
     }
 
-    public func descriptorSource(accountKey: HDKeyProtocol) -> String {
+    public func descriptorSource(accountKey: any HDKeyProtocol) -> String {
         let keyExpression = accountKey.description(withParent: true)
         return descriptorSource(keyExpression: keyExpression)
     }
@@ -39,13 +39,13 @@ public struct AccountOutputType: Hashable, Identifiable {
             .replacingOccurrences(of: "ACCOUNT", with: account†))!
     }
 
-    public func accountDescriptor(masterKey: HDKeyProtocol, network: Network, account: UInt32) throws -> OutputDescriptor {
+    public func accountDescriptor(masterKey: any HDKeyProtocol, network: Network, account: UInt32) throws -> OutputDescriptor {
         let accountKey = try accountPublicKey(masterKey: masterKey, network: network, account: account)
         let source = descriptorSource(accountKey: accountKey)
         return try OutputDescriptor(source)
     }
     
-    public func accountPublicKey(masterKey: HDKeyProtocol, network: Network, account: UInt32) throws -> HDKey {
+    public func accountPublicKey(masterKey: any HDKeyProtocol, network: Network, account: UInt32) throws -> HDKey {
         let path = accountDerivationPath(network: network, account: account)
         return try HDKey(parent: masterKey, derivedKeyType: .public, childDerivationPath: path)
     }

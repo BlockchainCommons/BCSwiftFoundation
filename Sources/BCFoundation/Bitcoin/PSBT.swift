@@ -329,8 +329,12 @@ extension PSBT {
     }
 }
 
-extension PSBT: CBOREncodable {
+extension PSBT: CBORCodable {
     public var cbor: CBOR {
         taggedCBOR
+    }
+    
+    public static func cborDecode(_ cbor: CBOR) throws -> PSBT {
+        try PSBT(taggedCBOR: cbor)
     }
 }

@@ -7,8 +7,9 @@
 
 import Foundation
 import URKit
+import WolfBase
 
-public struct PSBTSignatureRequestBody {
+public struct PSBTSignatureRequestBody: Equatable {
     public let psbt: PSBT
     public let isRawPSBT: Bool
     
@@ -19,36 +20,12 @@ public struct PSBTSignatureRequestBody {
 }
 
 public extension PSBTSignatureRequestBody {
-    var untaggedCBOR: CBOR {
-        CBOR.orderedMap([1: psbt.taggedCBOR])
-    }
-
-    var taggedCBOR: CBOR {
-        return CBOR.tagged(.psbtSignatureRequestBody, untaggedCBOR)
-    }
-    
-    init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR else {
-            throw CBORError.invalidFormat
-        }
-        guard let taggedCBORItem = pairs[1] else {
-            // PSBT signing request doesn't contain PSBT data.
-            throw CBORError.invalidFormat
-        }
-        try self.init(psbt: PSBT(taggedCBOR: taggedCBORItem))
-    }
-    
-    init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.psbtSignatureRequestBody, untaggedCBOR) = taggedCBOR else {
-            return nil
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-public extension PSBTSignatureRequestBody {
     var envelope: Envelope {
-        Envelope(function: .signPSBT)
-            .add(.parameter(.psbt, value: psbt))
+        try! Envelope(function: .signPSBT)
+            .addAssertion(.parameter(.psbt, value: psbt))
+    }
+    
+    init(_ envelope: Envelope) throws {
+        self.init(psbt: try envelope.extractObject(PSBT.self, forParameter: .psbt))
     }
 }

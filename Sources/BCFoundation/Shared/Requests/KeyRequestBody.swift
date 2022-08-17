@@ -7,8 +7,9 @@
 
 import Foundation
 import URKit
+import WolfBase
 
-public struct KeyRequestBody {
+public struct KeyRequestBody: Equatable {
     public let keyType: KeyType
     public let path: DerivationPath
     public let useInfo: UseInfo
@@ -23,76 +24,24 @@ public struct KeyRequestBody {
 }
 
 public extension KeyRequestBody {
-    var untaggedCBOR: CBOR {
-        var a: OrderedMap = [
-            1: .boolean(keyType.isPrivate),
-            2: path.taggedCBOR
-        ]
-        
-        if !useInfo.isDefault {
-            a.append(3, useInfo.taggedCBOR)
-        }
-        
-        if !isDerivable {
-            a.append(4, .boolean(isDerivable))
-        }
-        
-        return CBOR.orderedMap(a)
+    var envelope: Envelope {
+        try! Envelope(function: .getKey)
+            .addAssertion(.parameter(.derivationPath, value: path))
+            .addAssertion(if: !keyType.isPrivate, .parameter(.isPrivate, value: false))
+            .addAssertion(if: !useInfo.isDefault, .parameter(.useInfo, value: useInfo))
+            .addAssertion(if: !isDerivable, .parameter(.isDerivable, value: false))
     }
     
-    var taggedCBOR: CBOR {
-        return CBOR.tagged(.keyRequestBody, untaggedCBOR)
-    }
+    init(_ envelope: Envelope) throws {
+        let path = try envelope.extractObject(DerivationPath.self, forParameter: .derivationPath)
 
-    init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR else {
-            throw CBORError.invalidFormat
-        }
-        guard let boolItem = pairs[1], case let CBOR.boolean(isPrivate) = boolItem else {
-            // Key request doesn't contain isPrivate.
-            throw CBORError.invalidFormat
-        }
-        guard let pathItem = pairs[2] else {
-            // Key request doesn't contain derivation.
-            throw CBORError.invalidFormat
-        }
-        let path = try DerivationPath(taggedCBOR: pathItem)
+        let isPrivate = (try? envelope.extractObject(Bool.self, forParameter: .isPrivate)) ?? true
+        let keyType = KeyType(isPrivate: isPrivate)
         
-        let useInfo: UseInfo
-        if let pathItem = pairs[3] {
-            useInfo = try UseInfo(taggedCBOR: pathItem)
-        } else {
-            useInfo = UseInfo()
-        }
+        let useInfo = (try? envelope.extractObject(UseInfo.self, forParameter: .useInfo)) ?? UseInfo()
         
-        let isDerivable: Bool
-        if let isDerivableItem = pairs[4] {
-            guard case let CBOR.boolean(d) = isDerivableItem else {
-                // Invalid isDerivable field
-                throw CBORError.invalidFormat
-            }
-            isDerivable = d
-        } else {
-            isDerivable = true
-        }
+        let isDerivable = (try? envelope.extractObject(Bool.self, forParameter: .isDerivable)) ?? true
         
-        self.init(keyType: KeyType(isPrivate: isPrivate), path: path, useInfo: useInfo, isDerivable: isDerivable)
-    }
-
-    init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.keyRequestBody, untaggedCBOR) = taggedCBOR else {
-            return nil
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-public extension KeyRequestBody {
-    var envelope: Envelope {
-        Envelope(function: .getKey)
-            .add(.parameter(.derivationPath, value: path))
-            .addIf(!keyType.isPrivate, .parameter(.isPrivate, value: false))
-            .addIf(!useInfo.isDefault, .parameter(.useInfo, value: useInfo))
-            .addIf(!isDerivable, .parameter(.isDerivable, value: false))
+        self.init(keyType: keyType, path: path, useInfo: useInfo, isDerivable: isDerivable)
     }
 }

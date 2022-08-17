@@ -21,7 +21,7 @@ public enum HDKeyError: Error {
     case unknownDerivationError
 }
 
-public protocol HDKeyProtocol: IdentityDigestable {
+public protocol HDKeyProtocol: IdentityDigestable, Equatable {
     var isMaster: Bool { get }
     var keyType: KeyType { get }
     var keyData: Data { get }
@@ -34,7 +34,7 @@ public protocol HDKeyProtocol: IdentityDigestable {
     var note: String { get set }
 
     init(isMaster: Bool, keyType: KeyType, keyData: Data, chainCode: Data?, useInfo: UseInfo, parent: DerivationPath?, children: DerivationPath?, parentFingerprint: UInt32?, name: String, note: String)
-    init(_ key: HDKeyProtocol)
+    init(_ key: any HDKeyProtocol)
 }
 
 public struct HDKey: HDKeyProtocol {
@@ -63,7 +63,7 @@ public struct HDKey: HDKeyProtocol {
     }
 
     // Copy constructor
-    public init(_ key: HDKeyProtocol) {
+    public init(_ key: any HDKeyProtocol) {
         self.isMaster = key.isMaster
         self.keyType = key.keyType
         self.keyData = key.keyData
@@ -78,7 +78,7 @@ public struct HDKey: HDKeyProtocol {
 }
 
 extension HDKeyProtocol {
-    public init(key: HDKeyProtocol, derivedKeyType: KeyType? = nil, isDerivable: Bool = true, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+    public init(key: any HDKeyProtocol, derivedKeyType: KeyType? = nil, isDerivable: Bool = true, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         let derivedKeyType = derivedKeyType ?? key.keyType
         
         guard key.keyType == .private || derivedKeyType == .public else {
@@ -222,11 +222,11 @@ extension HDKeyProtocol {
         )
     }
     
-    public init(seed: SeedProtocol, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+    public init(seed: any SeedProtocol, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         try self.init(bip39Seed: BIP39.Seed(bip39: seed.bip39), useInfo: useInfo, parent: parent, children: children)
     }
 
-    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivation: any DerivationStep, chain: Chain? = nil, addressIndex: UInt32? = nil) throws {
+    public init(parent: any HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivation: any DerivationStep, chain: Chain? = nil, addressIndex: UInt32? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.keyType == .private || derivedKeyType == .public else {
@@ -269,7 +269,7 @@ extension HDKeyProtocol {
         )
     }
     
-    public init(parent: HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
+    public init(parent: any HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivationPath: DerivationPath, isDerivable: Bool = true, chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, children: DerivationPath? = nil) throws {
         let derivedKeyType = derivedKeyType ?? parent.keyType
         
         guard parent.isDerivable else {
@@ -635,6 +635,16 @@ extension HDKeyProtocol {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)
+    }
+}
+
+extension HDKey: CBORCodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> HDKey {
+        try HDKey(taggedCBOR: cbor)
+    }
+    
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }
 

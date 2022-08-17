@@ -1,97 +1,87 @@
-//
-//  TransactionResponse.swift
-//  
-//
-//  Created by Wolf McNally on 12/1/21.
-//
-
 import Foundation
 import URKit
+import WolfBase
 
 public enum TransactionResponseError: Swift.Error {
+    case invalidFormat
     case unknownResponseType
 }
 
-public struct TransactionResponse {
-    public let id: UUID
+public struct TransactionResponse: Equatable {
+    public let id: CID
     public let body: Body
     
-    public enum Body {
-        case seed(SeedProtocol)
-        case key(HDKeyProtocol)
+    public init(id: CID, body: Body) {
+        self.id = id
+        self.body = body
+    }
+    
+    public enum Body: Equatable {
+        case seed(Seed)
+        case key(HDKey)
         case psbtSignature(PSBT)
         case outputDescriptor(OutputDescriptorResponseBody)
     }
+}
 
-    public init(id: UUID, body: Body) {
-        self.id = id
-        self.body = body
-    }
-
-    public var untaggedCBOR: CBOR {
-        var a: OrderedMap = [
-            1: id.taggedCBOR
-        ]
-
-        switch body {
-        case .seed(let seed):
-            a.append(2, seed.taggedCBOR)
-        case .key(let key):
-            a.append(2, key.taggedCBOR)
-        case .psbtSignature(let psbt):
-            a.append(2, psbt.taggedCBOR)
-        case .outputDescriptor(let descriptorResponse):
-            a.append(2, descriptorResponse.taggedCBOR)
-        }
-        
-        return CBOR.orderedMap(a)
-    }
-
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.transactionResponse.tag, untaggedCBOR)
-    }
-
-    public var ur: UR {
-        try! UR(type: URType.transactionResponse.type, cbor: untaggedCBOR)
-    }
-    
-    public init(cborData: Data) throws {
-        let cbor = try CBOR(cborData)
-        try self.init(untaggedCBOR: cbor)
-    }
-    
-    public init(ur: UR) throws {
-        guard ur.type == URType.transactionResponse.type else {
+public extension TransactionResponse {
+    init(ur: UR) throws {
+        switch ur.type {
+        case URType.envelope.type:
+            try self.init(untaggedCBOR: CBOR(ur.cbor))
+        default:
             throw URError.unexpectedType
         }
-        try self.init(cborData: ur.cbor)
     }
     
-    public init(untaggedCBOR: CBOR) throws {
+    init(untaggedCBOR cbor: CBOR) throws {
+        let envelope = try Envelope(untaggedCBOR: cbor)
         guard
-            case let CBOR.map(pairs) = untaggedCBOR,
-            let idItem = pairs[1],
-            let id = try? UUID(taggedCBOR: idItem),
-            let bodyItem = pairs[2]
+            let responseItem = envelope.leaf,
+            case CBOR.tagged(.response, let idItem) = responseItem
         else {
-            throw CBORError.invalidFormat
+            throw TransactionResponseError.invalidFormat
         }
-        
-        let body: Body
-        
-        if let seed = try? Seed(taggedCBOR: bodyItem) {
-            body = Body.seed(seed)
-        } else if let key = try? HDKey(taggedCBOR: bodyItem) {
-            body = Body.key(key)
-        } else if let psbt = try? PSBT(taggedCBOR: bodyItem) {
-            body = Body.psbtSignature(psbt)
-        } else if let outputDescriptorResponseBody = try? OutputDescriptorResponseBody(taggedCBOR: bodyItem) {
-            body = Body.outputDescriptor(outputDescriptorResponseBody)
-        } else {
+        self.id = try CID(taggedCBOR: idItem)
+        guard let resultItem = try envelope.extractObject(forPredicate: .result).leaf else {
             throw TransactionResponseError.unknownResponseType
         }
-        
-        self.id = id
-        self.body = body
+        switch resultItem {
+        case CBOR.tagged(URType.seed.tag, let item):
+            self.body = .seed(try Seed(untaggedCBOR: item))
+        case CBOR.tagged(URType.hdKey.tag, let item):
+            self.body = .key(try HDKey(untaggedCBOR: item))
+        case CBOR.tagged(URType.psbt.tag, let item):
+            self.body = .psbtSignature(try PSBT(untaggedCBOR: item))
+        case CBOR.tagged(.outputDescriptorResponse, let item):
+            self.body = .outputDescriptor(try OutputDescriptorResponseBody(untaggedCBOR: item))
+        default:
+            throw TransactionResponseError.unknownResponseType
+        }
+    }
+}
+
+public extension TransactionResponse {
+    var envelope: Envelope {
+        Envelope(response: id, result: body.envelope)
+    }
+    
+    var ur: UR {
+        envelope.ur
+    }
+}
+
+public extension TransactionResponse.Body {
+    var envelope: Envelope {
+        switch self {
+        case .seed(let seed):
+            return Envelope(seed)
+        case .key(let key):
+            return Envelope(key)
+        case .psbtSignature(let psbt):
+            return Envelope(psbt)
+        case .outputDescriptor(let body):
+            return Envelope(body)
+        }
     }
 }

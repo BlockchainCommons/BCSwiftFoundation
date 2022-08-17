@@ -1,6 +1,6 @@
 import Foundation
 
-public struct OutputDescriptorResponseBody {
+public struct OutputDescriptorResponseBody: Equatable {
     public let descriptor: OutputDescriptor
     public let challengeSignature: Data
     
@@ -8,37 +8,48 @@ public struct OutputDescriptorResponseBody {
         self.descriptor = descriptor
         self.challengeSignature = challengeSignature
     }
-    
-    public var untaggedCBOR: CBOR {
-        CBOR.orderedMap([
-            1: CBOR.utf8String(descriptor.sourceWithChecksum),
-            2: CBOR.data(challengeSignature)
-        ])
+}
+
+public extension OutputDescriptorResponseBody {
+    var untaggedCBOR: CBOR {
+        [
+            CBOR.utf8String(descriptor.sourceWithChecksum),
+            CBOR.data(challengeSignature)
+        ]
     }
     
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(.outputDescriptorResponseBody, untaggedCBOR)
-    }
-    
-    public init(untaggedCBOR: CBOR) throws {
+    init(untaggedCBOR cbor: CBOR) throws {
         guard
-            case let CBOR.map(pairs) = untaggedCBOR,
-            let descriptorItem = pairs[1],
-            case let CBOR.utf8String(descriptorSource) = descriptorItem,
-            let descriptor = try? OutputDescriptor(descriptorSource),
-            let challengeSignatureItem = pairs[2],
-            case let CBOR.data(challengeSignature) = challengeSignatureItem
+            case let CBOR.array(array) = cbor,
+            array.count == 2,
+            case let CBOR.utf8String(source) = array[0],
+            case let CBOR.data(challengeSignature) = array[1]
         else {
             throw CBORError.invalidFormat
         }
-        self.descriptor = descriptor
-        self.challengeSignature = challengeSignature
+    
+        let descriptor = try OutputDescriptor(source)
+        self.init(descriptor: descriptor, challengeSignature: challengeSignature)
     }
-
-    public init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.outputDescriptorResponseBody, untaggedCBOR) = taggedCBOR else {
-            return nil
+    
+    var taggedCBOR: CBOR {
+        CBOR.tagged(.outputDescriptorResponse, untaggedCBOR)
+    }
+    
+    init(taggedCBOR cbor: CBOR) throws {
+        guard case CBOR.tagged(.outputDescriptorResponse, let item) = cbor else {
+            throw CBORError.invalidTag
         }
-        try self.init(untaggedCBOR: untaggedCBOR)
+        try self.init(untaggedCBOR: item)
+    }
+}
+
+extension OutputDescriptorResponseBody: CBORCodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> OutputDescriptorResponseBody {
+        try self.init(taggedCBOR: cbor)
+    }
+    
+    public var cbor: CBOR {
+        taggedCBOR
     }
 }

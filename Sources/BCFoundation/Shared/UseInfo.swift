@@ -117,8 +117,12 @@ extension UseInfo {
     }
 }
 
-extension UseInfo: CBOREncodable {
+extension UseInfo: CBORCodable {
     public var cbor: CBOR {
         taggedCBOR
+    }
+    
+    public static func cborDecode(_ cbor: CBOR) throws -> UseInfo {
+        try UseInfo(taggedCBOR: cbor)
     }
 }

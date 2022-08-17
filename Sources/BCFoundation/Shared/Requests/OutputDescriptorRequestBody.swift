@@ -1,6 +1,7 @@
 import Foundation
+import WolfBase
 
-public struct OutputDescriptorRequestBody {
+public struct OutputDescriptorRequestBody: Equatable {
     public let name: String
     public let useInfo: UseInfo
     public let challenge: Data
@@ -13,72 +14,17 @@ public struct OutputDescriptorRequestBody {
 }
 
 public extension OutputDescriptorRequestBody {
-    var untaggedCBOR: CBOR {
-        var a: OrderedMap = [:]
-        
-        if !name.isEmpty {
-            a.append(1, CBOR.utf8String(name))
-        }
-        
-        if !useInfo.isDefault {
-            a.append(2, useInfo.taggedCBOR)
-        }
-        
-        a.append(3, CBOR.data(challenge))
-        
-        return CBOR.orderedMap(a)
-    }
-    
-    var taggedCBOR: CBOR {
-        CBOR.tagged(.outputDescriptorRequestBody, untaggedCBOR)
-    }
-    
-    init(untaggedCBOR: CBOR) throws {
-        guard
-            case let CBOR.map(pairs) = untaggedCBOR
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        guard
-            case let CBOR.utf8String(name) = pairs[1] ?? CBOR.utf8String("")
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        let useInfoItem = pairs[2] ?? UseInfo().taggedCBOR
-        guard
-            let useInfo = try? UseInfo(taggedCBOR: useInfoItem)
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        guard
-            let challengeItem = pairs[3],
-            case let CBOR.data(challenge) = challengeItem,
-            challenge.count == 16
-        else {
-            throw CBORError.invalidFormat
-        }
-        
-        self.name = name
-        self.useInfo = useInfo
-        self.challenge = challenge
-    }
-
-    init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.outputDescriptorRequestBody, untaggedCBOR) = taggedCBOR else {
-            return nil
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-public extension OutputDescriptorRequestBody {
     var envelope: Envelope {
-        Envelope(function: .getOutputDescriptor)
-            .add(.parameter(.challenge, value: challenge))
-            .addIf(!name.isEmpty, .parameter(.name, value: name))
-            .addIf(!useInfo.isDefault, .parameter(.useInfo, value: useInfo))
+        try! Envelope(function: .getOutputDescriptor)
+            .addAssertion(.parameter(.challenge, value: challenge))
+            .addAssertion(if: !name.isEmpty, .parameter(.name, value: name))
+            .addAssertion(if: !useInfo.isDefault, .parameter(.useInfo, value: useInfo))
+    }
+    
+    init(_ envelope: Envelope) throws {
+        let name = (try? envelope.extractObject(String.self, forParameter: .name)) ?? ""
+        let useInfo = (try? envelope.extractObject(UseInfo.self, forParameter: .useInfo)) ?? UseInfo()
+        let challenge = try envelope.extractObject(Data.self, forParameter: .challenge)
+        self.init(name: name, useInfo: useInfo, challenge: challenge)
     }
 }

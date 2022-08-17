@@ -2,7 +2,7 @@ import Foundation
 import CryptoSwift
 import URKit
 
-public struct SeedDigest {
+public struct SeedDigest: Equatable {
     public let digest: Data
     
     public init(digest: Data) throws {
@@ -37,8 +37,15 @@ public extension SeedDigest {
     }
 }
 
-extension SeedDigest: CBOREncodable {
-    public var cbor: URKit.CBOR {
+extension SeedDigest: CBORCodable {
+    public static func cborDecode(_ cbor: CBOR) throws -> SeedDigest {
+        guard let result = try SeedDigest(taggedCBOR: cbor) else {
+            throw CBORError.invalidFormat
+        }
+        return result
+    }
+    
+    public var cbor: CBOR {
         taggedCBOR
     }
 }

@@ -11,13 +11,13 @@ import URKit
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md
 
 public struct OutputDescriptorBundle {
-    public let masterKey: HDKeyProtocol
+    public let masterKey: any HDKeyProtocol
     public let network: Network
     public let account: UInt32
     public let descriptors: [OutputDescriptor]
     public let descriptorsByOutputType: [AccountOutputType: OutputDescriptor]
     
-    public init?(masterKey: HDKeyProtocol, network: Network, account: UInt32, outputTypes: [AccountOutputType] = AccountOutputType.bundleCases) {
+    public init?(masterKey: any HDKeyProtocol, network: Network, account: UInt32, outputTypes: [AccountOutputType] = AccountOutputType.bundleCases) {
         guard
             masterKey.isMaster,
             !outputTypes.isEmpty,

@@ -7,15 +7,15 @@ public extension FunctionIdentifier {
     static let getOutputDescriptor = FunctionIdentifier(103, "getOutputDescriptor")
 }
 
-public extension FunctionParameter {
-    static let seedDigest = FunctionParameter(200, "seedDigest")
-    static let derivationPath = FunctionParameter(201, "derivationPath")
-    static let isPrivate = FunctionParameter(202, "isPrivate")
-    static let useInfo = FunctionParameter(203, "useInfo")
-    static let isDerivable = FunctionParameter(204, "isDerivable")
-    static let psbt = FunctionParameter(205, "psbt")
-    static let name = FunctionParameter(206, "name")
-    static let challenge = FunctionParameter(207, "challenge")
+public extension ParameterIdentifier {
+    static let seedDigest = ParameterIdentifier(200, "seedDigest")
+    static let derivationPath = ParameterIdentifier(201, "derivationPath")
+    static let isPrivate = ParameterIdentifier(202, "isPrivate")
+    static let useInfo = ParameterIdentifier(203, "useInfo")
+    static let isDerivable = ParameterIdentifier(204, "isDerivable")
+    static let psbt = ParameterIdentifier(205, "psbt")
+    static let name = ParameterIdentifier(206, "name")
+    static let challenge = ParameterIdentifier(207, "challenge")
 }
 
 public func addKnownFunctionExtensions() {
@@ -30,7 +30,7 @@ public func addKnownFunctionExtensions() {
         FunctionIdentifier.setKnownIdentifier($0)
     }
 
-    let parameters: [FunctionParameter] = [
+    let parameters: [ParameterIdentifier] = [
         .seedDigest,
         .derivationPath,
         .isPrivate,
@@ -42,6 +42,6 @@ public func addKnownFunctionExtensions() {
     ]
     
     parameters.forEach {
-        FunctionParameter.setKnownParameter($0)
+        ParameterIdentifier.setKnownParameter($0)
     }
 }
