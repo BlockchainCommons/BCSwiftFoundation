@@ -109,23 +109,23 @@ extension SeedProtocol {
 
     public var taggedCBOR: CBOR {
         let (c, _) = cbor()
-        return CBOR.tagged(URType.seed.tag, c)
+        return CBOR.tagged(.seed, c)
     }
 
     public var ur: UR {
         let (c, _) = cbor()
-        return try! UR(type: URType.seed.type, cbor: c)
+        return try! UR(type: CBOR.Tag.seed.name!, cbor: c)
     }
     
     public func sizeLimitedUR(nameLimit: Int = 100, noteLimit: Int = 500) -> (UR, Bool) {
         let (c, didLimit) = cbor(nameLimit: nameLimit, noteLimit: noteLimit)
-        return try! (UR(type: URType.seed.type, cbor: c), didLimit)
+        return try! (UR(type: CBOR.Tag.seed.name!, cbor: c), didLimit)
     }
 }
 
 extension SeedProtocol {
     public init(ur: UR) throws {
-        guard ur.type == URType.seed.type else {
+        guard ur.type == CBOR.Tag.seed.name! else {
             throw URError.unexpectedType
         }
         try self.init(cborData: ur.cbor)
@@ -142,10 +142,12 @@ extension SeedProtocol {
     }
 
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR else {
+        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR else {
             // CBOR doesn't contain a map.
             throw CBORError.invalidFormat
         }
+        let pairs = try orderedMap.valuesByIntKey()
+        
         guard
             let dataItem = pairs[1],
             case let CBOR.data(bytes) = dataItem,
@@ -192,7 +194,7 @@ extension SeedProtocol {
     }
 
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(tag, content) = taggedCBOR, tag == URType.seed.tag else {
+        guard case let CBOR.tagged(tag, content) = taggedCBOR, tag == CBOR.Tag.seed else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: content)

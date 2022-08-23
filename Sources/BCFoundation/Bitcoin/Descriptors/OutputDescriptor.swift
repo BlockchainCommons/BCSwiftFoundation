@@ -61,11 +61,11 @@ public struct OutputDescriptor {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.output.tag, untaggedCBOR)
+        CBOR.tagged(.output, untaggedCBOR)
     }
     
     public var ur: UR {
-        return try! UR(type: URType.output.type, cbor: untaggedCBOR)
+        return try! UR(type: .output, cbor: untaggedCBOR)
     }
 }
 

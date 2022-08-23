@@ -61,7 +61,7 @@ class AddressTests: XCTestCase {
 
         let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a002000354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
-        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor, orderedKeys: true))
         XCTAssertEqual(address, address2)
     }
     
@@ -74,7 +74,7 @@ class AddressTests: XCTestCase {
 
         let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a00201035486cc442a97817c245ce90ed0d31d6dbcde3841f9")
-        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor, orderedKeys: true))
         XCTAssertEqual(address, address2)
     }
     
@@ -87,7 +87,7 @@ class AddressTests: XCTestCase {
 
         let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a002020354bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe")
-        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor, orderedKeys: true))
         XCTAssertEqual(address, address2)
     }
     
@@ -100,7 +100,7 @@ class AddressTests: XCTestCase {
 
         let cbor = address.taggedCBOR.cborEncode
         XCTAssertEqual(cbor, ‡"d90133a301d90131a0020203582079be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
-        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor))
+        let address2 = try Bitcoin.Address(taggedCBOR: CBOR(cbor, orderedKeys: true))
         XCTAssertEqual(address, address2)
     }
 

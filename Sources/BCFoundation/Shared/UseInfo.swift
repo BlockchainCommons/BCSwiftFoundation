@@ -84,14 +84,15 @@ extension UseInfo {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.useInfo.tag, untaggedCBOR)
+        CBOR.tagged(.useInfo, untaggedCBOR)
     }
 
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR else {
+        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
-        
+        let pairs = try orderedMap.valuesByIntKey()
+
         let asset: Asset
         if let rawAsset = pairs[1] {
             asset = try Asset(untaggedCBOR: rawAsset)
@@ -110,7 +111,7 @@ extension UseInfo {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.useInfo.tag, untaggedCBOR) = taggedCBOR else {
+        guard case let CBOR.tagged(.useInfo, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)

@@ -278,15 +278,16 @@ extension DerivationPath {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.derivationPath.tag, untaggedCBOR)
+        CBOR.tagged(.derivationPath, untaggedCBOR)
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR
+        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR
         else {
             throw DerivationPathError.invalidDerivationPath
         }
-        
+        let pairs = try orderedMap.valuesByIntKey()
+
         guard
             case let CBOR.array(componentsItem) = pairs[1] ?? CBOR.null,
             componentsItem.count.isMultiple(of: 2)
@@ -333,7 +334,7 @@ extension DerivationPath {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.derivationPath.tag, untaggedCBOR) = taggedCBOR else {
+        guard case let CBOR.tagged(.derivationPath, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)

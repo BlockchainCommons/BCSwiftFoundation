@@ -199,21 +199,22 @@ extension Bitcoin.Address {
     }
 
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.address.tag, untaggedCBOR)
+        CBOR.tagged(.address, untaggedCBOR)
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.address.tag, untaggedCBOR) = taggedCBOR else {
+        guard case let CBOR.tagged(.address, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR else {
+        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
-        
+        let pairs = try orderedMap.valuesByIntKey()
+
         let useInfo: UseInfo
         if let rawUseInfo = pairs[1] {
             useInfo = try UseInfo(taggedCBOR: rawUseInfo)

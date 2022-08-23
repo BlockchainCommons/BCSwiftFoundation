@@ -263,10 +263,8 @@ extension PSBT {
 
 extension PSBT {
     public init(ur: UR) throws {
-        guard ur.type == URType.psbt.type else {
-            throw URError.unexpectedType
-        }
-        let cbor = try CBOR(ur.cbor)
+        try ur.checkType(.psbt)
+        let cbor = try CBOR(ur.cbor, orderedKeys: true)
         try self.init(untaggedCBOR: cbor)
     }
     
@@ -293,7 +291,7 @@ extension PSBT {
     }
     
     public var ur: UR {
-        try! UR(type: URType.psbt.type, cbor: untaggedCBOR)
+        try! UR(type: .psbt, cbor: untaggedCBOR)
     }
     
     public var urString: String {
@@ -305,7 +303,7 @@ extension PSBT {
     }
 
     public var taggedCBOR: CBOR {
-        return CBOR.tagged(URType.psbt.tag, untaggedCBOR)
+        return CBOR.tagged(.psbt, untaggedCBOR)
     }
     
     public init(untaggedCBOR: CBOR) throws {
@@ -322,7 +320,7 @@ extension PSBT {
     }
     
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.psbt.tag, untaggedCBOR) = taggedCBOR else {
+        guard case let CBOR.tagged(.psbt, untaggedCBOR) = taggedCBOR else {
             throw CBORError.invalidTag
         }
         try self.init(untaggedCBOR: untaggedCBOR)

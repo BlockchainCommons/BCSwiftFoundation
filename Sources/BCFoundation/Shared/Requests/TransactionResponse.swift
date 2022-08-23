@@ -27,8 +27,8 @@ public struct TransactionResponse: Equatable {
 public extension TransactionResponse {
     init(ur: UR) throws {
         switch ur.type {
-        case URType.envelope.type:
-            try self.init(untaggedCBOR: CBOR(ur.cbor))
+        case CBOR.Tag.envelope.name!:
+            try self.init(untaggedCBOR: CBOR(ur.cbor, orderedKeys: true))
         default:
             throw URError.unexpectedType
         }
@@ -47,11 +47,11 @@ public extension TransactionResponse {
             throw TransactionResponseError.unknownResponseType
         }
         switch resultItem {
-        case CBOR.tagged(URType.seed.tag, let item):
+        case CBOR.tagged(.seed, let item):
             self.body = .seed(try Seed(untaggedCBOR: item))
-        case CBOR.tagged(URType.hdKey.tag, let item):
+        case CBOR.tagged(.hdKey, let item):
             self.body = .key(try HDKey(untaggedCBOR: item))
-        case CBOR.tagged(URType.psbt.tag, let item):
+        case CBOR.tagged(.psbt, let item):
             self.body = .psbtSignature(try PSBT(untaggedCBOR: item))
         case CBOR.tagged(.outputDescriptorResponse, let item):
             self.body = .outputDescriptor(try OutputDescriptorResponseBody(untaggedCBOR: item))

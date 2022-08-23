@@ -30,9 +30,9 @@ public struct TransactionRequest: Equatable {
 public extension TransactionRequest {
     init(ur: UR) throws {
         switch ur.type {
-        case URType.envelope.type:
-            try self.init(untaggedCBOR: CBOR(ur.cbor))
-        case URType.psbt.type:
+        case CBOR.Tag.envelope.urType:
+            try self.init(untaggedCBOR: CBOR(ur.cbor, orderedKeys: true))
+        case CBOR.Tag.psbt.urType:
             try self.init(psbtCBOR: ur.cbor)
         default:
             throw URError.unexpectedType

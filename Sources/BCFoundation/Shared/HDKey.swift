@@ -505,27 +505,28 @@ extension HDKeyProtocol {
 
     public var taggedCBOR: CBOR {
         let (c, _) = cbor()
-        return CBOR.tagged(URType.hdKey.tag, c)
+        return CBOR.tagged(.hdKey, c)
     }
 
     public var ur: UR {
         let (c, _) = cbor()
-        return try! UR(type: URType.hdKey.type, cbor: c)
+        return try! UR(type: CBOR.Tag.hdKey.name!, cbor: c)
     }
 
     public func sizeLimitedUR(nameLimit: Int = 100, noteLimit: Int = 500) -> (UR, Bool) {
         let (c, didLimit) = cbor(nameLimit: nameLimit, noteLimit: noteLimit)
-        return try! (UR(type: URType.hdKey.type, cbor: c), didLimit)
+        return try! (UR(type: CBOR.Tag.hdKey.name!, cbor: c), didLimit)
     }
 }
 
 extension HDKeyProtocol {
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.map(pairs) = untaggedCBOR
+        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR
         else {
             // Doesn't contain a map.
             throw CBORError.invalidFormat
         }
+        let pairs = try orderedMap.valuesByIntKey()
 
         guard case let CBOR.boolean(isMaster) = pairs[1] ?? CBOR.boolean(false)
         else {
@@ -630,7 +631,7 @@ extension HDKeyProtocol {
     }
 
     public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(URType.hdKey.tag, untaggedCBOR) = taggedCBOR else {
+        guard case let CBOR.tagged(.hdKey, untaggedCBOR) = taggedCBOR else {
             // Tag (303) not found
             throw CBORError.invalidTag
         }

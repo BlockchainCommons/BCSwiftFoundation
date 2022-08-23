@@ -48,10 +48,10 @@ public struct OutputDescriptorBundle {
     }
     
     public var taggedCBOR: CBOR {
-        CBOR.tagged(URType.account.tag, untaggedCBOR)
+        CBOR.tagged(.account, untaggedCBOR)
     }
     
     public var ur: UR {
-        try! UR(type: URType.account.type, cbor: untaggedCBOR)
+        try! UR(type: .account, cbor: untaggedCBOR)
     }
 }

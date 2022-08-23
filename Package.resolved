@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "revision" : "870055b149f09c702fe293cd3510b6963002c0e3",
-        "version" : "0.7.0"
+        "revision" : "0561edae6a65047b45872104d11b7d55f8566408",
+        "version" : "0.10.0"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/blake3-swift.git",
       "state" : {
-        "revision" : "632c0d1315e2c2d33c279499e140f5690d96f1c2",
-        "version" : "0.1.1"
+        "revision" : "5f3724ced3696abc60938b421b35cf16e77170d1",
+        "version" : "0.1.3"
       }
     },
     {
