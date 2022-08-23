@@ -31,7 +31,7 @@ public extension TransactionRequest {
     init(ur: UR) throws {
         switch ur.type {
         case CBOR.Tag.envelope.urType:
-            try self.init(untaggedCBOR: CBOR(ur.cbor, orderedKeys: true))
+            try self.init(untaggedCBOR: CBOR(ur.cbor))
         case CBOR.Tag.psbt.urType:
             try self.init(psbtCBOR: ur.cbor)
         default:

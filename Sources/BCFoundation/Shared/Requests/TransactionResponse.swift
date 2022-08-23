@@ -28,7 +28,7 @@ public extension TransactionResponse {
     init(ur: UR) throws {
         switch ur.type {
         case CBOR.Tag.envelope.name!:
-            try self.init(untaggedCBOR: CBOR(ur.cbor, orderedKeys: true))
+            try self.init(untaggedCBOR: CBOR(ur.cbor))
         default:
             throw URError.unexpectedType
         }
