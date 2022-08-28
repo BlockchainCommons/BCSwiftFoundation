@@ -180,7 +180,7 @@ class RequestTests: XCTestCase {
         let expectedFormat = """
         request(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
             body: «getOutputDescriptor» [
-                ❰challenge❱: CBOR
+                ❰challenge❱: Data
                 ❰name❱: "Name"
                 ❰useInfo❱: CBOR
             ]
