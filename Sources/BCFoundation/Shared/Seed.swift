@@ -39,7 +39,7 @@ public struct Seed: SeedProtocol {
     
     public init?(data: DataProvider, name: String = "", note: String = "", creationDate: Date? = nil) {
         let data = data.providedData
-        guard data.count <= minSeedSize else {
+        guard data.count >= minSeedSize else {
             return nil
         }
         self.data = data
