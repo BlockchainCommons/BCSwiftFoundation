@@ -29,6 +29,8 @@ public extension SeedProtocol/*: PrivateKeysDataProvider*/ {
     }
 }
 
+public let minSeedSize = 16
+
 public struct Seed: SeedProtocol {
     public let data: Data
     public var name: String
@@ -37,7 +39,7 @@ public struct Seed: SeedProtocol {
     
     public init?(data: DataProvider, name: String = "", note: String = "", creationDate: Date? = nil) {
         let data = data.providedData
-        guard data.count <= 16 else {
+        guard data.count <= minSeedSize else {
             return nil
         }
         self.data = data
@@ -56,20 +58,24 @@ public struct Seed: SeedProtocol {
     }
 
     public init() {
-        self.init(data: SecureRandomNumberGenerator.shared.data(count: 16))!
+        self.init(data: SecureRandomNumberGenerator.shared.data(count: minSeedSize))!
     }
 }
 
-extension SeedProtocol {
-    public init?(hex: String) {
+public extension SeedProtocol {
+    init?(hex: String) {
         guard let data = hex.hexData else {
             return nil
         }
         self.init(data: data)
     }
 
-    public var hex: String {
+    var hex: String {
         data.hex
+    }
+
+    init(count: Int) {
+        self.init(data: SecureRandomNumberGenerator.shared.data(count: count))!
     }
 }
 
