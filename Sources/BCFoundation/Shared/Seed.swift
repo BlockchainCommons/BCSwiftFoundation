@@ -8,8 +8,9 @@
 import Foundation
 import WolfBase
 import URKit
+import BCSecureComponents
 
-public protocol SeedProtocol: IdentityDigestable, Equatable {
+public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider {
     var data: Data { get }
     var name: String { get set }
     var note: String { get set }
@@ -20,6 +21,12 @@ public protocol SeedProtocol: IdentityDigestable, Equatable {
     /// Copy constructor
     init(_ seed: any SeedProtocol)
     init()
+}
+
+public extension SeedProtocol/*: PrivateKeysDataProvider*/ {
+    var privateKeysData: Data {
+        data
+    }
 }
 
 public struct Seed: SeedProtocol {
