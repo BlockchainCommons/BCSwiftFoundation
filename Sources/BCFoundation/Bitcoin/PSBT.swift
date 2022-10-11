@@ -336,3 +336,7 @@ extension PSBT: CBORCodable {
         try PSBT(taggedCBOR: cbor)
     }
 }
+
+extension PSBT: TransactionResponseBody {
+    public var envelope: Envelope { Envelope(self) }
+}

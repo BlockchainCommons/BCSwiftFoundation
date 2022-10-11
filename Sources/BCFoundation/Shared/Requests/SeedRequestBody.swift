@@ -8,7 +8,7 @@
 import Foundation
 import URKit
 
-public struct SeedRequestBody: Equatable {
+public struct SeedRequestBody: TransactionRequestBody {
     public let seedDigest: SeedDigest
     
     public init(seedDigest: SeedDigest) {

@@ -53,3 +53,7 @@ extension OutputDescriptorResponseBody: CBORCodable {
         taggedCBOR
     }
 }
+
+extension OutputDescriptorResponseBody: TransactionResponseBody {
+    public var envelope: Envelope { Envelope(self) }
+}

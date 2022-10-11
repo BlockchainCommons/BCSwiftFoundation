@@ -667,3 +667,7 @@ extension HDKeyProtocol {
         return Data(result.encode())
     }
 }
+
+extension HDKey: TransactionResponseBody {
+    public var envelope: Envelope { Envelope(self) }
+}

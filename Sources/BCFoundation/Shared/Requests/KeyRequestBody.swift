@@ -9,7 +9,7 @@ import Foundation
 import URKit
 import WolfBase
 
-public struct KeyRequestBody: Equatable {
+public struct KeyRequestBody: TransactionRequestBody {
     public let keyType: KeyType
     public let path: DerivationPath
     public let useInfo: UseInfo

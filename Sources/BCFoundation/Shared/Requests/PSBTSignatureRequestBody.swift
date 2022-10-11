@@ -9,7 +9,7 @@ import Foundation
 import URKit
 import WolfBase
 
-public struct PSBTSignatureRequestBody: Equatable {
+public struct PSBTSignatureRequestBody: TransactionRequestBody {
     public let psbt: PSBT
     public let isRawPSBT: Bool
     

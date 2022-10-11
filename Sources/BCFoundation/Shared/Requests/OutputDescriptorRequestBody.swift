@@ -1,7 +1,7 @@
 import Foundation
 import WolfBase
 
-public struct OutputDescriptorRequestBody: Equatable {
+public struct OutputDescriptorRequestBody: TransactionRequestBody {
     public let name: String
     public let useInfo: UseInfo
     public let challenge: Data

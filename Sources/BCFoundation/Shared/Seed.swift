@@ -236,3 +236,6 @@ extension Seed: CBORDecodable {
     }
 }
 
+extension Seed: TransactionResponseBody {
+    public var envelope: Envelope { Envelope(self) }
+}

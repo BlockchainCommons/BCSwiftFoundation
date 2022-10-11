@@ -8,22 +8,33 @@ public enum TransactionRequestError: Swift.Error {
     case unknownRequestType
 }
 
+public protocol TransactionRequestBody : Equatable {
+    var envelope: Envelope { get }
+    init(_ envelope: Envelope) throws
+}
+
 public struct TransactionRequest: Equatable {
     public let id: CID
-    public let body: Body
+    public let body: any TransactionRequestBody
     public let note: String?
     
-    public init(id: CID = CID(), body: Body, note: String? = nil) {
+    public init(id: CID = CID(), body: any TransactionRequestBody, note: String? = nil) {
         self.id = id
         self.body = body
         self.note = note
     }
     
-    public enum Body: Equatable {
-        case seed(SeedRequestBody)
-        case key(KeyRequestBody)
-        case psbtSignature(PSBTSignatureRequestBody)
-        case outputDescriptor(OutputDescriptorRequestBody)
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+public extension TransactionRequest {
+    init(psbtCBOR: Data) throws {
+        let cbor = try CBOR(psbtCBOR)
+        let psbt = try PSBT(untaggedCBOR: cbor)
+        let body = PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true)
+        self.init(id: CID(), body: body, note: nil)
     }
 }
 
@@ -37,13 +48,6 @@ public extension TransactionRequest {
         default:
             throw URError.unexpectedType
         }
-    }
-    
-    init(psbtCBOR: Data) throws {
-        let cbor = try CBOR(psbtCBOR)
-        let psbt = try PSBT(untaggedCBOR: cbor)
-        let body = TransactionRequest.Body.psbtSignature(PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true))
-        self.init(id: CID(), body: body, note: nil)
     }
     
     init(untaggedCBOR cbor: CBOR) throws {
@@ -60,13 +64,13 @@ public extension TransactionRequest {
         let function = try bodyEnvelope.extractSubject(FunctionIdentifier.self)
         switch function {
         case .getSeed:
-            self.body = try .seed(SeedRequestBody(bodyEnvelope))
+            self.body = try SeedRequestBody(bodyEnvelope)
         case .getKey:
-            self.body = try .key(KeyRequestBody(bodyEnvelope))
+            self.body = try KeyRequestBody(bodyEnvelope)
         case .signPSBT:
-            self.body = try .psbtSignature(PSBTSignatureRequestBody(bodyEnvelope))
+            self.body = try PSBTSignatureRequestBody(bodyEnvelope)
         case .getOutputDescriptor:
-            self.body = try .outputDescriptor(OutputDescriptorRequestBody(bodyEnvelope))
+            self.body = try OutputDescriptorRequestBody(bodyEnvelope)
         default:
             throw TransactionRequestError.unknownRequestType
         }
@@ -86,20 +90,5 @@ public extension TransactionRequest {
     
     func sizeLimitedUR(noteLimit: Int = 500) -> UR {
         envelope(noteLimit: noteLimit).ur
-    }
-}
-
-public extension TransactionRequest.Body {
-    var envelope: Envelope {
-        switch self {
-        case .seed(let body):
-            return body.envelope
-        case .key(let body):
-            return body.envelope
-        case .psbtSignature(let body):
-            return body.envelope
-        case .outputDescriptor(let body):
-            return body.envelope
-        }
     }
 }

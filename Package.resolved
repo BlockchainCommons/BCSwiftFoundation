@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "revision" : "341d4d83100ec2a6fc1216a9188eead35153dc82",
-        "version" : "0.14.0"
+        "revision" : "4abc38b944937f736083d79b80b88656f1ed2026",
+        "version" : "0.30.0"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/URKit.git",
       "state" : {
-        "revision" : "ddf590d5e2b2e0ff9ba5b38280eead5985fc8af1",
-        "version" : "7.4.1"
+        "revision" : "07b7459e429ed13d42dcaa800200b935ce3297b2",
+        "version" : "7.5.0"
       }
     },
     {
