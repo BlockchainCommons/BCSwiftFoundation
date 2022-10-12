@@ -8,7 +8,8 @@ public enum TransactionRequestError: Swift.Error {
     case unknownRequestType
 }
 
-public protocol TransactionRequestBody : Equatable {
+public protocol TransactionRequestBody {
+    static var function: FunctionIdentifier { get }
     var envelope: Envelope { get }
     init(_ envelope: Envelope) throws
 }
@@ -50,6 +51,15 @@ public extension TransactionRequest {
         }
     }
     
+    init<Body: TransactionRequestBody>(_ type: Body.Type, ur: UR) throws {
+        switch ur.type {
+        case CBOR.Tag.envelope.urType:
+            try self.init(type, untaggedCBOR: CBOR(ur.cbor))
+        default:
+            throw URError.unexpectedType
+        }
+    }
+    
     init(untaggedCBOR cbor: CBOR) throws {
         let envelope = try Envelope(untaggedCBOR: cbor)
         guard
@@ -74,6 +84,28 @@ public extension TransactionRequest {
         default:
             throw TransactionRequestError.unknownRequestType
         }
+    }
+    
+    init<Body: TransactionRequestBody>(_ type: Body.Type, _ envelope: Envelope) throws {
+        guard
+            let requestItem = envelope.leaf,
+            case CBOR.tagged(.request, let idItem) = requestItem
+        else {
+            throw TransactionRequestError.invalidFormat
+        }
+        self.id = try CID(taggedCBOR: idItem)
+        self.note = try? envelope.extractObject(String.self, forPredicate: .note)
+        let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
+        let fn = try bodyEnvelope.extractSubject(FunctionIdentifier.self)
+        guard fn == type.function else {
+            throw TransactionRequestError.unknownRequestType
+        }
+        self.body = try type.self.init(bodyEnvelope)
+    }
+
+    init<Body: TransactionRequestBody>(_ type: Body.Type, untaggedCBOR cbor: CBOR) throws {
+        let envelope = try Envelope(untaggedCBOR: cbor)
+        try self.init(type, envelope)
     }
 }
 

@@ -2,14 +2,6 @@ import XCTest
 import BCFoundation
 import WolfBase
 
-public struct GeneralError: LocalizedError {
-    public let errorDescription: String?
-
-    public init(_ errorDescription: String) {
-        self.errorDescription = errorDescription
-    }
-}
-
 class OutputDescriptorRequestTests: XCTestCase {
     let slotID = CID()
     let useInfo = UseInfo(asset: .btc, network: .testnet)

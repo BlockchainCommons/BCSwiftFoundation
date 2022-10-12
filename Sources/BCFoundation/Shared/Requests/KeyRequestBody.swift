@@ -10,6 +10,7 @@ import URKit
 import WolfBase
 
 public struct KeyRequestBody: TransactionRequestBody {
+    public static var function: FunctionIdentifier = .getKey
     public let keyType: KeyType
     public let path: DerivationPath
     public let useInfo: UseInfo

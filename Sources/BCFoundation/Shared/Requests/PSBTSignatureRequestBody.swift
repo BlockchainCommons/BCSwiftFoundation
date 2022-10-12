@@ -10,6 +10,7 @@ import URKit
 import WolfBase
 
 public struct PSBTSignatureRequestBody: TransactionRequestBody {
+    public static var function: FunctionIdentifier = .signPSBT
     public let psbt: PSBT
     public let isRawPSBT: Bool
     

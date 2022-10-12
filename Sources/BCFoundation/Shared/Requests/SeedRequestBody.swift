@@ -9,6 +9,7 @@ import Foundation
 import URKit
 
 public struct SeedRequestBody: TransactionRequestBody {
+    public static var function: FunctionIdentifier = .getSeed
     public let seedDigest: SeedDigest
     
     public init(seedDigest: SeedDigest) {
