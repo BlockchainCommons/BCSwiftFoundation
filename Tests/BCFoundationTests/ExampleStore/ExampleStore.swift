@@ -2,35 +2,55 @@ import BCFoundation
 import WolfBase
 import XCTest
 
-public struct Receipt: Hashable {
-    let data: Data
-    
-    init(userID: CID, payload: Data) {
-        self.data = Digest(userID.data + payload).data
-    }
-}
-
-extension Receipt: CustomStringConvertible {
-    public var description: String {
-        "Receipt(\(data.hex))"
-    }
-}
-
 /// An implementation of a skeletal share store, which is a service that could be
 /// used to back up SSKR shares and similar non-confidential information that might
 /// be used for social recovery schemes.
 public class ExampleStore {
     static let maxPayloadSize = 1000
+    static let privateKey = PrivateKeyBase()
+    static let publicKey = privateKey.publicKeys
 
-    public enum Error: Swift.Error {
+    public enum Error: LocalizedError {
         case unknownReceipt
         case userMismatch
         case unknownPublicKey
         case payloadTooLarge
+        case fallbackAlreadyInUse
+        case invalidFallback
+        case publicKeyAlreadyInUse
+        case expiredRequest
+        case noFallback
+        
+        public var errorDescription: String? {
+            switch self {
+            case .unknownReceipt:
+                return "unknownReceipt"
+            case .userMismatch:
+                return "userMismatch"
+            case .unknownPublicKey:
+                return "unknownPublicKey"
+            case .payloadTooLarge:
+                return "payloadTooLarge"
+            case .fallbackAlreadyInUse:
+                return "fallbackAlreadyInUse"
+            case .invalidFallback:
+                return "invalidFallback"
+            case .publicKeyAlreadyInUse:
+                return "publicKeyAlreadyInUse"
+            case .expiredRequest:
+                return "expiredRequest"
+            case .noFallback:
+                return "noFallback"
+            }
+        }
     }
 
     struct User {
-        let id: CID
+        // The userID is for internal use only, and never changes for a given account.
+        // Users always identify themselves by a public key, which can change over the
+        // lifetime of the account.
+        let userID: CID
+        var publicKey: PublicKeyBase
         var fallback: String? = nil
     }
     
@@ -47,6 +67,7 @@ public class ExampleStore {
     }
     
     var usersByID: [CID: User] = [:]
+    var userIDsByFallback: [String: CID] = [:]
     var userIDsByPublicKey: [PublicKeyBase: CID] = [:]
     var recordsByReceipt: [Receipt: Record] = [:]
     var receiptsByUserID: [CID: Set<Receipt>] = [:]
@@ -126,12 +147,19 @@ public protocol ExampleStoreProtocol {
     /// input receipts, or corresponding to all the controlled shares if no input
     /// receipts are provided. Attempting to retrieve nonexistent receipts or receipts
     /// from the wrong account is an error.
-    func retrieveShares(publicKey: PublicKeyBase, receipts: Set<Receipt>?) throws -> [Receipt: Data]
+    func retrieveShares(publicKey: PublicKeyBase, receipts: Set<Receipt>) throws -> [Receipt: Data]
     
     /// Deletes all the shares of an account and any other data associated with it, such
     /// as the fallback contact method. Deleting an account is idempotent; in other words,
     /// deleting a nonexistent account is not an error.
     func deleteAccount(publicKey: PublicKeyBase)
+    
+    /// Requests a reset of the account's public key without knowing the current one.
+    /// The account must have a validated fallback contact method that matches the one
+    /// provided. The Store owner needs to then contact the user via their fallback
+    /// contact method to confirm the change. If the request is not confirmed by a set
+    /// amount of time, then the change is not made.
+    func fallbackTransfer(fallback: String, new: PublicKeyBase) throws
 }
 
 extension ExampleStore: ExampleStoreProtocol {
@@ -139,7 +167,7 @@ extension ExampleStore: ExampleStoreProtocol {
         var userID: CID! = userIDsByPublicKey[publicKey]
         if userID == nil {
             userID = CID()
-            usersByID[userID] = User(id: userID)
+            usersByID[userID] = User(userID: userID, publicKey: publicKey)
             userIDsByPublicKey[publicKey] = userID
             receiptsByUserID[userID] = []
         }
@@ -155,21 +183,38 @@ extension ExampleStore: ExampleStoreProtocol {
     
     public func updateFallback(publicKey: PublicKeyBase, fallback: String?) throws {
         let userID = try getUserID(for: publicKey)
+        if let fallback {
+            guard userIDsByFallback[fallback] == nil else {
+                throw Error.fallbackAlreadyInUse
+            }
+        }
         with(&usersByID[userID]!) { user in
+            if let oldFallback = user.fallback {
+                userIDsByFallback.removeValue(forKey: oldFallback)
+            }
             user.fallback = fallback
+            if let fallback {
+                userIDsByFallback[fallback] = userID
+            }
         }
     }
     
     public func retrieveFallback(publicKey: PublicKeyBase) throws -> String? {
         try usersByID[getUserID(for: publicKey)]?.fallback
     }
-
+    
     public func updatePublicKey(old: PublicKeyBase, new: PublicKeyBase) throws {
+        guard userIDsByPublicKey[new] == nil else {
+            throw Error.publicKeyAlreadyInUse
+        }
         let userID = try getUserID(for: old)
         userIDsByPublicKey.removeValue(forKey: old)
         userIDsByPublicKey[new] = userID
+        with(&usersByID[userID]!) { user in
+            user.publicKey = new
+        }
     }
-
+    
     public func deleteShares(publicKey: PublicKeyBase, receipts: Set<Receipt>? = nil) throws {
         let userID = try getUserID(for: publicKey)
         let receipts = receipts ?? receiptsByUserID[userID]!
@@ -178,10 +223,10 @@ extension ExampleStore: ExampleStoreProtocol {
             try delete(record: record)
         }
     }
-
-    public func retrieveShares(publicKey: PublicKeyBase, receipts: Set<Receipt>? = nil) throws -> [Receipt: Data] {
+    
+    public func retrieveShares(publicKey: PublicKeyBase, receipts: Set<Receipt> = []) throws -> [Receipt: Data] {
         let userID = try getUserID(for: publicKey)
-        let receipts = receipts ?? receiptsByUserID[userID]!
+        let receipts = receipts.isEmpty ? receiptsByUserID[userID]! : receipts
         return try receipts.reduce(into: [:]) { result, receipt in
             guard let record = try record(userID: userID, receipt: receipt ) else {
                 throw Error.unknownReceipt
@@ -198,6 +243,18 @@ extension ExampleStore: ExampleStoreProtocol {
         userIDsByPublicKey.removeValue(forKey: publicKey)
         usersByID.removeValue(forKey: userID)
     }
+    
+    public func fallbackTransfer(fallback: String, new: PublicKeyBase) throws {
+        guard userIDsByPublicKey[new] == nil else {
+            throw Error.publicKeyAlreadyInUse
+        }
+        guard userIDsByFallback[fallback] != nil else {
+            throw Error.invalidFallback
+        }
+        // Here the store must initiate asyncronously using the fallback to verify the
+        // user's intent to change their key and only change it if the verification
+        // succeeds.
+    }
 }
 
 public extension ExampleStore {
@@ -209,84 +266,5 @@ public extension ExampleStore {
     /// Convenience method for retriving a single share
     func retrieveShare(publicKey: PublicKeyBase, receipt: Receipt) throws -> Data {
         try retrieveShares(publicKey: publicKey, receipts: Set([receipt])).first!.1
-    }
-}
-
-class ExampleStoreTests: XCTestCase {
-    func testStore() throws {
-        let exampleStore = ExampleStore()
-
-        // Alice stores a share
-        let alicePublicKey = PrivateKeyBase().publicKeys
-        let alicePayload1 = ‡"cafebabe"
-        let aliceReceipt1 = try exampleStore.storeShare(publicKey: alicePublicKey, payload: alicePayload1)
-        
-        // Bob stores a share
-        let bobPublicKey = PrivateKeyBase().publicKeys
-        let bobPayload1 = ‡"deadbeef"
-        let bobReceipt1 = try exampleStore.storeShare(publicKey: bobPublicKey, payload: bobPayload1)
-        
-        // Alice retrieves her share
-        XCTAssertEqual(try exampleStore.retrieveShare(publicKey: alicePublicKey, receipt: aliceReceipt1), alicePayload1)
-        
-        // Bob retrieves his share
-        XCTAssertEqual(try exampleStore.retrieveShare(publicKey: bobPublicKey, receipt: bobReceipt1), bobPayload1)
-        
-        // Alice stores a second share
-        let alicePayload2 = ‡"cafef00d"
-        let aliceReceipt2 = try exampleStore.storeShare(publicKey: alicePublicKey, payload: alicePayload2)
-
-        // Alice retrieves her second share
-        XCTAssertEqual(try exampleStore.retrieveShare(publicKey: alicePublicKey, receipt: aliceReceipt2), alicePayload2)
-        
-        // Alice retrieves both her shares identified only by her public key.
-        XCTAssertEqual(try exampleStore.retrieveShares(publicKey: alicePublicKey).count, 2)
-        
-        // Bob attempts to retrieve one of Alice's shares
-        XCTAssertThrowsError(try exampleStore.retrieveShare(publicKey: bobPublicKey, receipt: aliceReceipt1))
-        
-        // Someone attempts to retrieve all shares from a nonexistent account
-        XCTAssertThrowsError(try exampleStore.retrieveShares(publicKey: PrivateKeyBase().publicKeys))
-        
-        // Alice stores a share she's previously stored (idempotent)
-        XCTAssertEqual(try exampleStore.storeShare(publicKey: alicePublicKey, payload: alicePayload1), aliceReceipt1)
-        XCTAssertEqual(try exampleStore.retrieveShares(publicKey: alicePublicKey).count, 2)
-        
-        // Alice deletes one of her shares
-        try exampleStore.deleteShare(publicKey: alicePublicKey, receipt: aliceReceipt1)
-        XCTAssertEqual(try exampleStore.retrieveShares(publicKey: alicePublicKey).count, 1)
-        XCTAssertEqual(try exampleStore.retrieveShares(publicKey: alicePublicKey).first!.1, alicePayload2)
-        
-        // Alice attempts to delete a share she already deleted (idempotent).
-        XCTAssertNoThrow(try exampleStore.deleteShare(publicKey: alicePublicKey, receipt: aliceReceipt1))
-
-        // Bob adds a fallback contact method
-        try exampleStore.updateFallback(publicKey: bobPublicKey, fallback: "bob@example.com")
-        XCTAssertEqual(try exampleStore.retrieveFallback(publicKey: bobPublicKey), "bob@example.com")
-        
-        // Alice has never set her fallback contact method
-        XCTAssertNil(try exampleStore.retrieveFallback(publicKey: alicePublicKey))
-        
-        // Someone attempts to retrieve the fallback for a nonexistent account
-        XCTAssertThrowsError(try exampleStore.retrieveFallback(publicKey: PrivateKeyBase().publicKeys))
-        
-        // Alice updates her public key to a new one
-        let alicePublicKey2 = PrivateKeyBase().publicKeys
-        try exampleStore.updatePublicKey(old: alicePublicKey, new: alicePublicKey2)
-
-        // Alice can no longer retrieve her shares using the old public key
-        XCTAssertThrowsError(try exampleStore.retrieveShares(publicKey: alicePublicKey))
-
-        // Alice must now use her new public key
-        XCTAssertEqual(try exampleStore.retrieveShares(publicKey: alicePublicKey2).count, 1)
-        
-        // Bob deletes his entire account
-        exampleStore.deleteAccount(publicKey: bobPublicKey)
-
-        // Attempting to retrieve his share now throws an error
-        XCTAssertThrowsError(try exampleStore.retrieveShare(publicKey: bobPublicKey, receipt: bobReceipt1))
-
-        // Attempting to retrieve his fallback now throws an error
-        XCTAssertThrowsError(try exampleStore.retrieveFallback(publicKey: bobPublicKey))
     }
 }

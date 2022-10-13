@@ -18,11 +18,13 @@ public struct TransactionRequest: Equatable {
     public let id: CID
     public let body: any TransactionRequestBody
     public let note: String?
+    public let date: Date?
     
-    public init(id: CID = CID(), body: any TransactionRequestBody, note: String? = nil) {
+    public init(id: CID = CID(), body: any TransactionRequestBody, note: String? = nil, date: Date? = nil) {
         self.id = id
         self.body = body
         self.note = note
+        self.date = date
     }
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -69,6 +71,7 @@ public extension TransactionRequest {
             throw TransactionRequestError.invalidFormat
         }
         self.id = try CID(taggedCBOR: idItem)
+        self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
         let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
         let function = try bodyEnvelope.extractSubject(FunctionIdentifier.self)
@@ -94,6 +97,7 @@ public extension TransactionRequest {
             throw TransactionRequestError.invalidFormat
         }
         self.id = try CID(taggedCBOR: idItem)
+        self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
         let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
         let fn = try bodyEnvelope.extractSubject(FunctionIdentifier.self)
@@ -107,6 +111,23 @@ public extension TransactionRequest {
         let envelope = try Envelope(untaggedCBOR: cbor)
         try self.init(type, envelope)
     }
+    
+    init(_ envelope: Envelope, getBody: (Envelope) throws -> TransactionRequestBody?) throws {
+        guard
+            let requestItem = envelope.leaf,
+            case CBOR.tagged(.request, let idItem) = requestItem
+        else {
+            throw TransactionRequestError.invalidFormat
+        }
+        self.id = try CID(taggedCBOR: idItem)
+        self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
+        self.note = try? envelope.extractObject(String.self, forPredicate: .note)
+        let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
+        guard let body = try getBody(bodyEnvelope) else {
+            throw TransactionRequestError.unknownRequestType
+        }
+        self.body = body
+    }
 }
 
 public extension TransactionRequest {
@@ -114,6 +135,7 @@ public extension TransactionRequest {
         let n = (note ?? "").prefix(count: noteLimit)
         return Envelope(request: id, body: body.envelope)
             .addAssertion(if: !n.isEmpty, .note, n)
+            .addAssertion(.date, date)
     }
     
     var ur: UR {
