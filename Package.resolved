@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "revision" : "4abc38b944937f736083d79b80b88656f1ed2026",
-        "version" : "0.30.0"
+        "revision" : "89d2c9753b75365f040b7220821e0ca088d3d1a5",
+        "version" : "0.32.0"
       }
     },
     {

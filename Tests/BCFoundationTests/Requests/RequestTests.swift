@@ -26,14 +26,14 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
-        request(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        request(CID(c66be27d)) [
             body: «getSeed» [
                 ❰seedDigest❱: CBOR(seed-digest)
             ]
             note: "Test"
         ]
         """
-        let envelope = try request.envelope().checkEncoding()
+        let envelope = try request.envelope.checkEncoding()
         XCTAssertEqual(envelope.format, expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
@@ -47,7 +47,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
-        response(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        response(CID(c66be27d)) [
             result: CBOR(crypto-seed)
         ]
         """
@@ -68,7 +68,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
-        request(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        request(CID(c66be27d)) [
             body: «getKey» [
                 ❰derivationPath❱: CBOR(crypto-keypath)
                 ❰useInfo❱: CBOR(crypto-coin-info)
@@ -76,7 +76,7 @@ class RequestTests: XCTestCase {
             note: "Test"
         ]
         """
-        let envelope = try request.envelope().checkEncoding()
+        let envelope = try request.envelope.checkEncoding()
         XCTAssertEqual(envelope.format, expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
@@ -94,7 +94,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        response(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        response(CID(c66be27d)) [
             result: CBOR(crypto-hdkey)
         ]
         """
@@ -114,7 +114,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        request(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        request(CID(c66be27d)) [
             body: «getKey» [
                 ❰derivationPath❱: CBOR(crypto-keypath)
                 ❰useInfo❱: CBOR(crypto-coin-info)
@@ -122,7 +122,7 @@ class RequestTests: XCTestCase {
             note: "Test"
         ]
         """
-        let envelope = try request.envelope().checkEncoding()
+        let envelope = try request.envelope.checkEncoding()
         XCTAssertEqual(envelope.format, expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
@@ -137,14 +137,14 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        request(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        request(CID(c66be27d)) [
             body: «signPSBT» [
                 ❰psbt❱: CBOR(crypto-psbt)
             ]
             note: "Test"
         ]
         """
-        let envelope = try request.envelope().checkEncoding()
+        let envelope = try request.envelope.checkEncoding()
         XCTAssertEqual(envelope.format, expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
@@ -158,7 +158,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        response(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        response(CID(c66be27d)) [
             result: CBOR(crypto-psbt)
         ]
         """
@@ -178,16 +178,16 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        request(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        request(CID(c66be27d)) [
             body: «getOutputDescriptor» [
-                ❰challenge❱: Data
+                ❰challenge❱: Data(16)
                 ❰name❱: "Name"
                 ❰useInfo❱: CBOR(crypto-coin-info)
             ]
             note: "Test"
         ]
         """
-        let envelope = try request.envelope().checkEncoding()
+        let envelope = try request.envelope.checkEncoding()
         XCTAssertEqual(envelope.format, expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
@@ -204,7 +204,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        response(CID(c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc)) [
+        response(CID(c66be27d)) [
             result: CBOR(output-descriptor-response)
         ]
         """
