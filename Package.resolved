@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "revision" : "89d2c9753b75365f040b7220821e0ca088d3d1a5",
-        "version" : "0.32.0"
+        "revision" : "ab1e24ca1eca0ae821f8c410f336b2d467cccebb",
+        "version" : "0.33.0"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
       "state" : {
-        "revision" : "039f56c5d7960f277087a0be51f5eb04ed0ec073",
-        "version" : "1.5.1"
+        "revision" : "19b3c3ceed117c5cc883517c4e658548315ba70b",
+        "version" : "1.6.0"
       }
     },
     {
@@ -52,6 +52,33 @@
       "state" : {
         "revision" : "fc83238259c8be6eade1af40d81c41e235e1d178",
         "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "graph",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WolfMcNally/Graph.git",
+      "state" : {
+        "revision" : "47e62c4ddcb4fc3d5a896a0466394ffdbe066877",
+        "version" : "0.2.1"
+      }
+    },
+    {
+      "identity" : "graphdot",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WolfMcNally/GraphDot.git",
+      "state" : {
+        "revision" : "c3009b3ccfa5c269b17655510f5b1244d4ef22be",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "graphmermaid",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WolfMcNally/GraphMermaid.git",
+      "state" : {
+        "revision" : "b5bb43f988a12b2b3861b7a97293de282cac676b",
+        "version" : "0.2.0"
       }
     },
     {
@@ -95,8 +122,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WolfMcNally/WolfBase",
       "state" : {
-        "revision" : "ad3bef161fe0f1f2b41389a4ff8a831409bd2ec6",
-        "version" : "4.5.0"
+        "revision" : "51846810911c51dfe38514a5b5454220c59b4a79",
+        "version" : "4.5.2"
       }
     }
   ],
