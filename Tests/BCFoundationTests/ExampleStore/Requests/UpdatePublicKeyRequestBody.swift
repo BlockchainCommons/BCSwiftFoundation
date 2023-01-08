@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct UpdatePublicKeyRequestBody: StoreRequestBody {
-    public static var function: FunctionIdentifier = "updatePublicKey"
+    public static var function: Envelope.FunctionIdentifier = "updatePublicKey"
     public let publicKey: PublicKeyBase
     public let newPublicKey: PublicKeyBase
 
@@ -12,7 +12,7 @@ public struct UpdatePublicKeyRequestBody: StoreRequestBody {
     }
     
     public init(_ envelope: Envelope) throws {
-        guard try envelope.extractSubject(FunctionIdentifier.self) == Self.function else {
+        guard try envelope.extractSubject(Envelope.FunctionIdentifier.self) == Self.function else {
             throw GeneralError("Incorrect function.")
         }
         self.publicKey = try envelope.extractObject(PublicKeyBase.self, forParameter: "old")

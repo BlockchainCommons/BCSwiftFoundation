@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct RetrieveFallbackRequestBody: StoreRequestBody {
-    public static var function: FunctionIdentifier = "retrieveFallback"
+    public static var function: Envelope.FunctionIdentifier = "retrieveFallback"
     public let publicKey: PublicKeyBase
 
     public init(publicKey: PublicKeyBase) {
@@ -10,7 +10,7 @@ public struct RetrieveFallbackRequestBody: StoreRequestBody {
     }
     
     public init(_ envelope: Envelope) throws {
-        guard try envelope.extractSubject(FunctionIdentifier.self) == Self.function else {
+        guard try envelope.extractSubject(Envelope.FunctionIdentifier.self) == Self.function else {
             throw GeneralError("Incorrect function.")
         }
         self.publicKey = try envelope.extractObject(PublicKeyBase.self, forParameter: "publicKey")

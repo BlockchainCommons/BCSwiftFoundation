@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 import URKit
-import BCSecureComponents
+import SecureComponents
 
 public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider {
     var data: Data { get }

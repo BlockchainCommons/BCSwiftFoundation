@@ -8,9 +8,10 @@
 import Foundation
 import URKit
 import WolfBase
+import Envelope
 
 public struct KeyRequestBody: TransactionRequestBody {
-    public static var function: FunctionIdentifier = .getKey
+    public static var function: Envelope.FunctionIdentifier = .getKey
     public let keyType: KeyType
     public let path: DerivationPath
     public let useInfo: UseInfo

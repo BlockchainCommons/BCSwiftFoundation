@@ -5,8 +5,10 @@ import PackageDescription
 let package = Package(
     name: "BCFoundation",
     platforms: [
+        .macOS(.v12),
         .iOS(.v15),
-        .macOS(.v13)
+        .tvOS(.v15),
+        .watchOS(.v8)
     ],
     products: [
         .library(
@@ -14,9 +16,10 @@ let package = Package(
             targets: ["BCFoundation"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/WolfMcNally/WolfBase", from: "4.0.0"),
+        .package(url: "https://github.com/WolfMcNally/WolfBase", from: "5.0.0"),
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
-        .package(url: "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git", branch: "master")
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git", from: "0.1.0"),
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftEnvelope.git", from: "0.1.0")
     ],
     targets: [
         .target(
@@ -24,7 +27,8 @@ let package = Package(
             dependencies: [
                 "WolfBase",
                 "Flexer",
-                .product(name: "BCSecureComponents", package: "BCSwiftSecureComponents"),
+                .product(name: "SecureComponents", package: "BCSwiftSecureComponents"),
+                .product(name: "Envelope", package: "BCSwiftEnvelope"),
             ]
         ),
         .testTarget(

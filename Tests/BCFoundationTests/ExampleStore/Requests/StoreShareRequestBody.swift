@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct StoreShareRequestBody: StoreRequestBody {
-    public static var function: FunctionIdentifier = "storeShare"
+    public static var function: Envelope.FunctionIdentifier = "storeShare"
     public let publicKey: PublicKeyBase
     public let payload: Data
 
@@ -12,7 +12,7 @@ public struct StoreShareRequestBody: StoreRequestBody {
     }
     
     public init(_ envelope: Envelope) throws {
-        guard try envelope.extractSubject(FunctionIdentifier.self) == Self.function else {
+        guard try envelope.extractSubject(Envelope.FunctionIdentifier.self) == Self.function else {
             throw GeneralError("Incorrect function.")
         }
         self.publicKey = try envelope.extractObject(PublicKeyBase.self, forParameter: "publicKey")

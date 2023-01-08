@@ -28,7 +28,7 @@ class RequestTests: XCTestCase {
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getSeed» [
-                ❰seedDigest❱: CBOR(seed-digest)
+                ❰seedDigest❱: seed-digest(Data(32))
             ]
             note: "Test"
         ]
@@ -48,7 +48,7 @@ class RequestTests: XCTestCase {
         
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: CBOR(crypto-seed)
+            result: crypto-seed(CBOR)
         ]
         """
         let envelope = try response.envelope.checkEncoding()
@@ -70,8 +70,8 @@ class RequestTests: XCTestCase {
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: CBOR(crypto-keypath)
-                ❰useInfo❱: CBOR(crypto-coin-info)
+                ❰derivationPath❱: crypto-keypath(CBOR)
+                ❰useInfo❱: crypto-coin-info(CBOR)
             ]
             note: "Test"
         ]
@@ -95,7 +95,7 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: CBOR(crypto-hdkey)
+            result: crypto-hdkey(CBOR)
         ]
         """
         let envelope = try response.envelope.checkEncoding()
@@ -116,8 +116,8 @@ class RequestTests: XCTestCase {
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: CBOR(crypto-keypath)
-                ❰useInfo❱: CBOR(crypto-coin-info)
+                ❰derivationPath❱: crypto-keypath(CBOR)
+                ❰useInfo❱: crypto-coin-info(CBOR)
             ]
             note: "Test"
         ]
@@ -139,7 +139,7 @@ class RequestTests: XCTestCase {
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «signPSBT» [
-                ❰psbt❱: CBOR(crypto-psbt)
+                ❰psbt❱: crypto-psbt(Data(555))
             ]
             note: "Test"
         ]
@@ -159,7 +159,7 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: CBOR(crypto-psbt)
+            result: crypto-psbt(Data(555))
         ]
         """
         let envelope = try response.envelope.checkEncoding()
@@ -182,7 +182,7 @@ class RequestTests: XCTestCase {
             body: «getOutputDescriptor» [
                 ❰challenge❱: Data(16)
                 ❰name❱: "Name"
-                ❰useInfo❱: CBOR(crypto-coin-info)
+                ❰useInfo❱: crypto-coin-info(CBOR)
             ]
             note: "Test"
         ]
@@ -205,7 +205,7 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: CBOR(output-descriptor-response)
+            result: output-descriptor-response(["pkh([37b5eed4/44'/0'/0']xpub6CnQkivUEH9bSbWVWfDLCtigKKgnSWGaVSRyCbN2QNBJzuvHT1vUQpgSpY1NiVvoeNEuVwk748Cn9G3NtbQB1aGGsEL7aYEnjVWgjj9tefu/<0;1>/*)#vxycy4eh", Data(32)])
         ]
         """
         let envelope = try response.envelope.checkEncoding()

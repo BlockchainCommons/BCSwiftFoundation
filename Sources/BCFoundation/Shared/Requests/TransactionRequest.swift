@@ -1,7 +1,7 @@
 import Foundation
 import URKit
 import WolfBase
-import BCSecureComponents
+import SecureComponents
 
 public enum TransactionRequestError: Swift.Error {
     case invalidFormat
@@ -9,7 +9,7 @@ public enum TransactionRequestError: Swift.Error {
 }
 
 public protocol TransactionRequestBody {
-    static var function: FunctionIdentifier { get }
+    static var function: Envelope.FunctionIdentifier { get }
     var envelope: Envelope { get }
     init(_ envelope: Envelope) throws
 }
@@ -74,7 +74,7 @@ public extension TransactionRequest {
         self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
         let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
-        let function = try bodyEnvelope.extractSubject(FunctionIdentifier.self)
+        let function = try bodyEnvelope.extractSubject(Envelope.FunctionIdentifier.self)
         switch function {
         case .getSeed:
             self.body = try SeedRequestBody(bodyEnvelope)
@@ -100,7 +100,7 @@ public extension TransactionRequest {
         self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
         let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
-        let fn = try bodyEnvelope.extractSubject(FunctionIdentifier.self)
+        let fn = try bodyEnvelope.extractSubject(Envelope.FunctionIdentifier.self)
         guard fn == type.function else {
             throw TransactionRequestError.unknownRequestType
         }

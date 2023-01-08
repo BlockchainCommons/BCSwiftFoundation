@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "branch" : "master",
-        "revision" : "16a166cf68856049a7cc10eaa01b1f9fae571bdb"
+        "revision" : "f66ab3d7f299c8567dcaf384bacf7793acbb1c63",
+        "version" : "0.39.0"
       }
     },
     {
@@ -55,33 +55,6 @@
       }
     },
     {
-      "identity" : "graph",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WolfMcNally/Graph.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "243181ba08bc8d1044a93c5372bf0cee7643543d"
-      }
-    },
-    {
-      "identity" : "graphdot",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WolfMcNally/GraphDot.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "536c079ba9ea1988050854a7710cbb62c702d75a"
-      }
-    },
-    {
-      "identity" : "graphmermaid",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WolfMcNally/GraphMermaid.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "7fb2f93e18a72dc8e7f2d451921f2b83e1dbb291"
-      }
-    },
-    {
       "identity" : "secp256k1-zkp.swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/secp256k1-zkp.swift.git",
@@ -100,15 +73,6 @@
       }
     },
     {
-      "identity" : "swift-collections",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-collections",
-      "state" : {
-        "branch" : "main",
-        "revision" : "53a8adc54374f620002a3b6401d39e0feb3c57ae"
-      }
-    },
-    {
       "identity" : "swift-numerics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-numerics",
@@ -118,21 +82,12 @@
       }
     },
     {
-      "identity" : "treedistance",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/WolfMcNally/TreeDistance.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "70c61c96c4db96ed6ebf7ef16fb0f0ca60d048a9"
-      }
-    },
-    {
       "identity" : "urkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/URKit.git",
       "state" : {
-        "revision" : "07b7459e429ed13d42dcaa800200b935ce3297b2",
-        "version" : "7.5.0"
+        "revision" : "e0520d366d0c2e852fb96c471e4a490b05ee10c6",
+        "version" : "8.0.0"
       }
     },
     {
@@ -140,8 +95,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/wolfmcnally/WolfBase.git",
       "state" : {
-        "revision" : "883d3e868ab61b2001f2cbf4566bb5e72ab10603",
-        "version" : "4.7.0"
+        "revision" : "f47ff5ac3fde68b52e3cf26cac2a464fbc113bb9",
+        "version" : "5.0.1"
       }
     }
   ],
