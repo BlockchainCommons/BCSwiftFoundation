@@ -78,7 +78,7 @@ struct DescriptorMulti: DescriptorAST {
     }
 
     var untaggedCBOR: CBOR {
-        CBOR.orderedMap([
+        CBOR.map([
             1: .unsignedInt(UInt64(threshold)),
             2: .array(keys.map({ $0.taggedCBOR }))
         ])

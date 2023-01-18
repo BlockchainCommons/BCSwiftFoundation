@@ -191,7 +191,7 @@ extension Bitcoin {
 extension Bitcoin.Address {
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
-        CBOR.orderedMap([
+        CBOR.map([
             1: useInfo.taggedCBOR,
             2: .unsignedInt(UInt64(type.cborType.rawValue)),
             3: .data(data)
@@ -210,27 +210,26 @@ extension Bitcoin.Address {
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR else {
+        guard case CBOR.map(let map) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
-        let pairs = try orderedMap.valuesByIntKey()
 
         let useInfo: UseInfo
-        if let rawUseInfo = pairs[1] {
+        if let rawUseInfo = map[1] {
             useInfo = try UseInfo(taggedCBOR: rawUseInfo)
         } else {
             useInfo = UseInfo()
         }
 
         guard
-            let typeItem = pairs[2]
+            let typeItem = map[2]
         else {
             throw CBORError.invalidFormat
         }
         let cborType = try CBORType(untaggedCBOR: typeItem)
 
         guard
-            let dataItem = pairs[3],
+            let dataItem = map[3],
             case let CBOR.data(bytes) = dataItem,
             !bytes.isEmpty
         else {

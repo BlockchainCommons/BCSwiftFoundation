@@ -264,17 +264,17 @@ extension DerivationPath {
 
 extension DerivationPath {
     public var untaggedCBOR: CBOR {
-        var a: OrderedMap = [1: .array(steps.flatMap { $0.array } )]
+        var a: [CBOR: CBOR] = [1: .array(steps.flatMap { $0.array } )]
         
         if case let .fingerprint(sourceFingerprint) = origin {
-            a.append(2, .unsignedInt(UInt64(sourceFingerprint)))
+            a[2] = .unsignedInt(UInt64(sourceFingerprint))
         }
         
         if let depth = depth {
-            a.append(3, .unsignedInt(UInt64(depth)))
+            a[3] = .unsignedInt(UInt64(depth))
         }
         
-        return CBOR.orderedMap(a)
+        return CBOR.map(a)
     }
     
     public var taggedCBOR: CBOR {
@@ -282,14 +282,13 @@ extension DerivationPath {
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR
+        guard case CBOR.map(let map) = untaggedCBOR
         else {
             throw DerivationPathError.invalidDerivationPath
         }
-        let pairs = try orderedMap.valuesByIntKey()
 
         guard
-            case let CBOR.array(componentsItem) = pairs[1] ?? CBOR.null,
+            case let CBOR.array(componentsItem) = map[1] ?? CBOR.null,
             componentsItem.count.isMultiple(of: 2)
         else {
             throw DerivationPathError.invalidDerivationPathComponents
@@ -304,7 +303,7 @@ extension DerivationPath {
         }
         
         let origin: Origin?
-        if let sourceFingerprintItem = pairs[2] {
+        if let sourceFingerprintItem = map[2] {
             guard
                 case let CBOR.unsignedInt(sourceFingerprintValue) = sourceFingerprintItem,
                 sourceFingerprintValue != 0,
@@ -318,7 +317,7 @@ extension DerivationPath {
         }
         
         let depth: Int?
-        if let depthItem = pairs[3] {
+        if let depthItem = map[3] {
             guard
                 case let CBOR.unsignedInt(depthValue) = depthItem,
                 depthValue <= UInt8.max

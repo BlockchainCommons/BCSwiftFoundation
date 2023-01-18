@@ -98,26 +98,26 @@ extension SeedProtocol {
 
 extension SeedProtocol {
     public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
-        var a: OrderedMap = [1: .data(data)]
+        var a: [CBOR: CBOR] = [1: .data(data)]
         var didLimit = false
 
         if let creationDate = creationDate {
-            a.append(2, .date(creationDate))
+            a[2] = .date(creationDate)
         }
 
         if !name.isEmpty {
             let limitedName = name.prefix(count: nameLimit)
             didLimit = didLimit || limitedName.count < name.count
-            a.append(3, .utf8String(limitedName))
+            a[3] = .utf8String(limitedName)
         }
 
         if !note.isEmpty {
             let limitedNote = note.prefix(count: noteLimit)
             didLimit = didLimit || limitedNote.count < note.count
-            a.append(4, .utf8String(limitedNote))
+            a[4] = .utf8String(limitedNote)
         }
 
-        return (CBOR.orderedMap(a), didLimit)
+        return (CBOR.map(a), didLimit)
     }
 
     public var taggedCBOR: CBOR {
@@ -155,14 +155,13 @@ extension SeedProtocol {
     }
 
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR else {
+        guard case CBOR.map(let map) = untaggedCBOR else {
             // CBOR doesn't contain a map.
             throw CBORError.invalidFormat
         }
-        let pairs = try orderedMap.valuesByIntKey()
         
         guard
-            let dataItem = pairs[1],
+            let dataItem = map[1],
             case let CBOR.data(bytes) = dataItem,
             !bytes.isEmpty
         else {
@@ -172,7 +171,7 @@ extension SeedProtocol {
         let data = bytes.data
         
         let creationDate: Date?
-        if let dateItem = pairs[2] {
+        if let dateItem = map[2] {
             guard case let CBOR.date(d) = dateItem else {
                 // CreationDate field doesn't contain a date.
                 throw CBORError.invalidFormat
@@ -183,7 +182,7 @@ extension SeedProtocol {
         }
 
         let name: String
-        if let nameItem = pairs[3] {
+        if let nameItem = map[3] {
             guard case let CBOR.utf8String(s) = nameItem else {
                 // Name field doesn't contain string.
                 throw CBORError.invalidFormat
@@ -194,7 +193,7 @@ extension SeedProtocol {
         }
 
         let note: String
-        if let noteItem = pairs[4] {
+        if let noteItem = map[4] {
             guard case let CBOR.utf8String(s) = noteItem else {
                 // Note field doesn't contain string.
                 throw CBORError.invalidFormat

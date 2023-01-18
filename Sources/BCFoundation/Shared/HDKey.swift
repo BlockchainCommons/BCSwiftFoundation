@@ -455,52 +455,52 @@ extension HDKeyProtocol {
 
 extension HDKeyProtocol {
     public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
-        var a: OrderedMap = [:]
+        var a: [CBOR: CBOR] = [:]
         var didLimit: Bool = false
 
         if isMaster {
-            a.append(1, true)
+            a[1] = true
         }
 
         if keyType == .private {
-            a.append(2, true)
+            a[2] = true
         }
 
-        a.append(3, .data(keyData))
+        a[3] = .data(keyData)
 
         if let chainCode = chainCode {
-            a.append(4, .data(chainCode))
+            a[4] = .data(chainCode)
         }
 
         if !useInfo.isDefault {
-            a.append(5, useInfo.taggedCBOR)
+            a[5] = useInfo.taggedCBOR
         }
 
         if !parent.isEmpty {
-            a.append(6, parent.taggedCBOR)
+            a[6] = parent.taggedCBOR
         }
 
         if !children.isEmpty {
-            a.append(7, children.taggedCBOR)
+            a[7] = children.taggedCBOR
         }
 
         if let parentFingerprint = parentFingerprint {
-            a.append(8, .unsignedInt(UInt64(parentFingerprint)))
+            a[8] = .unsignedInt(UInt64(parentFingerprint))
         }
         
         if !name.isEmpty {
             let limitedName = name.prefix(count: nameLimit)
             didLimit = didLimit || limitedName.count < name.count
-            a.append(9, .utf8String(limitedName))
+            a[9] = .utf8String(limitedName)
         }
 
         if !note.isEmpty {
             let limitedNote = note.prefix(count: noteLimit)
             didLimit = didLimit || limitedNote.count < note.count
-            a.append(10, .utf8String(limitedNote))
+            a[10] = .utf8String(limitedNote)
         }
 
-        return (CBOR.orderedMap(a), didLimit)
+        return (CBOR.map(a), didLimit)
     }
 
     public var taggedCBOR: CBOR {
@@ -521,20 +521,19 @@ extension HDKeyProtocol {
 
 extension HDKeyProtocol {
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR
+        guard case CBOR.map(let map) = untaggedCBOR
         else {
             // Doesn't contain a map.
             throw CBORError.invalidFormat
         }
-        let pairs = try orderedMap.valuesByIntKey()
 
-        guard case let CBOR.boolean(isMaster) = pairs[1] ?? CBOR.boolean(false)
+        guard case let CBOR.boolean(isMaster) = map[1] ?? CBOR.boolean(false)
         else {
             // Invalid `isMaster` field.
             throw CBORError.invalidFormat
         }
 
-        guard case let CBOR.boolean(isPrivate) = pairs[2] ?? CBOR.boolean(isMaster)
+        guard case let CBOR.boolean(isPrivate) = map[2] ?? CBOR.boolean(isMaster)
         else {
             // Invalid `isPrivate` field.
             throw CBORError.invalidFormat
@@ -545,7 +544,7 @@ extension HDKeyProtocol {
         }
 
         guard
-            case let CBOR.data(keyDataValue) = pairs[3] ?? CBOR.null,
+            case let CBOR.data(keyDataValue) = map[3] ?? CBOR.null,
             keyDataValue.count == 33
         else {
             // Invalid key data.
@@ -554,7 +553,7 @@ extension HDKeyProtocol {
         let keyData = Data(keyDataValue)
 
         let chainCode: Data?
-        if let chainCodeItem = pairs[4] {
+        if let chainCodeItem = map[4] {
             guard
                 case let CBOR.data(chainCodeValue) = chainCodeItem,
                 chainCodeValue.count == 32
@@ -568,28 +567,28 @@ extension HDKeyProtocol {
         }
 
         let useInfo: UseInfo
-        if let useInfoItem = pairs[5] {
+        if let useInfoItem = map[5] {
             useInfo = try UseInfo(taggedCBOR: useInfoItem)
         } else {
             useInfo = UseInfo()
         }
 
         let origin: DerivationPath?
-        if let originItem = pairs[6] {
+        if let originItem = map[6] {
             origin = try DerivationPath(taggedCBOR: originItem)
         } else {
             origin = nil
         }
 
         let children: DerivationPath?
-        if let childrenItem = pairs[7] {
+        if let childrenItem = map[7] {
             children = try DerivationPath(taggedCBOR: childrenItem)
         } else {
             children = nil
         }
 
         let parentFingerprint: UInt32?
-        if let parentFingerprintItem = pairs[8] {
+        if let parentFingerprintItem = map[8] {
             guard
                 case let CBOR.unsignedInt(parentFingerprintValue) = parentFingerprintItem,
                 parentFingerprintValue > 0,
@@ -604,7 +603,7 @@ extension HDKeyProtocol {
         }
 
         let name: String
-        if let nameItem = pairs[9] {
+        if let nameItem = map[9] {
             guard case let CBOR.utf8String(s) = nameItem else {
                 // Name field doesn't contain string.
                 throw CBORError.invalidFormat
@@ -615,7 +614,7 @@ extension HDKeyProtocol {
         }
 
         let note: String
-        if let noteItem = pairs[10] {
+        if let noteItem = map[10] {
             guard case let CBOR.utf8String(s) = noteItem else {
                 // Note field doesn't contain string.
                 throw CBORError.invalidFormat

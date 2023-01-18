@@ -70,17 +70,17 @@ extension UseInfo {
 
 extension UseInfo {
     public var untaggedCBOR: CBOR {
-        var a: OrderedMap = [:]
+        var a: [CBOR: CBOR] = [:]
         
         if asset != .btc {
-            a.append(1, asset.untaggedCBOR)
+            a[1] = asset.untaggedCBOR
         }
         
         if network != .mainnet {
-            a.append(2, network.untaggedCBOR)
+            a[2] = network.untaggedCBOR
         }
         
-        return CBOR.orderedMap(a)
+        return CBOR.map(a)
     }
     
     public var taggedCBOR: CBOR {
@@ -88,20 +88,19 @@ extension UseInfo {
     }
 
     public init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.orderedMap(orderedMap) = untaggedCBOR else {
+        guard case CBOR.map(let map) = untaggedCBOR else {
             throw CBORError.invalidFormat
         }
-        let pairs = try orderedMap.valuesByIntKey()
 
         let asset: Asset
-        if let rawAsset = pairs[1] {
+        if let rawAsset = map[1] {
             asset = try Asset(untaggedCBOR: rawAsset)
         } else {
             asset = .btc
         }
         
         let network: Network
-        if let rawNetwork = pairs[2] {
+        if let rawNetwork = map[2] {
             network = try Network(untaggedCBOR: rawNetwork)
         } else {
             network = .mainnet

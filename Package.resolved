@@ -1,12 +1,21 @@
 {
   "pins" : [
     {
+      "identity" : "bcswiftenvelope",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/BlockchainCommons/BCSwiftEnvelope.git",
+      "state" : {
+        "revision" : "6ffc7a59cd8ff3132a9f36aa58167f6944781e83",
+        "version" : "0.2.0"
+      }
+    },
+    {
       "identity" : "bcswiftsecurecomponents",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "revision" : "f66ab3d7f299c8567dcaf384bacf7793acbb1c63",
-        "version" : "0.39.0"
+        "revision" : "8e94ba8c27446c8149e46095c02e700bb04ba56c",
+        "version" : "1.0.0"
       }
     },
     {
@@ -55,6 +64,33 @@
       }
     },
     {
+      "identity" : "graph",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WolfMcNally/Graph.git",
+      "state" : {
+        "revision" : "04538aebf46f120dcce1392a215a7a850c45b4e6",
+        "version" : "0.7.0"
+      }
+    },
+    {
+      "identity" : "graphdot",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WolfMcNally/GraphDot.git",
+      "state" : {
+        "revision" : "dafe511afa3873e22c5cfd8478a9025d65480f99",
+        "version" : "0.4.0"
+      }
+    },
+    {
+      "identity" : "graphmermaid",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WolfMcNally/GraphMermaid.git",
+      "state" : {
+        "revision" : "251b091ef0bc75629ab8891784495701b7723465",
+        "version" : "0.4.0"
+      }
+    },
+    {
       "identity" : "secp256k1-zkp.swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/secp256k1-zkp.swift.git",
@@ -73,6 +109,15 @@
       }
     },
     {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/wolfmcnally/swift-collections",
+      "state" : {
+        "revision" : "53a8adc54374f620002a3b6401d39e0feb3c57ae",
+        "version" : "1.1.0"
+      }
+    },
+    {
       "identity" : "swift-numerics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-numerics",
@@ -82,12 +127,21 @@
       }
     },
     {
+      "identity" : "treedistance",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/WolfMcNally/TreeDistance.git",
+      "state" : {
+        "revision" : "d655b0e516def12b1d4ec30935ecc833ad073f24",
+        "version" : "0.1.0"
+      }
+    },
+    {
       "identity" : "urkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/URKit.git",
       "state" : {
-        "revision" : "e0520d366d0c2e852fb96c471e4a490b05ee10c6",
-        "version" : "8.0.0"
+        "revision" : "4323721f7f91331d8cfa64ee54cfbaba106a5b20",
+        "version" : "9.0.0"
       }
     },
     {
