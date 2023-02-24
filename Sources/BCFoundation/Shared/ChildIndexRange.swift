@@ -41,36 +41,22 @@ extension ChildIndexRange {
     }
 }
 
-extension ChildIndexRange {
-    public var untaggedCBOR: CBOR {
-        [
-            CBOR.unsignedInt(UInt64(low.value)),
-            CBOR.unsignedInt(UInt64(high.value))
-        ]
+extension ChildIndexRange: CBORCodable {
+    public var cbor: CBOR {
+        [ low.value, high.value ].cbor
     }
     
-    public init?(cbor: CBOR) {
-        guard case let CBOR.array(array) = cbor else {
-            return nil
-        }
-        guard array.count == 2 else {
-            return nil
-        }
+    public init(cbor: CBOR) throws {
         guard
-            case let CBOR.unsignedInt(low) = array[0],
-            case let CBOR.unsignedInt(high) = array[1]
+            case CBOR.array(let array) = cbor,
+            array.count == 2,
+            let low = try? ChildIndex(UInt32(cbor: array[0])),
+            let high = try? ChildIndex(UInt32(cbor: array[1])),
+            low < high
         else {
-            return nil
+            throw CBORDecodingError.invalidFormat
         }
-        guard
-            let low = ChildIndex(UInt32(low)),
-            let high = ChildIndex(UInt32(high))
-        else {
-            return nil
-        }
-        self.init(
-            low: low,
-            high: high
-        )
+        self.low = low
+        self.high = high
     }
 }

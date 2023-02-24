@@ -2,6 +2,11 @@ import XCTest
 import BCFoundation
 import WolfBase
 
+let formatContext = {
+    addKnownFunctionExtensions()
+    return FormatContext(tags: knownTags, functions: knownFunctions, parameters: knownParameters)
+}()
+
 class RequestTests: XCTestCase {
     static let mnemonic = "fly mule excess resource treat plunge nose soda reflect adult ramp planet"
     static let seed = Seed(bip39: BIP39(mnemonic: mnemonic)!)
@@ -13,28 +18,23 @@ class RequestTests: XCTestCase {
 
     static let validPSBT = PSBT(base64: "cHNidP8BAHUCAAAAASaBcTce3/KF6Tet7qSze3gADAVmy7OtZGQXE8pCFxv2AAAAAAD+////AtPf9QUAAAAAGXapFNDFmQPFusKGh2DpD9UhpGZap2UgiKwA4fUFAAAAABepFDVF5uM7gyxHBQ8k0+65PJwDlIvHh7MuEwAAAQD9pQEBAAAAAAECiaPHHqtNIOA3G7ukzGmPopXJRjr6Ljl/hTPMti+VZ+UBAAAAFxYAFL4Y0VKpsBIDna89p95PUzSe7LmF/////4b4qkOnHf8USIk6UwpyN+9rRgi7st0tAXHmOuxqSJC0AQAAABcWABT+Pp7xp0XpdNkCxDVZQ6vLNL1TU/////8CAMLrCwAAAAAZdqkUhc/xCX/Z4Ai7NK9wnGIZeziXikiIrHL++E4sAAAAF6kUM5cluiHv1irHU6m80GfWx6ajnQWHAkcwRAIgJxK+IuAnDzlPVoMR3HyppolwuAJf3TskAinwf4pfOiQCIAGLONfc0xTnNMkna9b7QPZzMlvEuqFEyADS8vAtsnZcASED0uFWdJQbrUqZY3LLh+GFbTZSYG2YVi/jnF6efkE/IQUCSDBFAiEA0SuFLYXc2WHS9fSrZgZU327tzHlMDDPOXMMJ/7X85Y0CIGczio4OFyXBl/saiK9Z9R5E5CVbIBZ8hoQDHAXR8lkqASECI7cr7vCWXRC+B3jv7NYfysb3mk6haTkzgHNEZPhPKrMAAAAAAAAA")!
 
-    override class func setUp() {
-        addKnownTags()
-        addKnownFunctionExtensions()
-    }
-
     func testSeedRequest() throws {
         let body = try SeedRequestBody(seedDigest: Self.seed.identityDigest)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpuraatpsptpcsieghihjkjytpsptputlftpsptpurcsietpsplftpsptpcstptlcsietpsptputlftpsptpcstptbcssptpsptpcstaaohdhdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdykgabefs"
+        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpurcsietpsplftpsptpcstptlcsietpsptputlftpsptpcstptbcssptpsptpcstaaohdhdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdtpsptputlftpsptpuraatpsptpcsieghihjkjyfspddmot"
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getSeed» [
-                ❰seedDigest❱: seed-digest(Data(32))
+                ❰seedDigest❱: seed-digest(Bytes(32))
             ]
             note: "Test"
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -48,11 +48,11 @@ class RequestTests: XCTestCase {
         
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: crypto-seed(CBOR)
+            result: crypto-seed(Map)
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)
@@ -64,20 +64,20 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: useInfo)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpuraatpsptpcsieghihjkjytpsptputlftpsptpurcsietpsplstpsptpcstptlcsihtpsptputlftpsptpcstptbcssbtpsptpcstaadehoyaoadtpsptputlftpsptpcstptbcssotpsptpcstaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwzstrssatd"
+        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpurcsietpsplstpsptpcstptlcsihtpsptputlftpsptpcstptbcssbtpsptpcstaadehoyaoadtpsptputlftpsptpcstptbcssotpsptpcstaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwztpsptputlftpsptpuraatpsptpcsieghihjkjyweaemdcy"
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: crypto-keypath(CBOR)
-                ❰useInfo❱: crypto-coin-info(CBOR)
+                ❰derivationPath❱: crypto-keypath(Map)
+                ❰useInfo❱: crypto-coin-info(Map)
             ]
             note: "Test"
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -95,11 +95,11 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: crypto-hdkey(CBOR)
+            result: crypto-hdkey(Map)
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)
@@ -110,20 +110,20 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: .init(asset: .btc, network: .testnet))
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpuraatpsptpcsieghihjkjytpsptputlftpsptpurcsietpsplstpsptpcstptlcsihtpsptputlftpsptpcstptbcssotpsptpcstaaddyoyadlocsdyykaeykaeykaoyktpsptputlftpsptpcstptbcssbtpsptpcstaadehoyaoadtabwnbmo"
+        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpurcsietpsplstpsptpcstptlcsihtpsptputlftpsptpcstptbcssbtpsptpcstaadehoyaoadtpsptputlftpsptpcstptbcssotpsptpcstaaddyoyadlocsdyykaeykaeykaoyktpsptputlftpsptpuraatpsptpcsieghihjkjyfevygafd"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: crypto-keypath(CBOR)
-                ❰useInfo❱: crypto-coin-info(CBOR)
+                ❰derivationPath❱: crypto-keypath(Map)
+                ❰useInfo❱: crypto-coin-info(Map)
             ]
             note: "Test"
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -133,19 +133,19 @@ class RequestTests: XCTestCase {
         let body = PSBTSignatureRequestBody(psbt: Self.validPSBT, isRawPSBT: false)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpurcsietpsplftpsptpcstptlcsiytpsptputlftpsptpcstptbcssntpsptpcstaadenhkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaetpsptputlftpsptpuraatpsptpcsieghihjkjydktpihwd"
+        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpuraatpsptpcsieghihjkjytpsptputlftpsptpurcsietpsplftpsptpcstptlcsiytpsptputlftpsptpcstptbcssntpsptpcstaadenhkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaedtiyhgwm"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «signPSBT» [
-                ❰psbt❱: crypto-psbt(Data(555))
+                ❰psbt❱: crypto-psbt(Bytes(555))
             ]
             note: "Test"
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -159,11 +159,11 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: crypto-psbt(Data(555))
+            result: crypto-psbt(Bytes(555))
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)
@@ -174,21 +174,21 @@ class RequestTests: XCTestCase {
         let body = OutputDescriptorRequestBody(name: "Name", useInfo: useInfo, challenge: ‡"fcb2fc04b4e352dd10cfe6bc90fe80a8")
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpuraatpsptpcsieghihjkjytpsptputlftpsptpurcsietpsplrtpsptpcstptlcsiotpsptputlftpsptpcstptbcstktpsptpcsgdztprztaaqzvlgmutbetkvarfmhzelapdtpsptputlftpsptpcstptbcstotpsptpcsieglhsjnihtpsptputlftpsptpcstptbcssbtpsptpcstaadehoyaoadstdkwdwd"
+        let expectedURString = "ur:envelope/lstpsptpcstptstpsghdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptputlftpsptpuraatpsptpcsieghihjkjytpsptputlftpsptpurcsietpsplrtpsptpcstptlcsiotpsptputlftpsptpcstptbcstktpsptpcsgdztprztaaqzvlgmutbetkvarfmhzelapdtpsptputlftpsptpcstptbcssbtpsptpcstaadehoyaoadtpsptputlftpsptpcstptbcstotpsptpcsieglhsjnihdyvadsuo"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getOutputDescriptor» [
-                ❰challenge❱: Data(16)
+                ❰challenge❱: Bytes(16)
                 ❰name❱: "Name"
-                ❰useInfo❱: crypto-coin-info(CBOR)
+                ❰useInfo❱: crypto-coin-info(Map)
             ]
             note: "Test"
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -205,11 +205,11 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: output-descriptor-response(["pkh([37b5eed4/44'/0'/0']xpub6CnQkivUEH9bSbWVWfDLCtigKKgnSWGaVSRyCbN2QNBJzuvHT1vUQpgSpY1NiVvoeNEuVwk748Cn9G3NtbQB1aGGsEL7aYEnjVWgjj9tefu/<0;1>/*)#vxycy4eh", Data(32)])
+            result: output-descriptor-response(["pkh([37b5eed4/44'/0'/0']xpub6CnQkivUEH9bSbWVWfDLCtigKKgnSWGaVSRyCbN2QNBJzuvHT1vUQpgSpY1NiVvoeNEuVwk748Cn9G3NtbQB1aGGsEL7aYEnjVWgjj9tefu/<0;1>/*)#vxycy4eh", Bytes(32)])
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format, expectedFormat)
+        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)

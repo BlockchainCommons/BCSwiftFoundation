@@ -10,7 +10,7 @@ import WolfBase
 import URKit
 import SecureComponents
 
-public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider {
+public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider, URCodable {
     var data: Data { get }
     var name: String { get set }
     var note: String { get set }
@@ -32,6 +32,8 @@ public extension SeedProtocol/*: PrivateKeysDataProvider*/ {
 public let minSeedSize = 16
 
 public struct Seed: SeedProtocol {
+    public static var cborTag: Tag = .seed
+    
     public let data: Data
     public var name: String
     public var note: String
@@ -97,95 +99,68 @@ extension SeedProtocol {
 }
 
 extension SeedProtocol {
+    public var untaggedCBOR: CBOR {
+        cbor().0
+    }
+
     public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
-        var a: [CBOR: CBOR] = [1: .data(data)]
+        var a: Map = [1: data]
         var didLimit = false
 
         if let creationDate = creationDate {
-            a[2] = .date(creationDate)
+            a[2] = creationDate.cbor
         }
 
         if !name.isEmpty {
             let limitedName = name.prefix(count: nameLimit)
             didLimit = didLimit || limitedName.count < name.count
-            a[3] = .utf8String(limitedName)
+            a[3] = limitedName.cbor
         }
 
         if !note.isEmpty {
             let limitedNote = note.prefix(count: noteLimit)
             didLimit = didLimit || limitedNote.count < note.count
-            a[4] = .utf8String(limitedNote)
+            a[4] = limitedNote.cbor
         }
 
         return (CBOR.map(a), didLimit)
     }
-
-    public var taggedCBOR: CBOR {
-        let (c, _) = cbor()
-        return CBOR.tagged(.seed, c)
-    }
-
-    public var ur: UR {
-        let (c, _) = cbor()
-        return try! UR(type: CBOR.Tag.seed.name!, cbor: c)
-    }
     
     public func sizeLimitedUR(nameLimit: Int = 100, noteLimit: Int = 500) -> (UR, Bool) {
         let (c, didLimit) = cbor(nameLimit: nameLimit, noteLimit: noteLimit)
-        return try! (UR(type: CBOR.Tag.seed.name!, cbor: c), didLimit)
+        return try! (UR(type: Tag.seed.name!, untaggedCBOR: c), didLimit)
     }
 }
 
 extension SeedProtocol {
-    public init(ur: UR) throws {
-        guard ur.type == CBOR.Tag.seed.name! else {
-            throw URError.unexpectedType
-        }
-        try self.init(cborData: ur.cbor)
-    }
-
-    public init(urString: String) throws {
-        let ur = try URDecoder.decode(urString)
-        try self.init(ur: ur)
-    }
-
-    public init(cborData: Data) throws {
-        let cbor = try CBOR(cborData)
-        try self.init(untaggedCBOR: cbor)
-    }
-
     public init(untaggedCBOR: CBOR) throws {
         guard case CBOR.map(let map) = untaggedCBOR else {
             // CBOR doesn't contain a map.
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         
         guard
             let dataItem = map[1],
-            case let CBOR.data(bytes) = dataItem,
+            case let CBOR.bytes(bytes) = dataItem,
             !bytes.isEmpty
         else {
             // CBOR doesn't contain data field.
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         let data = bytes.data
         
         let creationDate: Date?
         if let dateItem = map[2] {
-            guard case let CBOR.date(d) = dateItem else {
-                // CreationDate field doesn't contain a date.
-                throw CBORError.invalidFormat
-            }
-            creationDate = d
+            creationDate = try Date(cbor: dateItem)
         } else {
             creationDate = nil
         }
 
         let name: String
         if let nameItem = map[3] {
-            guard case let CBOR.utf8String(s) = nameItem else {
+            guard case let CBOR.text(s) = nameItem else {
                 // Name field doesn't contain string.
-                throw CBORError.invalidFormat
+                throw CBORDecodingError.invalidFormat
             }
             name = s
         } else {
@@ -194,26 +169,15 @@ extension SeedProtocol {
 
         let note: String
         if let noteItem = map[4] {
-            guard case let CBOR.utf8String(s) = noteItem else {
+            guard case let CBOR.text(s) = noteItem else {
                 // Note field doesn't contain string.
-                throw CBORError.invalidFormat
+                throw CBORDecodingError.invalidFormat
             }
             note = s
         } else {
             note = ""
         }
         self.init(data: data, name: name, note: note, creationDate: creationDate)!
-    }
-
-    public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(tag, content) = taggedCBOR, tag == CBOR.Tag.seed else {
-            throw CBORError.invalidTag
-        }
-        try self.init(untaggedCBOR: content)
-    }
-
-    public init(taggedCBOR: Data) throws {
-        try self.init(taggedCBOR: CBOR(taggedCBOR))
     }
 }
 
@@ -223,17 +187,17 @@ extension SeedProtocol {
     }
 }
 
-extension Seed: CBOREncodable {
-    public var cbor: CBOR {
-        taggedCBOR
-    }
-}
-
-extension Seed: CBORDecodable {
-    public static func cborDecode(_ cbor: CBOR) throws -> Seed {
-        try Seed(taggedCBOR: cbor)
-    }
-}
+//extension Seed: CBOREncodable {
+//    public var cbor: CBOR {
+//        taggedCBOR
+//    }
+//}
+//
+//extension Seed: CBORDecodable {
+//    public static func cborDecode(_ cbor: CBOR) throws -> Seed {
+//        try Seed(taggedCBOR: cbor)
+//    }
+//}
 
 extension Seed: TransactionResponseBody {
     public var envelope: Envelope { Envelope(self) }

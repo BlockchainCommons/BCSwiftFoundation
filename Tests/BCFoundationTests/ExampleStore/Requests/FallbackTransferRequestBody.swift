@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct FallbackTransferRequestBody: StoreRequestBody {
-    public static var function: Envelope.FunctionIdentifier = "fallbackTransfer"
+    public static var function: Function = "fallbackTransfer"
     public let fallback: String
     public let publicKey: PublicKeyBase
 
@@ -12,7 +12,7 @@ public struct FallbackTransferRequestBody: StoreRequestBody {
     }
     
     public init(_ envelope: Envelope) throws {
-        guard try envelope.extractSubject(Envelope.FunctionIdentifier.self) == Self.function else {
+        guard try envelope.extractSubject(Function.self) == Self.function else {
             throw GeneralError("Incorrect function.")
         }
         self.fallback = try envelope.extractObject(String.self, forParameter: "fallback")

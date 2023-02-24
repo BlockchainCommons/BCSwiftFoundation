@@ -262,23 +262,21 @@ extension DerivationPath {
     }
 }
 
-extension DerivationPath {
+extension DerivationPath: CBORTaggedCodable {
+    public static var cborTag: DCBOR.Tag = .derivationPath
+    
     public var untaggedCBOR: CBOR {
-        var a: [CBOR: CBOR] = [1: .array(steps.flatMap { $0.array } )]
+        var a: Map = [1: steps.flatMap { $0.array }]
         
         if case let .fingerprint(sourceFingerprint) = origin {
-            a[2] = .unsignedInt(UInt64(sourceFingerprint))
+            a[2] = sourceFingerprint.cbor
         }
         
         if let depth = depth {
-            a[3] = .unsignedInt(UInt64(depth))
+            a[3] = depth.cbor
         }
         
         return CBOR.map(a)
-    }
-    
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(.derivationPath, untaggedCBOR)
     }
     
     public init(untaggedCBOR: CBOR) throws {
@@ -295,8 +293,8 @@ extension DerivationPath {
         }
         
         let steps: [any DerivationStep] = try stride(from: 0, to: componentsItem.count, by: 2).map { i in
-            let childIndexSpec = try ChildIndexSpec.decode(cbor: componentsItem[i])
-            guard case let CBOR.boolean(isHardened) = componentsItem[i + 1] else {
+            let childIndexSpec = try ChildIndexSpec(cbor: componentsItem[i])
+            guard let isHardened = try? Bool(cbor: componentsItem[i + 1]) else {
                 throw DerivationPathError.invalidPathComponent
             }
             return BasicDerivationStep(childIndexSpec, isHardened: isHardened)
@@ -305,7 +303,7 @@ extension DerivationPath {
         let origin: Origin?
         if let sourceFingerprintItem = map[2] {
             guard
-                case let CBOR.unsignedInt(sourceFingerprintValue) = sourceFingerprintItem,
+                case let CBOR.unsigned(sourceFingerprintValue) = sourceFingerprintItem,
                 sourceFingerprintValue != 0,
                 sourceFingerprintValue <= UInt32.max
             else {
@@ -319,7 +317,7 @@ extension DerivationPath {
         let depth: Int?
         if let depthItem = map[3] {
             guard
-                case let CBOR.unsignedInt(depthValue) = depthItem,
+                case let CBOR.unsigned(depthValue) = depthItem,
                 depthValue <= UInt8.max
             else {
                 throw DerivationPathError.invalidDepth
@@ -330,22 +328,5 @@ extension DerivationPath {
         }
         
         self.init(steps: steps, origin: origin, depth: depth)
-    }
-    
-    public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.derivationPath, untaggedCBOR) = taggedCBOR else {
-            throw CBORError.invalidTag
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-extension DerivationPath: CBORCodable {
-    public var cbor: CBOR {
-        taggedCBOR
-    }
-    
-    public static func cborDecode(_ cbor: CBOR) throws -> DerivationPath {
-        try DerivationPath(taggedCBOR: cbor)
     }
 }

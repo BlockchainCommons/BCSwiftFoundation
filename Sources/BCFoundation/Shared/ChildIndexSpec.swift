@@ -60,38 +60,40 @@ extension ChildIndexSpec {
     }
 }
 
-extension ChildIndexSpec {
-    var untaggedCBOR: CBOR {
+
+extension ChildIndexSpec: CBORCodable {
+    public var cbor: CBOR {
         switch self {
-        case .index(let index):
-            return index.untaggedCBOR
-        case .indexRange(let indexRange):
-            return indexRange.untaggedCBOR
+        case .index(let childIndex):
+            return childIndex.cbor
+        case .indexRange(let childIndexRange):
+            return childIndexRange.cbor
         case .indexWildcard:
-            return []
+            return [].cbor
         default:
             fatalError()
         }
     }
     
-    static func decode(cbor: CBOR) throws -> ChildIndexSpec {
-        if let a = try ChildIndex(cbor: cbor) {
-            return .index(a)
+    public init(cbor: CBOR) throws {
+        if let a = try? ChildIndex(cbor: cbor) {
+            self = .index(a)
+        } else if let a = try? ChildIndexRange(cbor: cbor) {
+            self = .indexRange(a)
+        } else if ChildIndexSpec.parseWildcard(cbor: cbor) {
+            self = .indexWildcard
+        } else {
+            throw CBORDecodingError.invalidFormat
         }
-        if let a = ChildIndexRange(cbor: cbor) {
-            return .indexRange(a)
-        }
-        if parseWildcard(cbor: cbor) {
-            return .indexWildcard
-        }
-        throw CBORError.invalidFormat
     }
-    
+}
+
+extension ChildIndexSpec {
     private static func parseWildcard(cbor: CBOR) -> Bool {
-        guard case let CBOR.array(array) = cbor else {
-            return false
-        }
-        guard array.isEmpty else {
+        guard
+            case let CBOR.array(array) = cbor,
+            array.isEmpty
+        else {
             return false
         }
         return true

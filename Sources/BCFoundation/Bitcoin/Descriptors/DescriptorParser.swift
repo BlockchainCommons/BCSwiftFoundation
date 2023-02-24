@@ -8,7 +8,6 @@
 import Foundation
 import Flexer
 import WolfBase
-import BCWally
 
 final class DescriptorParser: Parser {
     typealias Tokens = LookAheadSequence<[DescriptorToken]>

@@ -1,26 +1,26 @@
 import Foundation
 import Envelope
 
-public extension Envelope.FunctionIdentifier {
-    static let getSeed = Envelope.FunctionIdentifier(100, "getSeed")
-    static let getKey = Envelope.FunctionIdentifier(101, "getKey")
-    static let signPSBT = Envelope.FunctionIdentifier(102, "signPSBT")
-    static let getOutputDescriptor = Envelope.FunctionIdentifier(103, "getOutputDescriptor")
+public extension Function {
+    static let getSeed = Function(100, "getSeed")
+    static let getKey = Function(101, "getKey")
+    static let signPSBT = Function(102, "signPSBT")
+    static let getOutputDescriptor = Function(103, "getOutputDescriptor")
 }
 
-public extension Envelope.ParameterIdentifier {
-    static let seedDigest = Envelope.ParameterIdentifier(200, "seedDigest")
-    static let derivationPath = Envelope.ParameterIdentifier(201, "derivationPath")
-    static let isPrivate = Envelope.ParameterIdentifier(202, "isPrivate")
-    static let useInfo = Envelope.ParameterIdentifier(203, "useInfo")
-    static let isDerivable = Envelope.ParameterIdentifier(204, "isDerivable")
-    static let psbt = Envelope.ParameterIdentifier(205, "psbt")
-    static let name = Envelope.ParameterIdentifier(206, "name")
-    static let challenge = Envelope.ParameterIdentifier(207, "challenge")
+public extension Parameter {
+    static let seedDigest = Parameter(200, "seedDigest")
+    static let derivationPath = Parameter(201, "derivationPath")
+    static let isPrivate = Parameter(202, "isPrivate")
+    static let useInfo = Parameter(203, "useInfo")
+    static let isDerivable = Parameter(204, "isDerivable")
+    static let psbt = Parameter(205, "psbt")
+    static let name = Parameter(206, "name")
+    static let challenge = Parameter(207, "challenge")
 }
 
 public func addKnownFunctionExtensions() {
-    let identifiers: [Envelope.FunctionIdentifier] = [
+    let identifiers: [Function] = [
         .getSeed,
         .getKey,
         .signPSBT,
@@ -28,10 +28,10 @@ public func addKnownFunctionExtensions() {
     ]
     
     identifiers.forEach {
-        Envelope.FunctionIdentifier.setKnownIdentifier($0)
+        knownFunctions.insert($0)
     }
 
-    let parameters: [Envelope.ParameterIdentifier] = [
+    let parameters: [Parameter] = [
         .seedDigest,
         .derivationPath,
         .isPrivate,
@@ -43,6 +43,6 @@ public func addKnownFunctionExtensions() {
     ]
     
     parameters.forEach {
-        Envelope.ParameterIdentifier.setKnownParameter($0)
+        knownParameters.insert($0)
     }
 }

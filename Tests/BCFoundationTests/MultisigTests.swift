@@ -1,6 +1,5 @@
 import XCTest
 import BCFoundation
-import BCWally
 import WolfBase
 
 // https://en.bitcoin.it/wiki/Multi-signature#Creating_a_multi-signature_address_with_Bitcoin-Qt

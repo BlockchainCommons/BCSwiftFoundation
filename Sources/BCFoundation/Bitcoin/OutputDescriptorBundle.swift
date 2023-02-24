@@ -38,20 +38,16 @@ public struct OutputDescriptorBundle {
         self.descriptors = descriptors
         self.descriptorsByOutputType = descriptorsByOutputType
     }
-    
+}
+
+extension OutputDescriptorBundle: UREncodable {
+    public static var cborTag: Tag = .account
+
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md#cddl
         CBOR.map([
-            1: .unsignedInt(UInt64(masterKey.keyFingerprint)),
-            2: .array(descriptors.map{ $0.taggedCBOR })
+            1: masterKey.keyFingerprint,
+            2: descriptors.map { $0.taggedCBOR }
         ])
-    }
-    
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(.account, untaggedCBOR)
-    }
-    
-    public var ur: UR {
-        try! UR(type: .account, cbor: untaggedCBOR)
     }
 }

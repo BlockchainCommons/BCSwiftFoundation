@@ -18,7 +18,7 @@ public extension ExampleStore {
             .unwrap()
 
         let transactionRequest = try TransactionRequest(decryptedRequest) { bodyEnvelope in
-            let function = try bodyEnvelope.extractSubject(Envelope.FunctionIdentifier.self)
+            let function = try bodyEnvelope.extractSubject(Function.self)
             switch function {
             case StoreShareRequestBody.function:
                 return try StoreShareRequestBody(bodyEnvelope)
@@ -94,7 +94,7 @@ public extension ExampleStore {
                 response = Envelope(response: transactionID)
             case let body as FallbackTransferRequestBody:
                 try fallbackTransfer(fallback: body.fallback, new: body.publicKey)
-                response = Envelope(response: transactionID, result: Envelope.KnownValue.processing)
+                response = Envelope(response: transactionID, result: KnownValue.processing)
             case let body as DeleteAccountRequestBody:
                 deleteAccount(publicKey: body.publicKey)
                 response = Envelope(response: transactionID)

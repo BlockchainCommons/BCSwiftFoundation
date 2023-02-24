@@ -7,7 +7,6 @@
 //  license, see the accompanying file LICENSE.md
 
 import Foundation
-import BCWally
 import URKit
 
 public struct PSBT : Equatable {
@@ -261,16 +260,8 @@ extension PSBT {
     }
 }
 
-extension PSBT {
-    public init(ur: UR) throws {
-        try ur.checkType(.psbt)
-        let cbor = try CBOR(ur.cbor)
-        try self.init(untaggedCBOR: cbor)
-    }
-    
-    public init(urString: String) throws {
-        try self.init(ur: URDecoder.decode(urString))
-    }
+extension PSBT: URCodable {
+    public static var cborTag: Tag = .psbt
     
     public init(parse string: String) throws {
         if let a = PSBT(base64: string) {
@@ -284,56 +275,27 @@ extension PSBT {
         }
 
         do {
-            try self.init(urString: string)
+            self = try PSBT(urString: string)
         } catch { }
 
-        throw CBORError.invalidFormat
-    }
-    
-    public var ur: UR {
-        try! UR(type: .psbt, cbor: untaggedCBOR)
-    }
-    
-    public var urString: String {
-        ur.string
+        throw CBORDecodingError.invalidFormat
     }
     
     public var untaggedCBOR: CBOR {
-        CBOR.data(data)
-    }
-
-    public var taggedCBOR: CBOR {
-        return CBOR.tagged(.psbt, untaggedCBOR)
+        CBOR.bytes(data)
     }
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.data(bytes) = untaggedCBOR
+            case let CBOR.bytes(bytes) = untaggedCBOR
         else {
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         let data = bytes.data
         guard let psbt = PSBT(data) else {
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         self = psbt
-    }
-    
-    public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.psbt, untaggedCBOR) = taggedCBOR else {
-            throw CBORError.invalidTag
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-extension PSBT: CBORCodable {
-    public var cbor: CBOR {
-        taggedCBOR
-    }
-    
-    public static func cborDecode(_ cbor: CBOR) throws -> PSBT {
-        try PSBT(taggedCBOR: cbor)
     }
 }
 

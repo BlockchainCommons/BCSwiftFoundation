@@ -28,7 +28,7 @@ public struct TransactionResponse: Equatable {
 public extension TransactionResponse {
     init(ur: UR) throws {
         switch ur.type {
-        case CBOR.Tag.envelope.name!:
+        case Tag.envelope.name!:
             try self.init(untaggedCBOR: CBOR(ur.cbor))
         default:
             throw URError.unexpectedType

@@ -37,7 +37,7 @@ struct DescriptorRaw: DescriptorAST {
     }
     
     var untaggedCBOR: CBOR {
-        CBOR.data(script.data)
+        CBOR.bytes(script.data)
     }
     
     var taggedCBOR: CBOR {

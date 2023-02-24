@@ -54,18 +54,18 @@ extension ChildIndex {
     }
 }
 
-extension ChildIndex {
-    public var untaggedCBOR: CBOR {
-        CBOR.unsignedInt(UInt64(value))
+extension ChildIndex: CBORCodable {
+    public var cbor: CBOR {
+        value.cbor
     }
-    
-    public init?(cbor: CBOR) throws {
-        guard case let CBOR.unsignedInt(value) = cbor else {
-            return nil
+
+    public init(cbor: CBOR) throws {
+        guard
+            let value = try? UInt32(cbor: cbor),
+            value < 0x80000000
+        else {
+            throw CBORDecodingError.invalidFormat
         }
-        guard value < 0x80000000 else {
-            throw CBORError.invalidFormat
-        }
-        self.init(UInt32(value))
+        self.init(value)!
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import BCWally
 import URKit
 
 extension Network: Identifiable {
@@ -46,14 +45,14 @@ extension Network: CustomStringConvertible {
 
 extension Network {
     public var untaggedCBOR: CBOR {
-        CBOR.unsignedInt(UInt64(rawValue))
+        CBOR.unsigned(UInt64(rawValue))
     }
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.unsignedInt(r) = untaggedCBOR,
+            case let CBOR.unsigned(r) = untaggedCBOR,
             let a = Network(rawValue: UInt32(r)) else {
-                throw CBORError.invalidFormat
+                throw CBORDecodingError.invalidFormat
         }
         self = a
     }

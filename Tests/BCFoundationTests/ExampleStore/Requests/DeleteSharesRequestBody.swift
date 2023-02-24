@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct DeleteSharesRequestBody: StoreRequestBody {
-    public static var function: Envelope.FunctionIdentifier = "deleteShares"
+    public static var function: Function = "deleteShares"
     public let publicKey: PublicKeyBase
     public let receipts: Set<Receipt>
     
@@ -12,7 +12,7 @@ public struct DeleteSharesRequestBody: StoreRequestBody {
     }
     
     public init(_ envelope: Envelope) throws {
-        guard try envelope.extractSubject(Envelope.FunctionIdentifier.self) == Self.function else {
+        guard try envelope.extractSubject(Function.self) == Self.function else {
             throw GeneralError("Incorrect function.")
         }
         self.publicKey = try envelope.extractObject(PublicKeyBase.self, forParameter: "publicKey")

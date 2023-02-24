@@ -7,7 +7,6 @@
 //  license, see the accompanying file LICENSE.md
 
 import Foundation
-import BCWally
 import URKit
 
 extension Bitcoin {
@@ -169,14 +168,14 @@ extension Bitcoin {
             case p2wpkh
 
             public var untaggedCBOR: CBOR {
-                CBOR.unsignedInt(UInt64(rawValue))
+                CBOR.unsigned(UInt64(rawValue))
             }
 
             public init(untaggedCBOR: CBOR) throws {
                 guard
-                    case let CBOR.unsignedInt(r) = untaggedCBOR,
+                    case let CBOR.unsigned(r) = untaggedCBOR,
                     let a = CBORType(rawValue: Int(r)) else {
-                        throw CBORError.invalidFormat
+                        throw CBORDecodingError.invalidFormat
                     }
                 self = a
             }
@@ -188,30 +187,22 @@ extension Bitcoin {
     }
 }
 
-extension Bitcoin.Address {
+extension Bitcoin.Address: CBORTaggedCodable {
+    public static var cborTag: DCBOR.Tag = .address
+    
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
-        CBOR.map([
+        let a: Map = [
             1: useInfo.taggedCBOR,
-            2: .unsignedInt(UInt64(type.cborType.rawValue)),
-            3: .data(data)
-        ])
+            2: type.cborType.rawValue,
+            3: data
+        ]
+        return a.cbor
     }
 
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(.address, untaggedCBOR)
-    }
-    
-    public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.address, untaggedCBOR) = taggedCBOR else {
-            throw CBORError.invalidTag
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-    
     public init(untaggedCBOR: CBOR) throws {
         guard case CBOR.map(let map) = untaggedCBOR else {
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
 
         let useInfo: UseInfo
@@ -224,17 +215,17 @@ extension Bitcoin.Address {
         guard
             let typeItem = map[2]
         else {
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         let cborType = try CBORType(untaggedCBOR: typeItem)
 
         guard
             let dataItem = map[3],
-            case let CBOR.data(bytes) = dataItem,
+            case let CBOR.bytes(bytes) = dataItem,
             !bytes.isEmpty
         else {
              // CBOR doesn't contain data field
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         let data = bytes.data
         
@@ -252,7 +243,7 @@ extension Bitcoin.Address {
             case 32:
                 scriptPubKey = ScriptPubKey(Script(ops: [.op(.op_1), .data(data)]))
             default:
-                throw CBORError.invalidFormat
+                throw CBORDecodingError.invalidFormat
             }
         }
         

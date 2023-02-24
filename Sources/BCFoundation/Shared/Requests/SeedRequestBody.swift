@@ -9,7 +9,7 @@ import Foundation
 import URKit
 
 public struct SeedRequestBody: TransactionRequestBody {
-    public static var function: Envelope.FunctionIdentifier = .getSeed
+    public static var function = Function.getSeed
     public let seedDigest: SeedDigest
     
     public init(seedDigest: SeedDigest) {

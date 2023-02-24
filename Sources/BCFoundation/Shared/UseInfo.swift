@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import BCWally
 import URKit
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-007-hdkey.md#cddl-for-coin-info
@@ -68,9 +67,11 @@ extension UseInfo {
     }
 }
 
-extension UseInfo {
+extension UseInfo: CBORTaggedCodable {
+    public static var cborTag: Tag = .useInfo
+    
     public var untaggedCBOR: CBOR {
-        var a: [CBOR: CBOR] = [:]
+        var a = DCBOR.Map()
         
         if asset != .btc {
             a[1] = asset.untaggedCBOR
@@ -80,16 +81,12 @@ extension UseInfo {
             a[2] = network.untaggedCBOR
         }
         
-        return CBOR.map(a)
-    }
-    
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(.useInfo, untaggedCBOR)
+        return a.cbor
     }
 
     public init(untaggedCBOR: CBOR) throws {
         guard case CBOR.map(let map) = untaggedCBOR else {
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
 
         let asset: Asset
@@ -107,22 +104,5 @@ extension UseInfo {
         }
         
         self.init(asset: asset, network: network)
-    }
-    
-    public init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.useInfo, untaggedCBOR) = taggedCBOR else {
-            throw CBORError.invalidTag
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-extension UseInfo: CBORCodable {
-    public var cbor: CBOR {
-        taggedCBOR
-    }
-    
-    public static func cborDecode(_ cbor: CBOR) throws -> UseInfo {
-        try UseInfo(taggedCBOR: cbor)
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import BCWally
 
 public struct TxOutput {
     public let scriptPubKey: ScriptPubKey

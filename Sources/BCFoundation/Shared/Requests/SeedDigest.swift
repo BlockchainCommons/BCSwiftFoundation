@@ -7,45 +7,20 @@ public struct SeedDigest: Equatable {
     
     public init(digest: Data) throws {
         guard digest.count == SHA2.Variant.sha256.digestLength else {
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         self.digest = digest
     }
 }
 
-public extension SeedDigest {
-    var untaggedCBOR: CBOR {
-        CBOR.data(digest)
+extension SeedDigest: CBORTaggedCodable {
+    public static var cborTag: Tag = .seedDigest
+    
+    public var untaggedCBOR: CBOR {
+        digest.cbor
     }
     
-    var taggedCBOR: CBOR {
-        CBOR.tagged(.seedDigest, untaggedCBOR)
-    }
-    
-    init(untaggedCBOR: CBOR) throws {
-        guard case let CBOR.data(bytes) = untaggedCBOR else {
-            throw CBORError.invalidFormat
-        }
-        try self.init(digest: bytes.data)
-    }
-    
-    init?(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.seedDigest, untaggedCBOR) = taggedCBOR else {
-            return nil
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-extension SeedDigest: CBORCodable {
-    public static func cborDecode(_ cbor: CBOR) throws -> SeedDigest {
-        guard let result = try SeedDigest(taggedCBOR: cbor) else {
-            throw CBORError.invalidFormat
-        }
-        return result
-    }
-    
-    public var cbor: CBOR {
-        taggedCBOR
+    public init(untaggedCBOR cbor: CBOR) throws {
+        try self.init(digest: Data(cbor: cbor))
     }
 }

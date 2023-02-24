@@ -3,11 +3,6 @@ import WolfBase
 import XCTest
 
 class ExampleStoreRemoteTests: XCTestCase {
-    override class func setUp() {
-        addKnownFunctionExtensions()
-        addKnownTags()
-    }
-    
     func testStoreRemote() throws {
         let exampleStore = ExampleStore()
 
@@ -173,7 +168,7 @@ class ExampleStoreRemoteTests: XCTestCase {
             // Here the store must initiate asyncronously using the fallback to verify the
             // user's intent to change their key and only change it if the verification
             // succeeds.
-            XCTAssertEqual(try response.result(Envelope.KnownValue.self), .processing)
+            XCTAssertEqual(try response.result(KnownValue.self), .processing)
         }
         
         // Bob never confirms the transfer request, but instead decides to delete his entire account

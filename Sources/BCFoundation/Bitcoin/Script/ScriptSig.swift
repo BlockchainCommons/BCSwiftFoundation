@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import BCWally
 
 public struct ScriptSig {
     public let type: ScriptSigType

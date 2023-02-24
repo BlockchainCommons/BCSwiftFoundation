@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import BCWally
 
 public struct TxHash: Equatable {
     public let data: Data

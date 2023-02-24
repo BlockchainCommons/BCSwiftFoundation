@@ -67,15 +67,16 @@ extension Asset: CustomStringConvertible {
 
 extension Asset {
     public var untaggedCBOR: CBOR {
-        CBOR.unsignedInt(UInt64(rawValue))
+        CBOR.unsigned(UInt64(rawValue))
     }
     
     public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.unsignedInt(r) = untaggedCBOR,
-            let a = Asset(rawValue: UInt32(r)) else {
-                throw CBORError.invalidFormat
-            }
+            case let CBOR.unsigned(r) = untaggedCBOR,
+            let a = Asset(rawValue: UInt32(r))
+        else {
+            throw CBORDecodingError.invalidFormat
+        }
         self = a
     }
 }

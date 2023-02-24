@@ -5,7 +5,7 @@
 
 import Foundation
 import WolfBase
-import BCWally
+import SecureComponents
 
 public struct BIP39 {
     public let mnemonic: String

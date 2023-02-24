@@ -9,7 +9,7 @@ public enum TransactionRequestError: Swift.Error {
 }
 
 public protocol TransactionRequestBody {
-    static var function: Envelope.FunctionIdentifier { get }
+    static var function: Function { get }
     var envelope: Envelope { get }
     init(_ envelope: Envelope) throws
 }
@@ -33,8 +33,7 @@ public struct TransactionRequest: Equatable {
 }
 
 public extension TransactionRequest {
-    init(psbtCBOR: Data) throws {
-        let cbor = try CBOR(psbtCBOR)
+    init(psbtCBOR cbor: CBOR) throws {
         let psbt = try PSBT(untaggedCBOR: cbor)
         let body = PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true)
         self.init(id: CID(), body: body, note: nil)
@@ -44,9 +43,9 @@ public extension TransactionRequest {
 public extension TransactionRequest {
     init(ur: UR) throws {
         switch ur.type {
-        case CBOR.Tag.envelope.urType:
-            try self.init(untaggedCBOR: CBOR(ur.cbor))
-        case CBOR.Tag.psbt.urType:
+        case Envelope.cborTag.name!:
+            try self.init(untaggedCBOR: ur.cbor)
+        case PSBT.cborTag.name!:
             try self.init(psbtCBOR: ur.cbor)
         default:
             throw URError.unexpectedType
@@ -55,7 +54,7 @@ public extension TransactionRequest {
     
     init<Body: TransactionRequestBody>(_ type: Body.Type, ur: UR) throws {
         switch ur.type {
-        case CBOR.Tag.envelope.urType:
+        case Envelope.cborTag.name!:
             try self.init(type, untaggedCBOR: CBOR(ur.cbor))
         default:
             throw URError.unexpectedType
@@ -74,7 +73,7 @@ public extension TransactionRequest {
         self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
         let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
-        let function = try bodyEnvelope.extractSubject(Envelope.FunctionIdentifier.self)
+        let function = try bodyEnvelope.extractSubject(Function.self)
         switch function {
         case .getSeed:
             self.body = try SeedRequestBody(bodyEnvelope)
@@ -100,7 +99,7 @@ public extension TransactionRequest {
         self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
         let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
-        let fn = try bodyEnvelope.extractSubject(Envelope.FunctionIdentifier.self)
+        let fn = try bodyEnvelope.extractSubject(Function.self)
         guard fn == type.function else {
             throw TransactionRequestError.unknownRequestType
         }

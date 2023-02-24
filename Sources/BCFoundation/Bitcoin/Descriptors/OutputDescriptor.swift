@@ -55,17 +55,17 @@ public struct OutputDescriptor {
     public var unparsed: String {
         astRoot.unparsed
     }
+}
+
+extension OutputDescriptor: URCodable {
+    public static var cborTag: Tag = .output
     
     public var untaggedCBOR: CBOR {
         astRoot.taggedCBOR
     }
     
-    public var taggedCBOR: CBOR {
-        CBOR.tagged(.output, untaggedCBOR)
-    }
-    
-    public var ur: UR {
-        return try! UR(type: .output, cbor: untaggedCBOR)
+    public init(untaggedCBOR: CBOR) throws {
+        unimplemented()
     }
 }
 

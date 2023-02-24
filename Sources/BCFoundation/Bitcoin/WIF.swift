@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import BCWally
 
 public struct WIF : CustomStringConvertible {
     public let key: ECPrivateKey

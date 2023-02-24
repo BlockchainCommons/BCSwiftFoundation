@@ -19,38 +19,19 @@ extension Receipt: CustomStringConvertible {
     }
 }
 
-public extension Receipt {
-    var untaggedCBOR: CBOR {
-        CBOR.data(self.data)
+extension Receipt: CBORTaggedCodable {
+    public static var cborTag: Tag = .receipt
+    
+    public var untaggedCBOR: CBOR {
+        CBOR.bytes(self.data)
     }
     
-    init(untaggedCBOR: CBOR) throws {
+    public init(untaggedCBOR: CBOR) throws {
         guard
-            case let CBOR.data(data) = untaggedCBOR
+            case let CBOR.bytes(data) = untaggedCBOR
         else {
-            throw CBORError.invalidFormat
+            throw CBORDecodingError.invalidFormat
         }
         self = Receipt(data)
-    }
-
-    var taggedCBOR: CBOR {
-        CBOR.tagged(.receipt, untaggedCBOR)
-    }
-
-    init(taggedCBOR: CBOR) throws {
-        guard case let CBOR.tagged(.receipt, untaggedCBOR) = taggedCBOR else {
-            throw CBORError.invalidTag
-        }
-        try self.init(untaggedCBOR: untaggedCBOR)
-    }
-}
-
-extension Receipt: CBORCodable {
-    public static func cborDecode(_ cbor: CBOR) throws -> Receipt {
-        try Receipt(taggedCBOR: cbor)
-    }
-    
-    public var cbor: URKit.CBOR {
-        taggedCBOR
     }
 }

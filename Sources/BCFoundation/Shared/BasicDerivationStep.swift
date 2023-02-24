@@ -1,4 +1,5 @@
 import Foundation
+import SecureComponents
 
 public struct BasicDerivationStep : DerivationStep {
     public let childIndexSpec: ChildIndexSpec
@@ -92,6 +93,6 @@ extension BasicDerivationStep: ExpressibleByIntegerLiteral {
 
 extension BasicDerivationStep {
     public var array: [CBOR] {
-        [childIndexSpec.untaggedCBOR, CBOR.boolean(isHardened)]
+        [childIndexSpec.cbor, isHardened.cbor]
     }
 }

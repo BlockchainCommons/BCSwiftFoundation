@@ -78,10 +78,11 @@ struct DescriptorMulti: DescriptorAST {
     }
 
     var untaggedCBOR: CBOR {
-        CBOR.map([
-            1: .unsignedInt(UInt64(threshold)),
-            2: .array(keys.map({ $0.taggedCBOR }))
-        ])
+        let map: DCBOR.Map = [
+            1: threshold,
+            2: keys.map { $0.taggedCBOR }
+        ]
+        return map.cbor
     }
     
     var taggedCBOR: CBOR {
