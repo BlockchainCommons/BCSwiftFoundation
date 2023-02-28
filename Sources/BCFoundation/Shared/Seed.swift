@@ -151,6 +151,7 @@ extension SeedProtocol {
         
         let creationDate: Date?
         if let dateItem = map[2] {
+            
             creationDate = try Date(cbor: dateItem)
         } else {
             creationDate = nil
