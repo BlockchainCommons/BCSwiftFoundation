@@ -75,7 +75,7 @@ extension Asset {
             case let CBOR.unsigned(r) = untaggedCBOR,
             let a = Asset(rawValue: UInt32(r))
         else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         self = a
     }

@@ -278,7 +278,7 @@ extension PSBT: URCodable {
             self = try PSBT(urString: string)
         } catch { }
 
-        throw CBORDecodingError.invalidFormat
+        throw CBORError.invalidFormat
     }
     
     public var untaggedCBOR: CBOR {
@@ -289,11 +289,11 @@ extension PSBT: URCodable {
         guard
             case let CBOR.bytes(bytes) = untaggedCBOR
         else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         let data = bytes.data
         guard let psbt = PSBT(data) else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         self = psbt
     }

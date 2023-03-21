@@ -24,7 +24,7 @@ extension OutputDescriptorResponseBody: CBORTaggedCodable {
             let source = try? String(cbor: array[0]),
             let challengeSignature = try? Data(cbor: array[1])
         else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         let descriptor = try OutputDescriptor(source)
         self.init(descriptor: descriptor, challengeSignature: challengeSignature)

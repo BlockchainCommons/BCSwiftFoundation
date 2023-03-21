@@ -64,7 +64,7 @@ extension ChildIndex: CBORCodable {
             let value = try? UInt32(cbor: cbor),
             value < 0x80000000
         else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         self.init(value)!
     }

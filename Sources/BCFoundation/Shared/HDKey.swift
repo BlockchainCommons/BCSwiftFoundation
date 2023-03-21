@@ -519,7 +519,7 @@ extension HDKeyProtocol {
         guard case CBOR.map(let map) = cbor
         else {
             // Doesn't contain a map.
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
 
         let isMaster = try Bool(cbor: map[1]) ?? false
@@ -530,14 +530,14 @@ extension HDKeyProtocol {
             keyData.count == 33
         else {
             // Invalid key data.
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
 
         let chainCode = try Data(cbor: map[4])
         if let chainCode {
             guard chainCode.count == 32 else {
                 // Invalid key chain code.
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
             }
         }
 
@@ -570,7 +570,7 @@ extension HDKeyProtocol {
                 parentFingerprintValue <= UInt32.max
             else {
                 // Invalid parent fingerprint.
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
             }
             parentFingerprint = UInt32(parentFingerprintValue)
         } else {
@@ -581,7 +581,7 @@ extension HDKeyProtocol {
         if let nameItem = map[9] {
             guard case let CBOR.text(s) = nameItem else {
                 // Name field doesn't contain string.
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
             }
             name = s
         } else {
@@ -592,7 +592,7 @@ extension HDKeyProtocol {
         if let noteItem = map[10] {
             guard case let CBOR.text(s) = noteItem else {
                 // Note field doesn't contain string.
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
             }
             note = s
         } else {

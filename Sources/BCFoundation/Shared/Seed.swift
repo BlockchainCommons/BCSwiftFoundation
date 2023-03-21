@@ -136,7 +136,7 @@ extension SeedProtocol {
     public init(untaggedCBOR: CBOR) throws {
         guard case CBOR.map(let map) = untaggedCBOR else {
             // CBOR doesn't contain a map.
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         
         guard
@@ -145,7 +145,7 @@ extension SeedProtocol {
             !bytes.isEmpty
         else {
             // CBOR doesn't contain data field.
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         let data = bytes.data
         
@@ -161,7 +161,7 @@ extension SeedProtocol {
         if let nameItem = map[3] {
             guard case let CBOR.text(s) = nameItem else {
                 // Name field doesn't contain string.
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
             }
             name = s
         } else {
@@ -172,7 +172,7 @@ extension SeedProtocol {
         if let noteItem = map[4] {
             guard case let CBOR.text(s) = noteItem else {
                 // Note field doesn't contain string.
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
             }
             note = s
         } else {

@@ -86,7 +86,7 @@ extension UseInfo: CBORTaggedCodable {
 
     public init(untaggedCBOR: CBOR) throws {
         guard case CBOR.map(let map) = untaggedCBOR else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
 
         let asset: Asset

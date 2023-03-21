@@ -83,7 +83,7 @@ extension ChildIndexSpec: CBORCodable {
         } else if ChildIndexSpec.parseWildcard(cbor: cbor) {
             self = .indexWildcard
         } else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
     }
 }

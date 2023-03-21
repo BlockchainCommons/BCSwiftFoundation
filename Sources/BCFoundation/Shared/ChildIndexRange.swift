@@ -54,7 +54,7 @@ extension ChildIndexRange: CBORCodable {
             let high = try? ChildIndex(UInt32(cbor: array[1])),
             low < high
         else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         self.low = low
         self.high = high

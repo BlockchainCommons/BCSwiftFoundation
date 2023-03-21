@@ -175,7 +175,7 @@ extension Bitcoin {
                 guard
                     case let CBOR.unsigned(r) = untaggedCBOR,
                     let a = CBORType(rawValue: Int(r)) else {
-                        throw CBORDecodingError.invalidFormat
+                        throw CBORError.invalidFormat
                     }
                 self = a
             }
@@ -202,7 +202,7 @@ extension Bitcoin.Address: CBORTaggedCodable {
 
     public init(untaggedCBOR: CBOR) throws {
         guard case CBOR.map(let map) = untaggedCBOR else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
 
         let useInfo: UseInfo
@@ -215,7 +215,7 @@ extension Bitcoin.Address: CBORTaggedCodable {
         guard
             let typeItem = map[2]
         else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         let cborType = try CBORType(untaggedCBOR: typeItem)
 
@@ -225,7 +225,7 @@ extension Bitcoin.Address: CBORTaggedCodable {
             !bytes.isEmpty
         else {
              // CBOR doesn't contain data field
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         let data = bytes.data
         
@@ -243,7 +243,7 @@ extension Bitcoin.Address: CBORTaggedCodable {
             case 32:
                 scriptPubKey = ScriptPubKey(Script(ops: [.op(.op_1), .data(data)]))
             default:
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
             }
         }
         

@@ -1,6 +1,10 @@
 import Foundation
 import BCFoundation
 
+public extension Tag {
+    static let receipt = Tag(799, "receipt")
+}
+
 public struct Receipt: Hashable {
     let data: Data
     
@@ -30,7 +34,7 @@ extension Receipt: CBORTaggedCodable {
         guard
             case let CBOR.bytes(data) = untaggedCBOR
         else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         self = Receipt(data)
     }

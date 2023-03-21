@@ -7,7 +7,7 @@ public struct SeedDigest: Equatable {
     
     public init(digest: Data) throws {
         guard digest.count == SHA2.Variant.sha256.digestLength else {
-            throw CBORDecodingError.invalidFormat
+            throw CBORError.invalidFormat
         }
         self.digest = digest
     }

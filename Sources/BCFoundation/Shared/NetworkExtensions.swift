@@ -52,7 +52,7 @@ extension Network {
         guard
             case let CBOR.unsigned(r) = untaggedCBOR,
             let a = Network(rawValue: UInt32(r)) else {
-                throw CBORDecodingError.invalidFormat
+                throw CBORError.invalidFormat
         }
         self = a
     }
