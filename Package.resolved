@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftEnvelope.git",
       "state" : {
-        "revision" : "cc04ff8bb1dc57bb6eaae46d045190a68b01bd7e",
-        "version" : "0.7.2"
+        "revision" : "7fe003e8c347efdb41eacf4562658ab36ad130fb",
+        "version" : "0.8.0"
       }
     },
     {
