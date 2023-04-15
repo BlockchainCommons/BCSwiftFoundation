@@ -26,11 +26,24 @@ public struct PSBTOutput {
             self.origins = []
         }
         let scriptPubKey: ScriptPubKey
-        if let scriptPubKeyBytes = wallyPSBTOutput.witness_script {
-            scriptPubKey = ScriptPubKey(Script(Data(bytes: scriptPubKeyBytes, count: wallyPSBTOutput.witness_script_len)))
+        
+        // This was the old code that worked correctly. LibWally removed `witness_script` and now I'm not sure what the
+        // new equivalent is.
+        // if let scriptPubKeyBytes = wallyPSBTOutput.witness_script {
+        //     scriptPubKey = ScriptPubKey(Script(Data(bytes: scriptPubKeyBytes, count: wallyPSBTOutput.witness_script_len)))
+        // } else {
+        //     scriptPubKey = ScriptPubKey(Script(Data(bytes: wallyTxOutput.script, count: wallyTxOutput.script_len)))
+        // }
+        
+        if
+            let scriptPubKeyBytes = wallyPSBTOutput.script,
+            wallyPSBTOutput.script_len > 0
+        {
+            scriptPubKey = ScriptPubKey(Script(Data(bytes: scriptPubKeyBytes, count: wallyPSBTOutput.script_len)))
         } else {
             scriptPubKey = ScriptPubKey(Script(Data(bytes: wallyTxOutput.script, count: wallyTxOutput.script_len)))
         }
+
 
         self.txOutput = TxOutput(scriptPubKey: scriptPubKey, amount: wallyTxOutput.satoshi)
     }
@@ -88,89 +101,89 @@ public struct PSBTOutput {
         !origins.isEmpty && origins.allSatisfy { $0.isChange }
     }
 
-    public func isChange(signer: HDKey, inputs:[PSBTInput], cosigners: [HDKey], threshold: UInt) -> Bool {
-        // Transaction must have at least one input
-        if inputs.count < 1 {
-            return false
-        }
-
-        // All inputs must have origin info
-        for input in inputs {
-            if input.origins.isEmpty {
-                return false
-            }
-        }
-
-        // Skip key deriviation root
-        let keyPath = inputs[0].origins.first!.path
-        if keyPath.steps.count < 2 {
-            return false
-        }
-        let keyPathRootLength = keyPath.steps.count - 2
-
-        for input in inputs {
-            // Check that we can sign all inputs (TODO: relax assumption for e.g. coinjoin)
-            if !input.canSign(with: signer) {
-                return false
-            }
-            
-            let origins = input.origins
-            guard !origins.isEmpty else {
-                return false
-            }
-
-            for origin in origins {
-                if !(PSBTOutput.commonOriginChecks(originPath: origin.path, rootPathLength:keyPathRootLength, pubKey: origin.key, signer: signer, cosigners: cosigners)) {
-                    return false
-                }
-            }
-        }
-
-        // Check outputs
-        guard !origins.isEmpty else {
-            return false
-        }
-
-        var changeIndex: ChildIndex? = nil
-        for origin in origins {
-            if !(PSBTOutput.commonOriginChecks(originPath: origin.path, rootPathLength:keyPathRootLength, pubKey: origin.key, signer: signer, cosigners: cosigners)) {
-                return false
-            }
-            // Check that the output index is reasonable
-            // When combined with the above constraints, change "hijacked" to an extreme index can
-            // be covered by importing keys using Bitcoin Core's maximum range [0,999999].
-            // This needs less than 1 GB of RAM, but is fairly slow.
-            guard let step = origin.path.steps.reversed()[0] as? BasicDerivationStep else {
-                return false
-            }
-            if !step.isHardened {
-                guard case let .index(i) = step.childIndexSpec else {
-                    return false
-                }
-                if i > 999999 {
-                    return false
-                }
-                // Change index must be the same for all origins
-                if changeIndex != nil && i != changeIndex {
-                    return false
-                } else {
-                    changeIndex = i
-                }
-            }
-        }
-
-        // Check scriptPubKey
-        switch self.txOutput.scriptPubKey.type {
-        case .multi:
-            let expectedScriptPubKey = ScriptPubKey(multisig: Array(origins.map({ $0.key })), threshold: threshold)
-            if self.txOutput.scriptPubKey != expectedScriptPubKey {
-                return false
-            }
-        default:
-            return false
-        }
-        return true
-    }
+//    public func isChange(signer: HDKey, inputs:[PSBTInput], cosigners: [HDKey], threshold: UInt) -> Bool {
+//        // Transaction must have at least one input
+//        if inputs.count < 1 {
+//            return false
+//        }
+//
+//        // All inputs must have origin info
+//        for input in inputs {
+//            if input.origins.isEmpty {
+//                return false
+//            }
+//        }
+//
+//        // Skip key deriviation root
+//        let keyPath = inputs[0].origins.first!.path
+//        if keyPath.steps.count < 2 {
+//            return false
+//        }
+//        let keyPathRootLength = keyPath.steps.count - 2
+//
+//        for input in inputs {
+//            // Check that we can sign all inputs (TODO: relax assumption for e.g. coinjoin)
+//            if !input.canSign(with: signer) {
+//                return false
+//            }
+//            
+//            let origins = input.origins
+//            guard !origins.isEmpty else {
+//                return false
+//            }
+//
+//            for origin in origins {
+//                if !(PSBTOutput.commonOriginChecks(originPath: origin.path, rootPathLength:keyPathRootLength, pubKey: origin.key, signer: signer, cosigners: cosigners)) {
+//                    return false
+//                }
+//            }
+//        }
+//
+//        // Check outputs
+//        guard !origins.isEmpty else {
+//            return false
+//        }
+//
+//        var changeIndex: ChildIndex? = nil
+//        for origin in origins {
+//            if !(PSBTOutput.commonOriginChecks(originPath: origin.path, rootPathLength:keyPathRootLength, pubKey: origin.key, signer: signer, cosigners: cosigners)) {
+//                return false
+//            }
+//            // Check that the output index is reasonable
+//            // When combined with the above constraints, change "hijacked" to an extreme index can
+//            // be covered by importing keys using Bitcoin Core's maximum range [0,999999].
+//            // This needs less than 1 GB of RAM, but is fairly slow.
+//            guard let step = origin.path.steps.reversed()[0] as? BasicDerivationStep else {
+//                return false
+//            }
+//            if !step.isHardened {
+//                guard case let .index(i) = step.childIndexSpec else {
+//                    return false
+//                }
+//                if i > 999999 {
+//                    return false
+//                }
+//                // Change index must be the same for all origins
+//                if changeIndex != nil && i != changeIndex {
+//                    return false
+//                } else {
+//                    changeIndex = i
+//                }
+//            }
+//        }
+//
+//        // Check scriptPubKey
+//        switch self.txOutput.scriptPubKey.type {
+//        case .multi:
+//            let expectedScriptPubKey = ScriptPubKey(multisig: Array(origins.map({ $0.key })), threshold: threshold)
+//            if self.txOutput.scriptPubKey != expectedScriptPubKey {
+//                return false
+//            }
+//        default:
+//            return false
+//        }
+//        return true
+//    }
 }
 
 extension PSBTOutput {

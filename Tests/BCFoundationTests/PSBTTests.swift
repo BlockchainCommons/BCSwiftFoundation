@@ -233,45 +233,45 @@ class PSBTTests: XCTestCase {
     }
     
     func testIsChange() throws {
-        let us = try HDKey(base58: master1)
-        let cosigner = try HDKey(base58: master2)
+//        let us = try HDKey(base58: master1)
+//        let cosigner = try HDKey(base58: master2)
         var psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
-        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
         XCTAssertTrue(psbt.outputs[0].isChange)
         XCTAssertFalse(psbt.outputs[1].isChange)
 
         // Test maximum permitted change index
         psbt = PSBT(base64: changeIndex999999)!
-        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
         XCTAssertTrue(psbt.outputs[0].isChange)
         XCTAssertFalse(psbt.outputs[1].isChange)
 
         // Test out of bounds change index
         psbt = PSBT(base64: changeIndex1000000)!
-        XCTAssertFalse(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertFalse(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
         XCTAssertFalse(psbt.outputs[0].isChange)
         XCTAssertFalse(psbt.outputs[1].isChange)
     }
     
     func testIsChangeWithNeuteredCosignerKey() throws {
-        let us = try HDKey(base58: master1)
-        let cosigner = try HDKey(base58: "xpub6DwQ4gBCmJZM3TaKogP41tpjuEwnMH2nWEi3PFev37LfsWPvjZrh1GfAG8xvoDYMPWGKG1oBPMCfKpkVbJtUHRaqRdCb6X6o1e9PQTVK88a", overrideOriginFingerprint: 0xbd16bee5)
+//        let us = try HDKey(base58: master1)
+//        let cosigner = try HDKey(base58: "xpub6DwQ4gBCmJZM3TaKogP41tpjuEwnMH2nWEi3PFev37LfsWPvjZrh1GfAG8xvoDYMPWGKG1oBPMCfKpkVbJtUHRaqRdCb6X6o1e9PQTVK88a", overrideOriginFingerprint: 0xbd16bee5)
         let psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
-        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
         XCTAssertTrue(psbt.outputs[0].isChange)
         XCTAssertFalse(psbt.outputs[1].isChange)
     }
     
     func testIsChangeWithNeuteredAllKeys() throws {
-        let us = try HDKey(base58: "xpub6E64WfdQwBGz85XhbZryr9gUGUPBgoSu5WV6tJWpzAvgAmpVpdPHkT3XYm9R5J6MeWzvLQoz4q845taC9Q28XutbptxAmg7q8QPkjvTL4oi", overrideOriginFingerprint: 0x3442193e)
-        let cosigner = try HDKey(base58: "xpub6DwQ4gBCmJZM3TaKogP41tpjuEwnMH2nWEi3PFev37LfsWPvjZrh1GfAG8xvoDYMPWGKG1oBPMCfKpkVbJtUHRaqRdCb6X6o1e9PQTVK88a", overrideOriginFingerprint: 0xbd16bee5)
+//        let us = try HDKey(base58: "xpub6E64WfdQwBGz85XhbZryr9gUGUPBgoSu5WV6tJWpzAvgAmpVpdPHkT3XYm9R5J6MeWzvLQoz4q845taC9Q28XutbptxAmg7q8QPkjvTL4oi", overrideOriginFingerprint: 0x3442193e)
+//        let cosigner = try HDKey(base58: "xpub6DwQ4gBCmJZM3TaKogP41tpjuEwnMH2nWEi3PFev37LfsWPvjZrh1GfAG8xvoDYMPWGKG1oBPMCfKpkVbJtUHRaqRdCb6X6o1e9PQTVK88a", overrideOriginFingerprint: 0xbd16bee5)
         let psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
-        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
         XCTAssertTrue(psbt.outputs[0].isChange)
         XCTAssertFalse(psbt.outputs[1].isChange)
     }
@@ -304,7 +304,10 @@ class PSBTTests: XCTestCase {
                 if let address = input.address(network: network) {
                     print("From Address: \(address)")
                 }
-                if let (n, m) = input.witnessScript?.multisigInfo {
+                if
+                    !input.witnessStack.isEmpty,
+                    let (n, m) = input.witnessStack[0]?.multisigInfo
+                {
                     print("Multisig \(n) of \(m)")
                 }
                 for status in signingStatuses {

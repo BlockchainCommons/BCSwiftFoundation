@@ -11,7 +11,7 @@ import WolfBase
 public struct PSBTInput {
     public let origins: [PSBTSigningOrigin]
     public let signatures: [ECPublicKey: Data]
-    public let witnessScript: ScriptPubKey?
+    public let witnessStack: [ScriptPubKey?]
     public let isSegwit: Bool
     public let amount: Satoshi?
 
@@ -27,12 +27,27 @@ public struct PSBTInput {
         } else {
             self.signatures = [:]
         }
-
-        if let witnessScript = wallyInput.witness_script {
-            self.witnessScript = ScriptPubKey(Script(Data(bytes: witnessScript, count: wallyInput.witness_script_len)))
-        } else {
-            self.witnessScript = nil
+        
+        var witnessStack: [ScriptPubKey?] = []
+        if let wallyWitnessStack = wallyInput.final_witness {
+            let numItems = wallyWitnessStack.pointee.num_items
+            for i in 0 ..< numItems {
+                let witnessItem = wallyWitnessStack.pointee.items[i]
+                if let witnessData = witnessItem.witness {
+                    let witnessScript = ScriptPubKey(Script(Data(bytes: witnessData, count: witnessItem.witness_len)))
+                    witnessStack.append(witnessScript)
+                } else {
+                    witnessStack.append(nil)
+                }
+            }
         }
+        self.witnessStack = witnessStack
+
+//        if let witnessScript = wallyInput.witness_script {
+//            self.witnessScript = ScriptPubKey(Script(Data(bytes: witnessScript, count: wallyInput.witness_script_len)))
+//        } else {
+//            self.witnessScript = nil
+//        }
 
         if let witness_utxo = wallyInput.witness_utxo {
             isSegwit = true
@@ -80,7 +95,10 @@ public struct PSBTInput {
     }
 
     public func address(network: Network) -> String? {
-        guard let scriptPubKey = witnessScript else {
+        guard
+            !witnessStack.isEmpty,
+            let scriptPubKey = witnessStack[0]
+        else {
             return nil
         }
         return Bitcoin.Address(scriptPubKey: scriptPubKey, network: network)!.description
@@ -96,7 +114,7 @@ public struct PSBTInput {
 
 extension PSBTInput: CustomStringConvertible {
     public var description: String {
-        "PSBTInput(origins: \(origins), signatures: \(signatures), witnessScript: \(witnessScript†), isSegwit: \(isSegwit), amount: \((amount?.btcFormat)†))"
+        "PSBTInput(origins: \(origins), signatures: \(signatures), witnessStack: \(witnessStack), isSegwit: \(isSegwit), amount: \((amount?.btcFormat)†))"
     }
 }
 
