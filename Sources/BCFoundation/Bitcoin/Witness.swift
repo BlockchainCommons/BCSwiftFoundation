@@ -25,36 +25,23 @@ public struct Witness {
         self.isDummy = isDummy
     }
 
-    public func createWallyStack() -> UnsafeMutablePointer<wally_tx_witness_stack> {
-        var newStack: UnsafeMutablePointer<wally_tx_witness_stack>!
+    public func createWallyStack() -> WallyWitnessStack {
+        let sigHashByte = Data([Wally.sighashAll])
         switch type {
         case .payToWitnessPubKeyHash:
-            precondition(wally_tx_witness_stack_init_alloc(2, &newStack) == WALLY_OK)
-
-            let sigHashByte = Data([UInt8(WALLY_SIGHASH_ALL)])
-            (signature + sigHashByte).withUnsafeByteBuffer { buf in
-                precondition(wally_tx_witness_stack_set(newStack!, 0, buf.baseAddress, buf.count) == WALLY_OK)
-            }
-            pubKey.data.withUnsafeByteBuffer { buf in
-                precondition(wally_tx_witness_stack_set(newStack!, 1, buf.baseAddress, buf.count) == WALLY_OK)
-            }
+            let witness0 = signature + sigHashByte
+            let witness1 = pubKey.data
+            return WallyWitnessStack([witness0, witness1])
         case .payToScriptHashPayToWitnessPubKeyHash:
-            precondition(wally_tx_witness_stack_init_alloc(2, &newStack) == WALLY_OK)
-
-            let sigHashByte = Data([UInt8(WALLY_SIGHASH_ALL)])
-            (signature + sigHashByte).withUnsafeByteBuffer { buf in
-                precondition(wally_tx_witness_stack_set(newStack!, 0, buf.baseAddress, buf.count) == WALLY_OK)
-            }
-            pubKey.data.withUnsafeByteBuffer { buf in
-                precondition(wally_tx_witness_stack_set(newStack!, 1, buf.baseAddress, buf.count) == WALLY_OK)
-            }
+            let witness0 = signature + sigHashByte
+            let witness1 = pubKey.data
+            return WallyWitnessStack([witness0, witness1])
         }
-        return newStack
     }
 
     // Initialize without signature argument to get a dummy signature for fee calculation
     public init(type: WitnessType, pubKey: ECPublicKey) {
-        let dummySignature = Data([UInt8].init(repeating: 0, count: Int(EC_SIGNATURE_DER_MAX_LOW_R_LEN)))
+        let dummySignature = Data([UInt8].init(repeating: 0, count: Wally.ecSignatureDerMaxLowRLen))
         self.init(type: type, pubKey: pubKey, signature: dummySignature, isDummy: true)
     }
 

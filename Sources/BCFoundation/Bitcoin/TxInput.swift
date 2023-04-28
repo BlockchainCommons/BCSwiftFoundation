@@ -31,20 +31,13 @@ public struct TxInput {
     }
 
     public func createWallyInput() -> WallyTxInput {
-        prevTx.data.withUnsafeByteBuffer { prevTxBytes in
-            var wti: WallyTxInput!
-            
-            let witness: UnsafeMutablePointer<wally_tx_witness_stack>?
-            if case let .witness(w) = sig {
-                witness = w.createWallyStack()
-            } else {
-                witness = nil
-            }
-            
-            precondition(wally_tx_input_init_alloc(prevTxBytes.baseAddress, prevTxBytes.count, vout, sequence, nil, 0, witness, &wti) == WALLY_OK)
-
-            return wti
+        let witness: WallyWitnessStack?
+        if case let .witness(w) = sig {
+            witness = w.createWallyStack()
+        } else {
+            witness = nil
         }
+        return WallyTxInput(prevTx: prevTx.data, vout: vout, sequence: sequence, amount: amount, witness: witness)
     }
 
     public var isSigned: Bool {

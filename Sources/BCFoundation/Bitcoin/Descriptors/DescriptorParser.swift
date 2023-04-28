@@ -130,7 +130,7 @@ extension DescriptorParser {
         let transaction = Transaction(self)
         guard
             let i = parseInt(),
-            (0 ..< Int(BIP32_INITIAL_HARDENED_CHILD)).contains(i)
+            (0 ..< Int(WallyExtKey.initialHardenedChild)).contains(i)
         else {
             return nil
         }

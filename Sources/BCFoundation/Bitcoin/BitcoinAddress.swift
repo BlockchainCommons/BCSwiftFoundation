@@ -90,7 +90,7 @@ extension Bitcoin {
         }
         
         public init(hdKey: HDKey, type: AddressType) {
-            let address = Wally.hdKeyToAddress(hdKey: hdKey, type: type)
+            let address = Wally.hdKeyToAddress(hdKey: hdKey.wallyExtKey, network: hdKey.useInfo.network, type: type.wallyType)
             self.init(string: address)!
         }
 
@@ -136,16 +136,18 @@ extension Bitcoin {
             case payToScriptHash
             case taproot
             
-            var wallyType: UInt32 {
+            var wallyType: Wally.AddressType {
                 switch self {
                 case .payToPubKeyHash:
-                    return UInt32(WALLY_ADDRESS_TYPE_P2PKH)
+                    return .payToPubKeyHash
                 case .payToScriptHashPayToWitnessPubKeyHash:
-                    return UInt32(WALLY_ADDRESS_TYPE_P2SH_P2WPKH)
+                    return .payToScriptHashPayToWitnessPubKeyHash
                 case .payToWitnessPubKeyHash:
-                    return UInt32(WALLY_ADDRESS_TYPE_P2WPKH)
-                default:
-                    fatalError()
+                    return .payToWitnessPubKeyHash
+                case .payToScriptHash:
+                    preconditionFailure("No Wally type for AddressType.payToScriptHash")
+                case .taproot:
+                    preconditionFailure("No Wally type for AddressType.taproot")
                 }
             }
             

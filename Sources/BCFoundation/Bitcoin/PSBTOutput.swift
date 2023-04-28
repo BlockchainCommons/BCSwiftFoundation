@@ -19,9 +19,9 @@ public struct PSBTOutput {
         txOutput.amount
     }
 
-    init(wallyPSBTOutput: WallyPSBTOutput, wallyTxOutput: wally_tx_output) {
-        if wallyPSBTOutput.keypaths.num_items > 0 {
-            self.origins = getOrigins(keypaths: wallyPSBTOutput.keypaths)
+    init(wallyPSBTOutput: WallyPSBTOutput, wallyTxOutput: WallyTxOutput) {
+        if wallyPSBTOutput.keyPaths.count > 0 {
+            self.origins = getOrigins(keypaths: wallyPSBTOutput.keyPaths)
         } else {
             self.origins = []
         }
@@ -36,12 +36,11 @@ public struct PSBTOutput {
         // }
         
         if
-            let scriptPubKeyBytes = wallyPSBTOutput.script,
-            wallyPSBTOutput.script_len > 0
+            let scriptPubKeyBytes = wallyPSBTOutput.script
         {
-            scriptPubKey = ScriptPubKey(Script(Data(bytes: scriptPubKeyBytes, count: wallyPSBTOutput.script_len)))
+            scriptPubKey = ScriptPubKey(scriptPubKeyBytes)
         } else {
-            scriptPubKey = ScriptPubKey(Script(Data(bytes: wallyTxOutput.script, count: wallyTxOutput.script_len)))
+            scriptPubKey = ScriptPubKey(Script(wallyTxOutput.script))
         }
 
 

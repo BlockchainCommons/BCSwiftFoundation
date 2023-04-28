@@ -18,26 +18,18 @@ public struct PSBT : Equatable {
     private final class Storage {
         var psbt: WallyPSBT
 
-        init(psbt: WallyPSBT) {
-            self.psbt = psbt
-        }
+        init(psbt: WallyPSBT) { self.psbt = psbt }
 
-        deinit {
-            Wally.free(psbt: psbt)
-        }
+        deinit { psbt.dispose() }
     }
 
     private var _psbt: WallyPSBT {
         storage.psbt
     }
 
-    private static func clone(psbt: WallyPSBT) -> WallyPSBT {
-        Wally.clone(psbt: psbt)
-    }
-
     private mutating func prepareForWrite() {
         if !isKnownUniquelyReferenced(&storage) {
-            storage.psbt = Self.clone(psbt: storage.psbt)
+            storage.psbt = storage.psbt.clone()
         }
     }
 
@@ -49,14 +41,14 @@ public struct PSBT : Equatable {
         self.storage = Storage(psbt: ownedPSBT)
 
         var inputs: [PSBTInput] = []
-        for i in 0 ..< ownedPSBT.pointee.inputs_allocation_len {
-            inputs.append(PSBTInput(wallyInput: ownedPSBT.pointee.inputs![i]))
+        for i in 0 ..< ownedPSBT.inputsAllocationCount {
+            inputs.append(PSBTInput(wallyInput: ownedPSBT.input(at: i)))
         }
         self.inputs = inputs
 
         var outputs: [PSBTOutput] = []
-        for i in 0 ..< ownedPSBT.pointee.outputs_allocation_len {
-            outputs.append(PSBTOutput(wallyPSBTOutput: ownedPSBT.pointee.outputs[i], wallyTxOutput: ownedPSBT.pointee.tx!.pointee.outputs[i]))
+        for i in 0 ..< ownedPSBT.outputsAllocationCount {
+            outputs.append(PSBTOutput(wallyPSBTOutput: ownedPSBT.output(at: i), wallyTxOutput: ownedPSBT.tx.output(at: i)))
         }
         self.outputs = outputs
     }
@@ -65,7 +57,6 @@ public struct PSBT : Equatable {
         guard let psbt = Wally.psbt(from: data) else {
             return nil
         }
-        precondition(psbt.pointee.tx != nil)
         self.init(ownedPSBT: psbt)
     }
 
@@ -105,8 +96,7 @@ public struct PSBT : Equatable {
     }
 
     public var transaction: Transaction {
-        precondition(_psbt.pointee.tx != nil)
-        return Transaction(tx: _psbt.pointee.tx!)
+        return Transaction(tx: _psbt.tx)
     }
     
     public var totalIn: Satoshi? {

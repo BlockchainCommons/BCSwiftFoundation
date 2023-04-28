@@ -16,25 +16,25 @@ public struct PSBTInput {
     public let amount: Satoshi?
 
     init(wallyInput: WallyPSBTInput) {
-        if wallyInput.keypaths.num_items > 0 {
-            self.origins = getOrigins(keypaths: wallyInput.keypaths)
+        if wallyInput.keyPaths.count > 0 {
+            self.origins = getOrigins(keypaths: wallyInput.keyPaths)
         } else {
             self.origins = []
         }
 
-        if(wallyInput.signatures.num_items > 0) {
+        if(wallyInput.signatures.count > 0) {
             self.signatures = getSignatures(signatures: wallyInput.signatures)
         } else {
             self.signatures = [:]
         }
         
         var witnessStack: [ScriptPubKey?] = []
-        if let wallyWitnessStack = wallyInput.final_witness {
-            let numItems = wallyWitnessStack.pointee.num_items
+        if let wallyWitnessStack = wallyInput.finalWitness {
+            let numItems = wallyWitnessStack.count
             for i in 0 ..< numItems {
-                let witnessItem = wallyWitnessStack.pointee.items[i]
+                let witnessItem = wallyWitnessStack[i]
                 if let witnessData = witnessItem.witness {
-                    let witnessScript = ScriptPubKey(Script(Data(bytes: witnessData, count: witnessItem.witness_len)))
+                    let witnessScript = ScriptPubKey(Script(witnessData))
                     witnessStack.append(witnessScript)
                 } else {
                     witnessStack.append(nil)
@@ -49,9 +49,9 @@ public struct PSBTInput {
 //            self.witnessScript = nil
 //        }
 
-        if let witness_utxo = wallyInput.witness_utxo {
+        if let witnessUTXO = wallyInput.witnessUTXO {
             isSegwit = true
-            amount = witness_utxo.pointee.satoshi
+            amount = witnessUTXO.satoshi
         } else {
             isSegwit = false
             amount = nil
@@ -118,21 +118,23 @@ extension PSBTInput: CustomStringConvertible {
     }
 }
 
-func getOrigins(keypaths: wally_map) -> [PSBTSigningOrigin] {
+func getOrigins(keypaths: WallyMap) -> [PSBTSigningOrigin] {
     var result: [PSBTSigningOrigin] = []
-    for i in 0..<keypaths.num_items {
+    for i in 0..<keypaths.count {
         // TOOD: simplify after https://github.com/ElementsProject/libwally-core/issues/241
-        let item: wally_map_item = keypaths.items[i]
+        let item = keypaths[i]
 
-        let pubKey = ECPublicKey(Data(bytes: item.key, count: Int(EC_PUBLIC_KEY_LEN)))!
-        let fingerprintData = Data(bytes: item.value, count: Int(BIP32_KEY_FINGERPRINT_LEN))
-        let fingerprint = deserialize(UInt32.self, fingerprintData)!
-        let keyPath = Data(bytes: item.value + Int(BIP32_KEY_FINGERPRINT_LEN), count: Int(item.value_len) - Int(BIP32_KEY_FINGERPRINT_LEN))
+        let pubKey = ECPublicKey(item.key)!
+        let itemValue = item.value
+        let fingerprint = deserialize(UInt32.self, itemValue)!
+        let keyPath = itemValue.subdata(in: WallyExtKey.keyFingerprintLen..<itemValue.count)
 
         var components: [UInt32] = []
         for j in 0..<keyPath.count / 4 {
-            let data = keyPath.subdata(in: (j * 4)..<((j + 1) * 4)).withUnsafeBytes{ $0.load(as: UInt32.self) }
-            components.append(data)
+            let range = (j * 4)..<((j + 1) * 4)
+            let subdata = keyPath[range]
+            let component = subdata.withUnsafeBytes{ $0.load(as: UInt32.self) }
+            components.append(component)
         }
         let path = DerivationPath(rawPath: components, origin: .fingerprint(fingerprint))!
         result.append(PSBTSigningOrigin(key: pubKey, path: path))
@@ -140,13 +142,12 @@ func getOrigins(keypaths: wally_map) -> [PSBTSigningOrigin] {
     return result
 }
 
-func getSignatures(signatures: wally_map) -> [ECPublicKey: Data] {
+func getSignatures(signatures: WallyMap) -> [ECPublicKey: Data] {
     var result: [ECPublicKey: Data] = [:]
-    for i in 0 ..< signatures.num_items {
-        let item = signatures.items[i]
-        let pubKey = ECPublicKey(Data(bytes: item.key, count: Int(EC_PUBLIC_KEY_LEN)))!
-        let sig = Data(bytes: item.value, count: Int(item.value_len))
-        result[pubKey] = sig
+    for i in 0 ..< signatures.count {
+        let item = signatures[i]
+        let pubKey = ECPublicKey(item.key)!
+        result[pubKey] = item.value
     }
     return result
 }

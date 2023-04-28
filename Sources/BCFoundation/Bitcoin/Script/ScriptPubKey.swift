@@ -19,10 +19,34 @@ public struct ScriptPubKey : Equatable {
         case wsh        // P2WSH (native SegWit script)
         case multi      // MultiSig
         case tr         // Taproot
+        
+        init?(_ wallyType: Wally.ScriptType) {
+            switch wallyType {
+            case .`return`:
+                self = .`return`
+            case .pkh:
+                self = .pkh
+            case .sh:
+                self = .sh
+            case .wpkh:
+                self = .wpkh
+            case .wsh:
+                self = .wsh
+            case .multi:
+                self = .multi
+            case .tr:
+                self = .tr
+            @unknown default:
+                return nil
+            }
+        }
     }
 
     public var type: ScriptType? {
-        if let type = Wally.getType(from: self) {
+        if
+            let wallyType = Wally.getScriptType(from: script.data),
+            let type = ScriptType(wallyType)
+        {
             return type
         } else if
             let ops = script.operations,

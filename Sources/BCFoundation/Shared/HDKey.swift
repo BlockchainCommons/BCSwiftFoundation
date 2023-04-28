@@ -94,7 +94,7 @@ extension HDKeyProtocol {
             keyData = key.keyData
         } else {
             // private -> public
-            keyData = Data(of: key.wallyExtKey.pub_key)
+            keyData = key.wallyExtKey.pubKey
         }
         
         self.init(
@@ -114,16 +114,16 @@ extension HDKeyProtocol {
     public init(wallyExtKey key: WallyExtKey, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
         let keyData: Data
         if key.isPrivate {
-            keyData = Data(of: key.priv_key)
+            keyData = key.privKey
         } else {
-            keyData = Data(of: key.pub_key)
+            keyData = key.pubKey
         }
 
         let steps: [BasicDerivationStep]
-        if key.child_num == 0 {
+        if key.childNum == 0 {
             steps = []
         } else {
-            steps = [BasicDerivationStep(rawValue: key.child_num)]
+            steps = [BasicDerivationStep(rawValue: key.childNum)]
         }
         let newParent: DerivationPath
         if let parent = parent {
@@ -139,11 +139,11 @@ extension HDKeyProtocol {
             isMaster: key.isMaster,
             keyType: KeyType(isPrivate: key.isPrivate),
             keyData: keyData,
-            chainCode: Data(of: key.chain_code),
+            chainCode: key.chainCode,
             useInfo: UseInfo(asset: useInfo.asset, network: key.network!),
             parent: parent ?? newParent,
             children: children,
-            parentFingerprint: deserialize(UInt32.self, Data(of: key.parent160))!,
+            parentFingerprint: deserialize(UInt32.self, key.parent160)!,
             name: "",
             note: ""
         )
@@ -161,9 +161,9 @@ extension HDKeyProtocol {
         }
         let keyData: Data
         if key.isPrivate {
-            keyData = Data(of: key.priv_key)
+            keyData = key.privKey
         } else {
-            keyData = Data(of: key.pub_key)
+            keyData = key.pubKey
         }
         
         let newParent: DerivationPath
@@ -171,10 +171,10 @@ extension HDKeyProtocol {
             newParent = parent
         } else {
             let steps: [BasicDerivationStep]
-            if key.child_num == 0 {
+            if key.childNum == 0 {
                 steps = []
             } else {
-                steps = [BasicDerivationStep(rawValue: key.child_num)]
+                steps = [BasicDerivationStep(rawValue: key.childNum)]
             }
             let originFingerprint = overrideOriginFingerprint ?? Wally.fingerprint(for: key)
             let o = DerivationPath.Origin.fingerprint(originFingerprint)
@@ -184,14 +184,14 @@ extension HDKeyProtocol {
         if isMaster {
             parentFingerprint = nil
         } else {
-            parentFingerprint = deserialize(UInt32.self, Data(of: key.parent160))!
+            parentFingerprint = deserialize(UInt32.self, key.parent160)!
         }
         let useInfo = useInfo ?? .init()
         self.init(
             isMaster: isMaster,
             keyType: KeyType(isPrivate: key.isPrivate),
             keyData: keyData,
-            chainCode: Data(of: key.chain_code),
+            chainCode: key.chainCode,
             useInfo: UseInfo(asset: useInfo.asset, network: key.network!),
             parent: newParent,
             children: children,
@@ -212,8 +212,8 @@ extension HDKeyProtocol {
         self.init(
             isMaster: true,
             keyType: .private,
-            keyData: Data(of: key.priv_key),
-            chainCode: Data(of: key.chain_code),
+            keyData: key.privKey,
+            chainCode: key.chainCode,
             useInfo: useInfo,
             parent: parent ?? DerivationPath(origin: .fingerprint(Wally.fingerprint(for: key))),
             children: children,
@@ -259,8 +259,8 @@ extension HDKeyProtocol {
         self.init(
             isMaster: false,
             keyType: derivedKeyType,
-            keyData: derivedKeyType == .private ? Data(of: derivedKey.priv_key) : Data(of: derivedKey.pub_key),
-            chainCode: Data(of: derivedKey.chain_code),
+            keyData: derivedKeyType == .private ? derivedKey.privKey : derivedKey.pubKey,
+            chainCode: derivedKey.chainCode,
             useInfo: parent.useInfo,
             parent: origin,
             children: nil,
@@ -373,21 +373,21 @@ extension HDKeyProtocol {
     }
     
     public var ecPublicKey: ECPublicKey {
-        ECPublicKey(Data(of: wallyExtKey.pub_key))!
+        ECPublicKey(wallyExtKey.pubKey)!
     }
 
     public var ecPrivateKey: ECPrivateKey? {
         if !isPrivate {
             return nil
         }
-        var data = Data(of: wallyExtKey.priv_key)
+        var data = wallyExtKey.privKey
         // skip prefix byte 0
         precondition(data.popFirst() != nil)
         return ECPrivateKey(data)!
     }
 
-    public var wallyExtKey: ext_key {
-        var k = ext_key()
+    public var wallyExtKey: WallyExtKey {
+        var k = WallyExtKey()
         
         let effectiveDepth = parent.effectiveDepth
         if effectiveDepth > 0 {
@@ -398,39 +398,41 @@ extension HDKeyProtocol {
                 let value = childIndex.value
                 let isHardened = lastStep.isHardened
                 let childNum = value | (isHardened ? 0x80000000 : 0)
-                k.child_num = childNum
+                k.childNum = childNum
             }
         }
         
         switch keyType {
         case .private:
-            keyData.store(into: &k.priv_key)
+            k.privKey = keyData
             Wally.updatePublicKey(in: &k)
             switch useInfo.network {
             case .mainnet:
-                k.version = UInt32(BIP32_VER_MAIN_PRIVATE)
+                k.version = WallyExtKey.versionMainPrivate
             case .testnet:
-                k.version = UInt32(BIP32_VER_TEST_PRIVATE)
+                k.version = WallyExtKey.versionTestPrivate
             }
         case .public:
-            k.priv_key.0 = 0x01;
-            keyData.store(into: &k.pub_key)
+            var privKey = k.privKey
+            privKey[0] = 0x01
+            k.privKey = privKey
+            k.pubKey = keyData
             switch useInfo.network {
             case .mainnet:
-                k.version = UInt32(BIP32_VER_MAIN_PUBLIC)
+                k.version = WallyExtKey.versionMainPublic
             case .testnet:
-                k.version = UInt32(BIP32_VER_TEST_PUBLIC)
+                k.version = WallyExtKey.versionTestPublic
             }
         }
         
         Wally.updateHash160(in: &k)
         
         if let chainCode = chainCode {
-            chainCode.store(into: &k.chain_code)
+            k.chainCode = chainCode
         }
         
         if let parentFingerprint = parentFingerprint {
-            parentFingerprint.serialized.store(into: &k.parent160)
+            k.parent160 = parentFingerprint.serialized
         }
         
         k.checkValid()

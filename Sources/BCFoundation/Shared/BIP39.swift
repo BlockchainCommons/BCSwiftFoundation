@@ -75,10 +75,7 @@ extension BIP39 {
         }
 
         public init(bip39: BIP39, passphrase: String? = nil) {
-            var bytes_out = [UInt8](repeating: 0, count: Int(BIP39_SEED_LEN_512))
-            var written = 0
-            precondition(bip39_mnemonic_to_seed(bip39.mnemonic, passphrase, &bytes_out, Int(BIP39_SEED_LEN_512), &written) == WALLY_OK)
-            self.data = Data(bytes: bytes_out, count: written)
+            self.data = Wally.bip39MnemonicToSeed(mnemonic: bip39.mnemonic, passphrase: passphrase)
         }
 
         public var description: String {

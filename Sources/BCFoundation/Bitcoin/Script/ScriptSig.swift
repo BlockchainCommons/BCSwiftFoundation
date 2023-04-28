@@ -34,15 +34,15 @@ public struct ScriptSig {
             switch purpose {
             case .feeWorstCase:
                 // DER encoded signature
-                let dummySignature = Data([UInt8].init(repeating: 0, count: Int(EC_SIGNATURE_DER_MAX_LOW_R_LEN)))
-                let sigHashByte = Data([UInt8(WALLY_SIGHASH_ALL)])
+                let dummySignature = Data([UInt8].init(repeating: 0, count: Wally.ecSignatureDerMaxLowRLen))
+                let sigHashByte = Data([Wally.sighashAll])
                 let lengthPushSignature = Data([UInt8(dummySignature.count + 1)]) // DER encoded signature + sighash byte
                 let lengthPushPubKey = Data([UInt8(pubKey.data.count)])
                 return Script(lengthPushSignature + dummySignature + sigHashByte + lengthPushPubKey + pubKey.data)
             case .signed:
                 if let signature = signature {
                     let lengthPushSignature = Data([UInt8(signature.count + 1)]) // DER encoded signature + sighash byte
-                    let sigHashByte = Data([UInt8(WALLY_SIGHASH_ALL)])
+                    let sigHashByte = Data([Wally.sighashAll])
                     let lengthPushPubKey = Data([UInt8(pubKey.data.count)])
                     return Script(lengthPushSignature + signature + sigHashByte + lengthPushPubKey + pubKey.data)
                 } else {

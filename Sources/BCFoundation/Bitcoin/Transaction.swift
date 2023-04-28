@@ -22,17 +22,11 @@ public struct Transaction {
 
         init() { self.tx = nil }
 
-        deinit { wally_tx_free(tx) }
+        deinit { tx?.dispose() }
     }
 
     var tx: WallyTx? {
         storage.tx
-    }
-
-    private static func clone(tx: WallyTx) -> WallyTx {
-        var newTx: WallyTx!
-        precondition(wally_tx_clone_alloc(tx, 0, &newTx) == WALLY_OK)
-        return newTx
     }
 
     private mutating func prepareForWrite() {
@@ -40,14 +34,14 @@ public struct Transaction {
             !isKnownUniquelyReferenced(&storage),
             let tx = storage.tx
         {
-            storage.tx = Self.clone(tx: tx)
+            storage.tx = tx.clone()
         }
     }
 
     init(tx: WallyTx) {
         inputs = nil
         outputs = nil
-        storage = Storage(tx: Self.clone(tx: tx))
+        storage = Storage(tx: tx.clone())
     }
 
     public init?(_ data: Data) {
@@ -68,22 +62,7 @@ public struct Transaction {
     public init(inputs: [TxInput], outputs: [TxOutput]) {
         self.inputs = inputs
         self.outputs = outputs
-        
-        let version: UInt32 = 1
-        let lockTime: UInt32 = 0
-
-        var wtx: WallyTx!
-        precondition(wally_tx_init_alloc(version, lockTime, inputs.count, outputs.count, &wtx) == WALLY_OK)
-
-        for input in inputs {
-            Wally.txAddInput(tx: wtx, input: input.createWallyInput())
-        }
-
-        for output in outputs {
-            Wally.txAddOutput(tx: wtx, output: output.createWallyOutput())
-        }
-
-        storage = Storage(tx: wtx)
+        self.storage = Storage(tx: WallyTx(version: 1, lockTime: 0, inputs: inputs.map { $0.createWallyInput() }, outputs: outputs.map { $0.createWallyOutput() }))
     }
 
     private init(inputs: [TxInput]?, outputs: [TxOutput]?, tx: WallyTx) {
@@ -117,9 +96,9 @@ public struct Transaction {
             return nil
         }
 
-        let cloned_tx = Self.clone(tx: tx)
+        let clonedTx = tx.clone()
         defer {
-            wally_tx_free(cloned_tx)
+            clonedTx.dispose()
         }
 
         // Set scriptSig for all unsigned inputs to .feeWorstCase
@@ -139,12 +118,12 @@ public struct Transaction {
                 
                 if let scriptSig = scriptSig {
                     let scriptSigWorstCase = scriptSig.render(purpose: .feeWorstCase)!.data
-                    Wally.txSetInputScript(tx: cloned_tx, index: index, script: scriptSigWorstCase)
+                    clonedTx.setInputScript(index: index, script: scriptSigWorstCase)
                 }
             }
         }
         
-        return Wally.txGetVsize(tx: cloned_tx)
+        return Wally.txGetVsize(tx: clonedTx)
     }
     
     public var fee: Satoshi? {
@@ -172,7 +151,7 @@ public struct Transaction {
             return nil
         }
 
-        let cloned_tx = Self.clone(tx: tx)
+        let clonedTx = tx.clone()
 
         var updatedInputs = inputs
 
@@ -185,27 +164,27 @@ public struct Transaction {
                 switch witness.type {
                 case .payToScriptHashPayToWitnessPubKeyHash:
                     let scriptSig = ScriptSig(type: .payToScriptHashPayToWitnessPubKeyHash(witness.pubKey)).render(purpose: .signed)!.data
-                    Wally.txSetInputScript(tx: cloned_tx, index: i, script: scriptSig)
+                    clonedTx.setInputScript(index: i, script: scriptSig)
                     
                     fallthrough
                 case .payToWitnessPubKeyHash:
                     // Check that we're using the right public key:
-                    let pubKeyData = Data(of: privKeys[i].wallyExtKey.pub_key)
+                    let pubKeyData = privKeys[i].wallyExtKey.pubKey
                     precondition(witness.pubKey.data == pubKeyData)
                     
-                    messageHash = Wally.txGetBTCSignatureHash(tx: cloned_tx, index: i, script: witness.script.data, amount: inputs[i].amount, isWitness: true)
+                    messageHash = Wally.txGetBTCSignatureHash(tx: clonedTx, index: i, script: witness.script.data, amount: inputs[i].amount, isWitness: true)
                 }
             case .scriptSig:
                 // Prep input for signing:
-                messageHash = Wally.txGetBTCSignatureHash(tx: cloned_tx, index: i, script: inputs[i].scriptPubKey.script.data, amount: 0, isWitness: false)
+                messageHash = Wally.txGetBTCSignatureHash(tx: clonedTx, index: i, script: inputs[i].scriptPubKey.script.data, amount: 0, isWitness: false)
             }
 
             let compactSig: Data
 
             // Sign hash using private key (without 0 prefix)
-            precondition(EC_MESSAGE_HASH_LEN == SHA256_LEN)
+            precondition(Wally.ecMessageHashLen == Wally.sha256Len)
             
-            var privKey = Data(of: privKeys[i].wallyExtKey.priv_key)
+            var privKey = privKeys[i].wallyExtKey.privKey
             // skip prefix byte 0
             precondition(privKey.popFirst() != nil)
 
@@ -228,18 +207,18 @@ public struct Transaction {
             case .witness(let witness):
                 let witness = witness.signed(signature: signature)
                 updatedInputs[i].sig = .witness(witness)
-                precondition(wally_tx_set_input_witness(cloned_tx, i, witness.createWallyStack()) == WALLY_OK)
+                clonedTx.setInputWitness(index: i, stack: witness.createWallyStack())
             case .scriptSig(var scriptSig):
                 scriptSig.signature = signature
                 updatedInputs[i].sig = .scriptSig(scriptSig)
                 
                 // Update scriptSig:
                 let signedScriptSig = scriptSig.render(purpose: .signed)!.data
-                Wally.txSetInputScript(tx: cloned_tx, index: i, script: signedScriptSig)
+                clonedTx.setInputScript(index: i, script: signedScriptSig)
             }
         }
 
-        return Transaction(inputs: updatedInputs, outputs: outputs, tx: cloned_tx)
+        return Transaction(inputs: updatedInputs, outputs: outputs, tx: clonedTx)
     }
 
 }

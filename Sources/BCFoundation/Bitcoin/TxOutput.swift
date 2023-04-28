@@ -21,11 +21,7 @@ public struct TxOutput {
     }
 
     public func createWallyOutput() -> WallyTxOutput {
-        scriptPubKey.script.data.withUnsafeByteBuffer { scriptPubKeyBytes in
-            var output: WallyTxOutput!
-            precondition(wally_tx_output_init_alloc(amount, scriptPubKeyBytes.baseAddress, scriptPubKeyBytes.count, &output) == WALLY_OK)
-            return output
-        }
+        WallyTxOutput(amount: amount, scriptPubKey: scriptPubKey.script.data)
     }
 }
 

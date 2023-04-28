@@ -19,11 +19,11 @@ public struct BasicDerivationStep : DerivationStep {
     }
     
     public init(rawValue: UInt32) {
-        if rawValue < BIP32_INITIAL_HARDENED_CHILD {
+        if rawValue < WallyExtKey.initialHardenedChild {
             self.childIndexSpec = .index(ChildIndex(rawValue)!)
             self.isHardened = false
         } else {
-            self.childIndexSpec = .index(ChildIndex(rawValue - BIP32_INITIAL_HARDENED_CHILD)!)
+            self.childIndexSpec = .index(ChildIndex(rawValue - WallyExtKey.initialHardenedChild)!)
             self.isHardened = true
         }
     }
@@ -60,7 +60,7 @@ public struct BasicDerivationStep : DerivationStep {
             return nil
         }
         if isHardened {
-            return childNum + BIP32_INITIAL_HARDENED_CHILD
+            return childNum + WallyExtKey.initialHardenedChild
         } else {
             return childNum
         }

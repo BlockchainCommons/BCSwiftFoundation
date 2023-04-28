@@ -59,10 +59,10 @@ class TransactionTests: XCTestCase {
 
         // Transaction
         let tx = Transaction(inputs: [txInput], outputs: [txOutput])
-        let wtx = tx.tx!.pointee
+        let wtx = tx.tx!
         XCTAssertEqual(wtx.version, 1)
-        XCTAssertEqual(wtx.num_inputs, 1)
-        XCTAssertEqual(wtx.num_outputs, 1)
+        XCTAssertEqual(wtx.inputsCount, 1)
+        XCTAssertEqual(wtx.outputsCount, 1)
     }
     
     func testDeserialize() {

@@ -69,7 +69,7 @@ class ScriptTests: XCTestCase {
         XCTAssertEqual(scriptSig.signature, nil)
 
         let script = scriptSig.render(purpose: .feeWorstCase)!
-        XCTAssertEqual(script.data.count, 2 + Int(EC_SIGNATURE_DER_MAX_LOW_R_LEN) + 1 + pubKey.data.count)
+        XCTAssertEqual(script.data.count, 2 + Wally.ecSignatureDerMaxLowRLen + 1 + pubKey.data.count)
 
         scriptSig.signature = Data(hex: "01")
         let sigHashByte = Data(hex: "01")! // SIGHASH_ALL
@@ -84,14 +84,12 @@ class ScriptTests: XCTestCase {
         XCTAssertEqual(witness.isDummy, true)
 
         let witnessStack = witness.createWallyStack()
-        defer { wally_tx_witness_stack_free(witnessStack) }
-        XCTAssertEqual(witnessStack.pointee.num_items, 2)
+        XCTAssertEqual(witnessStack.count, 2)
 
         XCTAssertEqual(witness.script.data, ‡"76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac")
         let signedWitness = Witness(type: .payToWitnessPubKeyHash, pubKey: pubKey, signature: Data(hex: "01")!)
         let signedWitnessStack = signedWitness.createWallyStack()
-        defer { wally_tx_witness_stack_free(signedWitnessStack) }
-        XCTAssertEqual(signedWitnessStack.pointee.num_items, 2)
+        XCTAssertEqual(signedWitnessStack.count, 2)
     }
 
     func testMultisig() {

@@ -11,7 +11,7 @@ public struct TxHash: Equatable {
     public let data: Data
     
     public init?(_ data: Data) {
-        guard data.count == SHA256_LEN else {
+        guard data.count == Wally.sha256Len else {
             return nil
         }
         self.data = data
