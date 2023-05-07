@@ -473,7 +473,7 @@ extension HDKeyProtocol {
             a[1] = true
         }
 
-        if keyType == .private {
+        if !isMaster && keyType == .private {
             a[2] = true
         }
 
