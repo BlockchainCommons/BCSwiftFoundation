@@ -97,13 +97,21 @@ extension HDKeyProtocol {
             keyData = key.wallyExtKey.pubKey
         }
         
+        let chainCode = isDerivable ? key.chainCode : nil
+        let parent = parent ?? key.parent
+        let isMaster = key.isMaster &&
+            (derivedKeyType == .private) &&
+            parent.isMaster &&
+            chainCode != nil &&
+            key.parentFingerprint == nil
+        
         self.init(
-            isMaster: key.isMaster,
+            isMaster: isMaster,
             keyType: derivedKeyType,
             keyData: keyData,
-            chainCode: isDerivable ? key.chainCode : nil,
+            chainCode: chainCode,
             useInfo: key.useInfo,
-            parent: parent ?? key.parent,
+            parent: parent,
             children: children ?? key.children,
             parentFingerprint: key.parentFingerprint,
             name: "",
