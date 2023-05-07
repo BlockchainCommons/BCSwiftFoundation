@@ -209,7 +209,7 @@ extension HDKeyProtocol {
         )
     }
     
-    public init(bip39Seed: BIP39.Seed, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
+    public init(bip39Seed: BIP39.Seed, useInfo: UseInfo? = nil, children: DerivationPath? = nil) throws {
         let useInfo = useInfo ?? .init()
         guard let key = Wally.hdKey(bip39Seed: bip39Seed.data, network: useInfo.network) else {
             // From libwally-core docs:
@@ -223,7 +223,7 @@ extension HDKeyProtocol {
             keyData: key.privKey,
             chainCode: key.chainCode,
             useInfo: useInfo,
-            parent: parent ?? DerivationPath(origin: .fingerprint(Wally.fingerprint(for: key))),
+            parent: DerivationPath(origin: .master),
             children: children,
             parentFingerprint: nil,
             name: "",
@@ -231,8 +231,8 @@ extension HDKeyProtocol {
         )
     }
     
-    public init(seed: any SeedProtocol, useInfo: UseInfo? = nil, parent: DerivationPath? = nil, children: DerivationPath? = nil) throws {
-        try self.init(bip39Seed: BIP39.Seed(bip39: seed.bip39), useInfo: useInfo, parent: parent, children: children)
+    public init(seed: any SeedProtocol, useInfo: UseInfo? = nil, children: DerivationPath? = nil) throws {
+        try self.init(bip39Seed: BIP39.Seed(bip39: seed.bip39), useInfo: useInfo, children: children)
     }
 
     public init(parent: any HDKeyProtocol, derivedKeyType: KeyType? = nil, childDerivation: any DerivationStep, chain: Chain? = nil, addressIndex: UInt32? = nil) throws {

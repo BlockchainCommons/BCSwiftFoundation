@@ -85,7 +85,7 @@ class HDKeyTests: XCTestCase {
     
     func testOriginFingerPrint() throws {
         let hdKey = try HDKey(bip39Seed: bip39Seed)
-        XCTAssertEqual(hdKey.originFingerprint?.hex, "b4e3f5ed")
+        XCTAssertNil(hdKey.originFingerprint)
 
         let childKey = try HDKey(parent: hdKey, childDerivation: BasicDerivationStep(0))
         XCTAssertEqual(childKey.originFingerprint?.hex, "b4e3f5ed")
