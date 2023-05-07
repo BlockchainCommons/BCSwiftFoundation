@@ -496,7 +496,7 @@ extension HDKeyProtocol {
             a[5] = useInfo.taggedCBOR
         }
 
-        if !parent.isEmpty {
+        if !parent.isEmpty || parent.originFingerprint != nil {
             a[6] = parent.taggedCBOR
         }
 
