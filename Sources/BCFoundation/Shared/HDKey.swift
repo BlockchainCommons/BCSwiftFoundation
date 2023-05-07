@@ -97,11 +97,20 @@ extension HDKeyProtocol {
             keyData = key.wallyExtKey.pubKey
         }
         
+        let effectiveParent: DerivationPath
+        if let parent {
+            effectiveParent = parent
+        } else {
+            if key.isMaster && derivedKeyType == .public {
+                effectiveParent = DerivationPath(origin: .fingerprint(key.keyFingerprint), depth: 0)
+            } else {
+                effectiveParent = key.parent
+            }
+        }
         let chainCode = isDerivable ? key.chainCode : nil
-        let parent = parent ?? key.parent
         let isMaster = key.isMaster &&
             (derivedKeyType == .private) &&
-            parent.isMaster &&
+            effectiveParent.isMaster &&
             chainCode != nil &&
             key.parentFingerprint == nil
         
@@ -111,7 +120,7 @@ extension HDKeyProtocol {
             keyData: keyData,
             chainCode: chainCode,
             useInfo: key.useInfo,
-            parent: parent,
+            parent: effectiveParent,
             children: children ?? key.children,
             parentFingerprint: key.parentFingerprint,
             name: "",
