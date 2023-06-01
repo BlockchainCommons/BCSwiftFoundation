@@ -25,7 +25,7 @@ class DescriptorParserTests: XCTestCase {
         
         let hdKey = try HDKey(base58: tprv)
         let ecPub = hdKey.ecPublicKey.hex
-        let ecPubUncompressed = hdKey.ecPublicKey.uncompressed.hex
+        let ecPubUncompressed = hdKey.ecPublicKey.uncompressedPublicKey.hex
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         
@@ -60,7 +60,7 @@ class DescriptorParserTests: XCTestCase {
         
         let hdKey = try HDKey(base58: tprv)
         let ecPub = hdKey.ecPublicKey.hex
-        let ecPubUncompressed = hdKey.ecPublicKey.uncompressed.hex
+        let ecPubUncompressed = hdKey.ecPublicKey.uncompressedPublicKey.hex
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         
@@ -95,7 +95,7 @@ class DescriptorParserTests: XCTestCase {
         
         let hdKey = try HDKey(base58: tprv)
         let ecPub = hdKey.ecPublicKey.hex
-        let ecPubUncompressed = hdKey.ecPublicKey.uncompressed.hex
+        let ecPubUncompressed = hdKey.ecPublicKey.uncompressedPublicKey.hex
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         
@@ -130,7 +130,7 @@ class DescriptorParserTests: XCTestCase {
         
         let hdKey = try HDKey(base58: tprv)
         let ecPub = hdKey.ecPublicKey.hex
-        let ecPubUncompressed = hdKey.ecPublicKey.uncompressed.hex
+        let ecPubUncompressed = hdKey.ecPublicKey.uncompressedPublicKey.hex
         let wif = hdKey.ecPrivateKey!.wif
         let tpub = hdKey.base58PublicKey!
         

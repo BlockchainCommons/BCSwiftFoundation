@@ -61,7 +61,7 @@ class OutputDescriptorRequestTests: XCTestCase {
             throw GeneralError("Could not derive validation key from returned descriptor.")
         }
         let ecValidationKey = validationKey.ecPublicKey
-        guard ecValidationKey.verify(message: challenge, signature: responseBody.challengeSignature) else {
+        guard ecValidationKey.verify(signature: responseBody.challengeSignature, message: challenge) else {
             throw GeneralError("Invalid challenge signature.")
         }
     }

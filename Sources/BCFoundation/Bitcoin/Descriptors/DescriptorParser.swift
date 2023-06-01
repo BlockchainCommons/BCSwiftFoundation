@@ -371,8 +371,8 @@ extension DescriptorParser {
                 data.count == ECUncompressedPublicKey.keyLen
             {
                 resultKey = .ecUncompressedPublicKey(ECUncompressedPublicKey(data)!)
-            // } else if data.count == ECXOnlyPublicKey.keyLen {
-            //     resultKey = .ecXOnlyPublicKey(ECXOnlyPublicKey(data)!)
+            // } else if data.count == SchnorrPublicKey.keyLen {
+            //     resultKey = .ecXOnlyPublicKey(SchnorrPublicKey(data)!)
             } else {
                 resultKey = nil
             }

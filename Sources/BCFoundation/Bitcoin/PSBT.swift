@@ -158,7 +158,7 @@ public struct PSBT : Equatable {
                 if
                     let childKey = try? HDKey(parent: hdKey, childDerivationPath: origin.path),
                     let privKey = childKey.ecPrivateKey,
-                    privKey.public == origin.key,
+                    privKey.publicKey == origin.key,
                     let signedPSBT = psbt.signed(with: privKey)
                 {
                     psbt = signedPSBT
