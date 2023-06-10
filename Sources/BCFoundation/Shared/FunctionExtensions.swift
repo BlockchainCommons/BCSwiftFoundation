@@ -20,18 +20,18 @@ public extension Parameter {
 }
 
 public func addKnownFunctionExtensions() {
-    let identifiers: [Function] = [
+    let fns: [Function] = [
         .getSeed,
         .getKey,
         .signPSBT,
         .getOutputDescriptor,
     ]
     
-    identifiers.forEach {
-        knownFunctions.insert($0)
+    fns.forEach {
+        globalFunctions.insert($0)
     }
 
-    let parameters: [Parameter] = [
+    let params: [Parameter] = [
         .seedDigest,
         .derivationPath,
         .isPrivate,
@@ -42,7 +42,7 @@ public func addKnownFunctionExtensions() {
         .challenge,
     ]
     
-    parameters.forEach {
-        knownParameters.insert($0)
+    params.forEach {
+        globalParameters.insert($0)
     }
 }

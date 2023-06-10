@@ -72,7 +72,7 @@ public extension TransactionRequest {
         self.id = try CID(taggedCBOR: idItem)
         self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
-        let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
+        let bodyEnvelope = try envelope.object(forPredicate: .body)
         let function = try bodyEnvelope.extractSubject(Function.self)
         switch function {
         case .getSeed:
@@ -98,7 +98,7 @@ public extension TransactionRequest {
         self.id = try CID(taggedCBOR: idItem)
         self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
-        let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
+        let bodyEnvelope = try envelope.object(forPredicate: .body)
         let fn = try bodyEnvelope.extractSubject(Function.self)
         guard fn == type.function else {
             throw TransactionRequestError.unknownRequestType
@@ -121,7 +121,7 @@ public extension TransactionRequest {
         self.id = try CID(taggedCBOR: idItem)
         self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
         self.note = try? envelope.extractObject(String.self, forPredicate: .note)
-        let bodyEnvelope = try envelope.extractObject(forPredicate: .body)
+        let bodyEnvelope = try envelope.object(forPredicate: .body)
         guard let body = try getBody(bodyEnvelope) else {
             throw TransactionRequestError.unknownRequestType
         }

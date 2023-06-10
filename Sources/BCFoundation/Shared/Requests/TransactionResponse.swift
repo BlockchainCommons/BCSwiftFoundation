@@ -44,7 +44,7 @@ public extension TransactionResponse {
             throw TransactionResponseError.invalidFormat
         }
         self.id = try CID(taggedCBOR: idItem)
-        guard let resultItem = try envelope.extractObject(forPredicate: .result).leaf else {
+        guard let resultItem = try envelope.object(forPredicate: .result).leaf else {
             throw TransactionResponseError.unknownResponseType
         }
         switch resultItem {

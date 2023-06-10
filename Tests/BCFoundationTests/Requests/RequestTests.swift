@@ -2,9 +2,9 @@ import XCTest
 import BCFoundation
 import WolfBase
 
-let formatContext = {
+let globalFormatContext = {
     addKnownFunctionExtensions()
-    return FormatContext(tags: knownTags, functions: knownFunctions, parameters: knownParameters)
+    return FormatContext(tags: globalTags, functions: globalFunctions, parameters: globalParameters)
 }()
 
 class RequestTests: XCTestCase {
@@ -34,7 +34,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -52,7 +52,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)
@@ -77,7 +77,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -99,7 +99,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)
@@ -123,7 +123,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -145,7 +145,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -163,7 +163,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)
@@ -188,7 +188,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
         XCTAssertEqual(request2, request)
@@ -209,7 +209,7 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(context: formatContext), expectedFormat)
+        XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let response2 = try TransactionResponse(ur: ur)
         XCTAssertEqual(response2, response)

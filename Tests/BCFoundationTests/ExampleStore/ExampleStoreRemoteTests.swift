@@ -13,7 +13,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, payload: alicePayload1)
             let response = exampleStore.handleRequest(request)
-            aliceReceipt1 = try response.result(Receipt.self)
+            aliceReceipt1 = try response.extractResult(Receipt.self)
         }
 
         // Bob stores a share
@@ -23,21 +23,21 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: bobPrivateKey, payload: bobPayload1)
             let response = exampleStore.handleRequest(request)
-            bobReceipt1 = try response.result(Receipt.self)
+            bobReceipt1 = try response.extractResult(Receipt.self)
         }
         
         // Alice retrieves her share
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, receipts: [aliceReceipt1])
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.result(Data.self), alicePayload1)
+            XCTAssertEqual(try response.extractResult(Data.self), alicePayload1)
         }
         
         // Bob retrieves his share
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: bobPrivateKey, receipts: [bobReceipt1])
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.result(Data.self), bobPayload1)
+            XCTAssertEqual(try response.extractResult(Data.self), bobPayload1)
         }
 
         // Alice stores a second share
@@ -46,21 +46,21 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, payload: alicePayload2)
             let response = exampleStore.handleRequest(request)
-            aliceReceipt2 = try response.result(Receipt.self)
+            aliceReceipt2 = try response.extractResult(Receipt.self)
         }
 
         // Alice retrieves her second share
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, receipts: [aliceReceipt2])
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.result(Data.self), alicePayload2)
+            XCTAssertEqual(try response.extractResult(Data.self), alicePayload2)
         }
         
         // Alice retrieves both her shares identified only by her public key.
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(Set(try response.results(Data.self)), Set([alicePayload1, alicePayload2]))
+            XCTAssertEqual(Set(try response.extractResults(Data.self)), Set([alicePayload1, alicePayload2]))
         }
         
         // Bob attempts to retrieve one of Alice's shares
@@ -81,7 +81,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, payload: alicePayload1)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.result(Receipt.self), aliceReceipt1)
+            XCTAssertEqual(try response.extractResult(Receipt.self), aliceReceipt1)
         }
         
         // Alice deletes one of her shares
@@ -93,7 +93,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(Set(try response.results(Data.self)), Set([alicePayload2]))
+            XCTAssertEqual(Set(try response.extractResults(Data.self)), Set([alicePayload2]))
         }
         
         // Alice attempts to delete a share she already deleted (idempotent).
@@ -112,7 +112,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = RetrieveFallbackRequestBody.makeRequest(accountPrivateKey: bobPrivateKey)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.result(String.self), "bob@example.com")
+            XCTAssertEqual(try response.extractResult(String.self), "bob@example.com")
         }
         
         // Alice has never set her fallback contact method
@@ -148,7 +148,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey2)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(Set(try response.results(Data.self)), Set([alicePayload2]))
+            XCTAssertEqual(Set(try response.extractResults(Data.self)), Set([alicePayload2]))
         }
         
         // Bob has lost his public key, so he wants to replace it with a new one
@@ -168,7 +168,7 @@ class ExampleStoreRemoteTests: XCTestCase {
             // Here the store must initiate asyncronously using the fallback to verify the
             // user's intent to change their key and only change it if the verification
             // succeeds.
-            XCTAssertEqual(try response.result(KnownValue.self), .processing)
+            XCTAssertEqual(try response.extractResult(KnownValue.self), .processing)
         }
         
         // Bob never confirms the transfer request, but instead decides to delete his entire account
