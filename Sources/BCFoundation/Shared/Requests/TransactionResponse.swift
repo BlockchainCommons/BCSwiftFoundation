@@ -32,6 +32,17 @@ extension TransactionResponse: EnvelopeCodable {
 }
 
 public extension TransactionResponse {
+    init(ur: UR) throws {
+        switch ur.type {
+        case Envelope.cborTag.name!:
+            try self.init(Envelope(untaggedCBOR: ur.cbor))
+        default:
+            throw URError.unexpectedType
+        }
+    }
+}
+
+public extension TransactionResponse {
     func parseResult() throws -> any TransactionResponseBody {
         if result.hasType(OutputDescriptorResponseBody.type) {
             return try OutputDescriptorResponseBody(result)
