@@ -73,3 +73,29 @@ extension Network: Codable {
         self = n
     }
 }
+
+extension Network: EnvelopeCodable {
+    public var envelope: Envelope {
+        let type: KnownValue
+        switch self {
+        case .mainnet:
+            type = .mainNet
+        case .testnet:
+            type = .testNet
+        }
+        return Envelope(type)
+            .addType(.network)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkType(.network)
+        switch try envelope.extractSubject(KnownValue.self) {
+        case .mainNet:
+            self = .mainnet
+        case .testNet:
+            self = .testnet
+        default:
+            throw EnvelopeError.invalidFormat
+        }
+    }
+}

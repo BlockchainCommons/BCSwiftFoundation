@@ -1,10 +1,6 @@
 import Foundation
 import BCFoundation
 
-public extension Tag {
-    static let receipt = Tag(799, "receipt")
-}
-
 public struct Receipt: Hashable {
     let data: Data
     
@@ -23,19 +19,14 @@ extension Receipt: CustomStringConvertible {
     }
 }
 
-extension Receipt: CBORTaggedCodable {
-    public static var cborTag: Tag = .receipt
-    
-    public var untaggedCBOR: CBOR {
-        CBOR.bytes(self.data)
+extension Receipt: EnvelopeCodable {
+    public var envelope: Envelope {
+        Envelope(data)
+            .addType("receipt")
     }
     
-    public init(untaggedCBOR: CBOR) throws {
-        guard
-            case let CBOR.bytes(data) = untaggedCBOR
-        else {
-            throw CBORError.invalidFormat
-        }
-        self = Receipt(data)
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkType("receipt")
+        self.init(try envelope.extractSubject(Data.self))
     }
 }

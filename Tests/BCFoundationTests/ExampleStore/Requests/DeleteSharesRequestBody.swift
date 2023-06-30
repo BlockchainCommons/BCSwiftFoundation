@@ -16,7 +16,7 @@ public struct DeleteSharesRequestBody: StoreRequestBody {
             throw GeneralError("Incorrect function.")
         }
         self.publicKey = try envelope.extractObject(PublicKeyBase.self, forParameter: "publicKey")
-        self.receipts = Set(try envelope.extractObjects(Receipt.self, forParameter: "receipt"))
+        self.receipts = Set(try envelope.objects(Receipt.self, forParameter: "receipt"))
     }
     
     public var envelope: Envelope {

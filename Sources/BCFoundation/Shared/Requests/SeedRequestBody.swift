@@ -27,11 +27,13 @@ public struct SeedRequestBody: TransactionRequestBody {
 
 public extension SeedRequestBody {
     var envelope: Envelope {
-        try! Envelope(function: .getSeed)
-            .addAssertion(.parameter(.seedDigest, value: seedDigest))
+        Envelope(function: Self.function)
+            .addParameter(.seedDigest, value: seedDigest)
     }
     
     init(_ envelope: Envelope) throws {
+        try envelope.checkFunction(Self.function)
+        
         self.init(seedDigest: try envelope.extractObject(SeedDigest.self, forParameter: .seedDigest))
     }
 }

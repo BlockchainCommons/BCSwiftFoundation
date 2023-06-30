@@ -24,3 +24,13 @@ extension SeedDigest: CBORTaggedCodable {
         try self.init(digest: Data(cbor: cbor))
     }
 }
+
+extension SeedDigest: EnvelopeCodable {
+    public var envelope: Envelope {
+        Envelope(self)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        self = try envelope.subject.extractSubject(Self.self)
+    }
+}

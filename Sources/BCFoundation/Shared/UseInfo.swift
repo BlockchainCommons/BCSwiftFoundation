@@ -106,3 +106,16 @@ extension UseInfo: CBORTaggedCodable {
         self.init(asset: asset, network: network)
     }
 }
+
+extension UseInfo: EnvelopeCodable {
+    public var envelope: Envelope {
+        asset.envelope
+            .addAssertion(.network, network.envelope)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        let asset = try Asset(envelope)
+        let network = try Network(envelope.object(forPredicate: .network))
+        self.init(asset: asset, network: network)
+    }
+}

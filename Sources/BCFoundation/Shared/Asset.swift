@@ -80,3 +80,29 @@ extension Asset {
         self = a
     }
 }
+
+extension Asset: EnvelopeCodable {
+    public var envelope: Envelope {
+        let type: KnownValue
+        switch self {
+        case .btc:
+            type = .bitcoin
+        case .eth:
+            type = .ethereum
+        }
+        return Envelope(type)
+            .addType(.asset)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkType(.asset)
+        switch try envelope.extractSubject(KnownValue.self) {
+        case .bitcoin:
+            self = .btc
+        case .ethereum:
+            self = .eth
+        default:
+            throw EnvelopeError.invalidFormat
+        }
+    }
+}

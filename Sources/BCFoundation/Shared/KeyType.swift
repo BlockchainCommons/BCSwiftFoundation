@@ -38,3 +38,28 @@ public extension KeyType {
         }
     }
 }
+
+extension KeyType: EnvelopeCodable {
+    public var envelope: Envelope {
+        switch self {
+        case .private:
+            return Envelope(.privateKey)
+        case .public:
+            return Envelope(.publicKey)
+        }
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        guard let v = envelope.subject.knownValue else {
+            throw EnvelopeError.invalidFormat
+        }
+        switch v {
+        case .publicKey:
+            self = .public
+        case .privateKey:
+            self = .private
+        default:
+            throw EnvelopeError.invalidFormat
+        }
+    }
+}

@@ -5,24 +5,19 @@ import SecureComponents
 
 public enum TransactionRequestError: Swift.Error {
     case invalidFormat
-    case unknownRequestType
-}
-
-public protocol TransactionRequestBody {
-    static var function: Function { get }
-    var envelope: Envelope { get }
-    init(_ envelope: Envelope) throws
 }
 
 public struct TransactionRequest: Equatable {
     public let id: CID
-    public let body: any TransactionRequestBody
-    public let note: String?
+    public let body: Envelope
+    public let function: Function
+    public let note: String
     public let date: Date?
     
-    public init(id: CID = CID(), body: any TransactionRequestBody, note: String? = nil, date: Date? = nil) {
+    public init(id: CID = CID(), body: any EnvelopeEncodable, note: String = "", date: Date? = nil) {
         self.id = id
-        self.body = body
+        self.body = body.envelope
+        self.function = try! self.body.function
         self.note = note
         self.date = date
     }
@@ -32,11 +27,26 @@ public struct TransactionRequest: Equatable {
     }
 }
 
+extension TransactionRequest: EnvelopeCodable {
+    public var envelope: Envelope {
+        self.envelope(noteLimit: .max)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        let id = try envelope.requestID
+        let body = try envelope.requestBody
+        let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
+        let date = try envelope.extractOptionalObject(Date.self, forPredicate: .date)
+        self.init(id: id, body: body, note: note, date: date)
+    }
+}
+
+
 public extension TransactionRequest {
     init(psbtCBOR cbor: CBOR) throws {
         let psbt = try PSBT(untaggedCBOR: cbor)
         let body = PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true)
-        self.init(id: CID(), body: body, note: nil)
+        self.init(id: CID(), body: body)
     }
 }
 
@@ -44,107 +54,49 @@ public extension TransactionRequest {
     init(ur: UR) throws {
         switch ur.type {
         case Envelope.cborTag.name!:
-            try self.init(untaggedCBOR: ur.cbor)
+            try self.init(Envelope(untaggedCBOR: ur.cbor))
         case PSBT.cborTag.name!:
             try self.init(psbtCBOR: ur.cbor)
         default:
             throw URError.unexpectedType
         }
     }
-    
-    init<Body: TransactionRequestBody>(_ type: Body.Type, ur: UR) throws {
-        switch ur.type {
-        case Envelope.cborTag.name!:
-            try self.init(type, untaggedCBOR: CBOR(ur.cbor))
-        default:
-            throw URError.unexpectedType
+
+    func extractBody<Body: TransactionRequestBody>(_ type: Body.Type) throws -> Body {
+        guard function == type.function else {
+            throw EnvelopeError.unknownFunction
         }
+        return try type.self.init(body)
     }
     
-    init(untaggedCBOR cbor: CBOR) throws {
-        let envelope = try Envelope(untaggedCBOR: cbor)
-        guard
-            let requestItem = envelope.leaf,
-            case CBOR.tagged(.request, let idItem) = requestItem
-        else {
-            throw TransactionRequestError.invalidFormat
-        }
-        self.id = try CID(taggedCBOR: idItem)
-        self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
-        self.note = try? envelope.extractObject(String.self, forPredicate: .note)
-        let bodyEnvelope = try envelope.object(forPredicate: .body)
-        let function = try bodyEnvelope.extractSubject(Function.self)
+    func parseBody() throws -> any TransactionRequestBody {
         switch function {
         case .getSeed:
-            self.body = try SeedRequestBody(bodyEnvelope)
+            return try SeedRequestBody(body)
         case .getKey:
-            self.body = try KeyRequestBody(bodyEnvelope)
+            return try KeyRequestBody(body)
         case .signPSBT:
-            self.body = try PSBTSignatureRequestBody(bodyEnvelope)
+            return try PSBTSignatureRequestBody(body)
         case .getOutputDescriptor:
-            self.body = try OutputDescriptorRequestBody(bodyEnvelope)
+            return try OutputDescriptorRequestBody(body)
         default:
-            throw TransactionRequestError.unknownRequestType
+            throw EnvelopeError.unknownFunction
         }
-    }
-    
-    init<Body: TransactionRequestBody>(_ type: Body.Type, _ envelope: Envelope) throws {
-        guard
-            let requestItem = envelope.leaf,
-            case CBOR.tagged(.request, let idItem) = requestItem
-        else {
-            throw TransactionRequestError.invalidFormat
-        }
-        self.id = try CID(taggedCBOR: idItem)
-        self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
-        self.note = try? envelope.extractObject(String.self, forPredicate: .note)
-        let bodyEnvelope = try envelope.object(forPredicate: .body)
-        let fn = try bodyEnvelope.extractSubject(Function.self)
-        guard fn == type.function else {
-            throw TransactionRequestError.unknownRequestType
-        }
-        self.body = try type.self.init(bodyEnvelope)
-    }
-
-    init<Body: TransactionRequestBody>(_ type: Body.Type, untaggedCBOR cbor: CBOR) throws {
-        let envelope = try Envelope(untaggedCBOR: cbor)
-        try self.init(type, envelope)
-    }
-    
-    init(_ envelope: Envelope, getBody: (Envelope) throws -> TransactionRequestBody?) throws {
-        guard
-            let requestItem = envelope.leaf,
-            case CBOR.tagged(.request, let idItem) = requestItem
-        else {
-            throw TransactionRequestError.invalidFormat
-        }
-        self.id = try CID(taggedCBOR: idItem)
-        self.date = try? envelope.extractObject(Date.self, forPredicate: .date)
-        self.note = try? envelope.extractObject(String.self, forPredicate: .note)
-        let bodyEnvelope = try envelope.object(forPredicate: .body)
-        guard let body = try getBody(bodyEnvelope) else {
-            throw TransactionRequestError.unknownRequestType
-        }
-        self.body = body
     }
 }
 
 public extension TransactionRequest {
     func envelope(noteLimit: Int) -> Envelope {
-        let n = (note ?? "").prefix(count: noteLimit)
+        let n = note.prefix(count: noteLimit)
         return Envelope(request: id, body: body.envelope)
             .addAssertion(if: !n.isEmpty, .note, n)
             .addAssertion(.date, date)
     }
-    
-    var envelope: Envelope {
-        envelope(noteLimit: .max)
-    }
-    
+
     var ur: UR {
         envelope.ur
     }
-    
+
     func sizeLimitedUR(noteLimit: Int = 500) -> UR {
         envelope(noteLimit: noteLimit).ur
     }

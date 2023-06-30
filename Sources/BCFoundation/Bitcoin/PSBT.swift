@@ -289,6 +289,30 @@ extension PSBT: URCodable {
     }
 }
 
+extension PSBT: EnvelopeCodable {
+    public var envelope: Envelope {
+        Envelope(data)
+            .addType(.psbt)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        if
+            let subjectLeaf = envelope.leaf,
+            case CBOR.tagged(.psbt, let item) = subjectLeaf
+        {
+            self = try Self.init(untaggedCBOR: item)
+            return
+        }
+        
+        try envelope.checkType(.psbt)
+        let data = try envelope.extractSubject(Data.self)
+        guard let psbt = Self.init(data) else {
+            throw EnvelopeError.invalidFormat
+        }
+        self = psbt
+    }
+}
+
 extension PSBT: TransactionResponseBody {
-    public var envelope: Envelope { Envelope(self) }
+    public static var type = Envelope(.psbt)
 }

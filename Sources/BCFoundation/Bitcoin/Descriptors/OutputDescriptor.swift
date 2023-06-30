@@ -155,3 +155,15 @@ extension OutputDescriptor: Codable {
         try self.init(source)
     }
 }
+
+extension OutputDescriptor: EnvelopeCodable {
+    public var envelope: Envelope {
+        Envelope(sourceWithChecksum)
+            .addType(.outputDescriptor)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkType(.outputDescriptor)
+        try self.init(envelope.extractSubject(String.self))
+    }
+}

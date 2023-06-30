@@ -10,7 +10,7 @@ import WolfBase
 import URKit
 import SecureComponents
 
-public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider, URCodable {
+public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider, URCodable, EnvelopeCodable {
     var data: Data { get }
     var name: String { get set }
     var note: String { get set }
@@ -62,6 +62,10 @@ public struct Seed: SeedProtocol {
     public init() {
         self.init(data: SecureRandomNumberGenerator.shared.data(count: minSeedSize))!
     }
+}
+
+extension Seed: TransactionResponseBody {
+    public static var type = Envelope(.seed)
 }
 
 public extension SeedProtocol {
@@ -188,18 +192,31 @@ extension SeedProtocol {
     }
 }
 
-//extension Seed: CBOREncodable {
-//    public var cbor: CBOR {
-//        taggedCBOR
-//    }
-//}
-//
-//extension Seed: CBORDecodable {
-//    public static func cborDecode(_ cbor: CBOR) throws -> Seed {
-//        try Seed(taggedCBOR: cbor)
-//    }
-//}
+public extension SeedProtocol {
+    var envelope: Envelope {
+        Envelope(data)
+            .addType(.seed)
+            .addAssertion(if: !name.isEmpty, .hasName, name)
+            .addAssertion(if: !note.isEmpty, .note, note)
+            .addAssertion(.date, creationDate)
+    }
+    
+    init(_ envelope: Envelope) throws {
+        if
+            let subjectLeaf = envelope.leaf,
+            case CBOR.tagged(.seed, let item) = subjectLeaf
+        {
+            self = try Self.init(untaggedCBOR: item)
+            return
+        }
 
-extension Seed: TransactionResponseBody {
-    public var envelope: Envelope { Envelope(self) }
+        let data = try envelope.extractSubject(Data.self)
+        let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
+        let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
+        let creationDate = try? envelope.extractObject(Date.self, forPredicate: .date)
+        guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate) else {
+            throw EnvelopeError.invalidFormat
+        }
+        self = result
+    }
 }

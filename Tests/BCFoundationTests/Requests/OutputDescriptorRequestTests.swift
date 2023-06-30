@@ -35,7 +35,7 @@ class OutputDescriptorRequestTests: XCTestCase {
     
     func makeResponse(to requestUR: UR, descriptor: OutputDescriptor, masterKey: HDKey) throws -> UR {
         let request = try TransactionRequest(ur: requestUR)
-        guard let requestBody = request.body as? OutputDescriptorRequestBody else {
+        guard let requestBody = try request.parseBody() as? OutputDescriptorRequestBody else {
             throw GeneralError("Not a request for an output descriptor.")
         }
         
@@ -44,14 +44,15 @@ class OutputDescriptorRequestTests: XCTestCase {
         })!
         
         let challengeSignature = signingKey.ecPrivateKey!.ecdsaSign(requestBody.challenge)
-        let body = OutputDescriptorResponseBody(descriptor: descriptor, challengeSignature: challengeSignature)
-        let response = TransactionResponse(id: request.id, body: body)
-        return response.ur
+        let result = OutputDescriptorResponseBody(descriptor: descriptor, challengeSignature: challengeSignature)
+        let response = TransactionResponse(id: request.id, result: result)
+        return response.envelope.ur
     }
     
     func validateResponse(_ responseUR: UR) throws {
-        let response = try TransactionResponse(ur: responseUR)
-        guard let responseBody = response.body as? OutputDescriptorResponseBody else {
+        let envelope = try Envelope(ur: responseUR)
+        let response = try TransactionResponse(envelope)
+        guard let responseBody = try response.parseResult() as? OutputDescriptorResponseBody else {
             throw GeneralError("Not a response for an output descriptor.")
         }
         guard responseBody.descriptor.baseKey != nil else {

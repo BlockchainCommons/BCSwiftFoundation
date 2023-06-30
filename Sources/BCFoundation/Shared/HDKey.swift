@@ -20,7 +20,7 @@ public enum HDKeyError: Error {
     case unknownDerivationError
 }
 
-public protocol HDKeyProtocol: IdentityDigestable, Equatable, URCodable {
+public protocol HDKeyProtocol: IdentityDigestable, Equatable, URCodable, EnvelopeCodable {
     var isMaster: Bool { get }
     var keyType: KeyType { get }
     var keyData: Data { get }
@@ -76,6 +76,10 @@ public struct HDKey: HDKeyProtocol {
         self.name = key.name
         self.note = key.note
     }
+}
+
+extension HDKey: TransactionResponseBody {
+    public static let type = Envelope(.bip32key)
 }
 
 extension HDKeyProtocol {
@@ -643,6 +647,51 @@ extension HDKeyProtocol {
     }
 }
 
-extension HDKey: TransactionResponseBody {
-    public var envelope: Envelope { Envelope(self) }
+extension HDKeyProtocol {
+    public var envelope: Envelope {
+        let e = Envelope(keyData)
+            .addType(.bip32key)
+            .addType(keyType.envelope)
+            .addType(if: isMaster, .masterKey)
+            .addAssertion(.asset, useInfo.envelope)
+            .addAssertion(.chainCode, chainCode)
+            .addAssertion(if: !parent.isEmpty, .parentPath, parent.envelope)
+            .addAssertion(if: !children.isEmpty, .childrenPath, children.envelope)
+            .addAssertion(.parentFingerprint, parentFingerprint)
+            .addAssertion(if: !name.isEmpty, .hasName, name)
+            .addAssertion(if: !note.isEmpty, .note, note)
+        return e
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        if
+            let subjectLeaf = envelope.leaf,
+            case CBOR.tagged(.hdKey, let item) = subjectLeaf
+        {
+            self = try Self(untaggedCBOR: item)
+            return
+        }
+        
+        let isMaster = envelope.hasType(.masterKey)
+        let isPrivate = envelope.hasType(.privateKey)
+        let isPublic = envelope.hasType(.publicKey)
+        let keyData = try envelope.extractSubject(Data.self)
+        let chainCode = try envelope.extractOptionalObject(Data.self, forPredicate: .chainCode)
+        let useInfo = try UseInfo(envelope.object(forPredicate: .asset))
+        let parent = try DerivationPath(envelope.optionalObject(forPredicate: .parentPath))
+        let children = try DerivationPath(envelope.optionalObject(forPredicate: .childrenPath))
+        let parentFingerprint = try envelope.extractOptionalObject(UInt32.self, forPredicate: .parentFingerprint)
+        let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
+        let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
+        let keyType: KeyType = isPrivate ? .private : .public
+        guard
+            isPrivate || isPublic,
+            !(isPublic && isMaster),
+            !(isMaster && parent != nil),
+            !(isMaster && parentFingerprint != nil)
+        else {
+            throw EnvelopeError.invalidFormat
+        }
+        self.init(isMaster: isMaster, keyType: keyType, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: parent, children: children, parentFingerprint: parentFingerprint, name: name, note: note)
+    }
 }

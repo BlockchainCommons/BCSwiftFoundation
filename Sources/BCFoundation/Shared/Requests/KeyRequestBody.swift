@@ -11,7 +11,7 @@ import WolfBase
 import Envelope
 
 public struct KeyRequestBody: TransactionRequestBody {
-    public static var function = Function.getKey
+    public static var function: Function = .getKey
     public let keyType: KeyType
     public let path: DerivationPath
     public let useInfo: UseInfo
@@ -25,24 +25,26 @@ public struct KeyRequestBody: TransactionRequestBody {
     }
 }
 
-public extension KeyRequestBody {
-    var envelope: Envelope {
-        try! Envelope(function: .getKey)
+extension KeyRequestBody: EnvelopeCodable {
+    public var envelope: Envelope {
+        try! Envelope(function: Self.function)
             .addAssertion(.parameter(.derivationPath, value: path))
             .addAssertion(if: !keyType.isPrivate, .parameter(.isPrivate, value: false))
             .addAssertion(if: !useInfo.isDefault, .parameter(.useInfo, value: useInfo))
             .addAssertion(if: !isDerivable, .parameter(.isDerivable, value: false))
     }
     
-    init(_ envelope: Envelope) throws {
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkFunction(Self.function)
+        
         let path = try envelope.extractObject(DerivationPath.self, forParameter: .derivationPath)
 
-        let isPrivate = (try? envelope.extractObject(Bool.self, forParameter: .isPrivate)) ?? true
+        let isPrivate = try envelope.extractOptionalObject(Bool.self, forParameter: .isPrivate) ?? true
         let keyType = KeyType(isPrivate: isPrivate)
         
-        let useInfo = (try? envelope.extractObject(UseInfo.self, forParameter: .useInfo)) ?? UseInfo()
+        let useInfo = try envelope.extractOptionalObject(UseInfo.self, forParameter: .useInfo) ?? UseInfo()
         
-        let isDerivable = (try? envelope.extractObject(Bool.self, forParameter: .isDerivable)) ?? true
+        let isDerivable = try envelope.extractOptionalObject(Bool.self, forParameter: .isDerivable) ?? true
         
         self.init(keyType: keyType, path: path, useInfo: useInfo, isDerivable: isDerivable)
     }

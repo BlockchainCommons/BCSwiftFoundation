@@ -7,17 +7,13 @@ public enum TransactionResponseError: Swift.Error {
     case unknownResponseType
 }
 
-public protocol TransactionResponseBody: Equatable {
-    var envelope: Envelope { get }
-}
-
 public struct TransactionResponse: Equatable {
     public let id: CID
-    public let body: any TransactionResponseBody
+    public let result: Envelope
     
-    public init(id: CID, body: any TransactionResponseBody) {
+    public init(id: CID, result: any EnvelopeEncodable) {
         self.id = id
-        self.body = body
+        self.result = result.envelope
     }
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -25,49 +21,28 @@ public struct TransactionResponse: Equatable {
     }
 }
 
-public extension TransactionResponse {
-    init(ur: UR) throws {
-        switch ur.type {
-        case Tag.envelope.name!:
-            try self.init(untaggedCBOR: CBOR(ur.cbor))
-        default:
-            throw URError.unexpectedType
-        }
+extension TransactionResponse: EnvelopeCodable {
+    public var envelope: Envelope {
+        Envelope(response: id, result: result)
     }
     
-    init(untaggedCBOR cbor: CBOR) throws {
-        let envelope = try Envelope(untaggedCBOR: cbor)
-        guard
-            let responseItem = envelope.leaf,
-            case CBOR.tagged(.response, let idItem) = responseItem
-        else {
-            throw TransactionResponseError.invalidFormat
-        }
-        self.id = try CID(taggedCBOR: idItem)
-        guard let resultItem = try envelope.object(forPredicate: .result).leaf else {
-            throw TransactionResponseError.unknownResponseType
-        }
-        switch resultItem {
-        case CBOR.tagged(.seed, let item):
-            self.body = try Seed(untaggedCBOR: item)
-        case CBOR.tagged(.hdKey, let item):
-            self.body = try HDKey(untaggedCBOR: item)
-        case CBOR.tagged(.psbt, let item):
-            self.body = try PSBT(untaggedCBOR: item)
-        case CBOR.tagged(.outputDescriptorResponse, let item):
-            self.body = try OutputDescriptorResponseBody(untaggedCBOR: item)
-        default:
-            throw TransactionResponseError.unknownResponseType
-        }
+    public init(_ envelope: Envelope) throws {
+        try self.init(id: envelope.responseID, result: envelope.result())
     }
 }
 
 public extension TransactionResponse {
-    var envelope: Envelope {
-        Envelope(response: id, result: body.envelope)
-    }
-    
-    var ur: UR {
-        envelope.ur
+    func parseResult() throws -> any TransactionResponseBody {
+        if result.hasType(OutputDescriptorResponseBody.type) {
+            return try OutputDescriptorResponseBody(result)
+        } else if result.hasType(HDKey.type) {
+            return try HDKey(result)
+        } else if result.hasType(Seed.type) {
+            return try Seed(result)
+        } else if result.hasType(PSBT.type) {
+            return try PSBT(result)
+        } else {
+            throw TransactionResponseError.unknownResponseType
+        }
     }
 }

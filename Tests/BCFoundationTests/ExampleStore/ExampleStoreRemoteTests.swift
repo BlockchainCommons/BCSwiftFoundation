@@ -13,7 +13,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, payload: alicePayload1)
             let response = exampleStore.handleRequest(request)
-            aliceReceipt1 = try response.extractResult(Receipt.self)
+            aliceReceipt1 = try response.result(Receipt.self)
         }
 
         // Bob stores a share
@@ -23,7 +23,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: bobPrivateKey, payload: bobPayload1)
             let response = exampleStore.handleRequest(request)
-            bobReceipt1 = try response.extractResult(Receipt.self)
+            bobReceipt1 = try response.result(Receipt.self)
         }
         
         // Alice retrieves her share
@@ -46,7 +46,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, payload: alicePayload2)
             let response = exampleStore.handleRequest(request)
-            aliceReceipt2 = try response.extractResult(Receipt.self)
+            aliceReceipt2 = try response.result(Receipt.self)
         }
 
         // Alice retrieves her second share
@@ -67,28 +67,28 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: bobPrivateKey, receipts: [aliceReceipt1])
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "userMismatch")
+            XCTAssertEqual(try response.extractError(String.self), "userMismatch")
         }
         
         // Someone attempts to retrieve all shares from a nonexistent account
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: PrivateKeyBase())
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "unknownPublicKey")
+            XCTAssertEqual(try response.extractError(String.self), "unknownPublicKey")
         }
 
         // Alice stores a share she's previously stored (idempotent)
         do {
             let request = StoreShareRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, payload: alicePayload1)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.extractResult(Receipt.self), aliceReceipt1)
+            XCTAssertEqual(try response.result(Receipt.self), aliceReceipt1)
         }
         
         // Alice deletes one of her shares
         do {
             let request = DeleteSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, receipts: [aliceReceipt1])
             let response = exampleStore.handleRequest(request)
-            XCTAssertTrue(try response.isResultOK())
+            XCTAssertTrue(try response.isResultOK)
         }
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey)
@@ -100,14 +100,14 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = DeleteSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey, receipts: [aliceReceipt1])
             let response = exampleStore.handleRequest(request)
-            XCTAssertTrue(try response.isResultOK())
+            XCTAssertTrue(try response.isResultOK)
         }
         
         // Bob adds a fallback contact method
         do {
             let request = UpdateFallbackRequestBody.makeRequest(accountPrivateKey: bobPrivateKey, fallback: "bob@example.com")
             let response = exampleStore.handleRequest(request)
-            XCTAssertTrue(try response.isResultOK())
+            XCTAssertTrue(try response.isResultOK)
         }
         do {
             let request = RetrieveFallbackRequestBody.makeRequest(accountPrivateKey: bobPrivateKey)
@@ -119,14 +119,14 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = RetrieveFallbackRequestBody.makeRequest(accountPrivateKey: alicePrivateKey)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "noFallback")
+            XCTAssertEqual(try response.extractError(String.self), "noFallback")
         }
 
         // Someone attempts to retrieve the fallback for a nonexistent account
         do {
             let request = RetrieveFallbackRequestBody.makeRequest(accountPrivateKey: PrivateKeyBase())
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "unknownPublicKey")
+            XCTAssertEqual(try response.extractError(String.self), "unknownPublicKey")
         }
         
         // Alice updates her public key to a new one
@@ -134,14 +134,14 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = UpdatePublicKeyRequestBody.makeRequest(privateKey: alicePrivateKey, newPrivateKey: alicePrivateKey2)
             let response = exampleStore.handleRequest(request)
-            XCTAssertTrue(try response.isResultOK())
+            XCTAssertTrue(try response.isResultOK)
         }
         
         // Alice can no longer retrieve her shares using the old public key
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: alicePrivateKey)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "unknownPublicKey")
+            XCTAssertEqual(try response.extractError(String.self), "unknownPublicKey")
         }
         
         // Alice must now use her new public key
@@ -158,7 +158,7 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = FallbackTransferRequestBody.makeRequest(fallback: "wrong@example.com", newPrivateKey: bobPrivateKey2)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "invalidFallback")
+            XCTAssertEqual(try response.extractError(String.self), "invalidFallback")
         }
         
         // Bob requests a transfer using the correct fallback
@@ -175,21 +175,21 @@ class ExampleStoreRemoteTests: XCTestCase {
         do {
             let request = DeleteAccountRequestBody.makeRequest(accountPrivateKey: bobPrivateKey)
             let response = exampleStore.handleRequest(request)
-            XCTAssert(try response.isResultOK())
+            XCTAssert(try response.isResultOK)
         }
         
         // Attempting to retrieve his share now returns an error
         do {
             let request = RetrieveSharesRequestBody.makeRequest(accountPrivateKey: bobPrivateKey, receipts: [bobReceipt1])
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "unknownPublicKey")
+            XCTAssertEqual(try response.extractError(String.self), "unknownPublicKey")
         }
         
         // Attempting to retrieve his fallback now returns an error
         do {
             let request = RetrieveFallbackRequestBody.makeRequest(accountPrivateKey: bobPrivateKey)
             let response = exampleStore.handleRequest(request)
-            XCTAssertEqual(try response.error(String.self), "unknownPublicKey")
+            XCTAssertEqual(try response.extractError(String.self), "unknownPublicKey")
         }
     }
 }

@@ -20,13 +20,15 @@ public struct PSBTSignatureRequestBody: TransactionRequestBody {
     }
 }
 
-public extension PSBTSignatureRequestBody {
-    var envelope: Envelope {
-        try! Envelope(function: .signPSBT)
+extension PSBTSignatureRequestBody: EnvelopeCodable {
+    public var envelope: Envelope {
+        try! Envelope(function: Self.function)
             .addAssertion(.parameter(.psbt, value: psbt))
     }
     
-    init(_ envelope: Envelope) throws {
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkFunction(Self.function)
+        
         self.init(psbt: try envelope.extractObject(PSBT.self, forParameter: .psbt))
     }
 }

@@ -1,6 +1,8 @@
 import Foundation
 
-public struct OutputDescriptorResponseBody: Equatable {
+public struct OutputDescriptorResponseBody: Equatable, TransactionResponseBody {
+    public static var type = Envelope("descriptorResponse")
+    
     public let descriptor: OutputDescriptor
     public let challengeSignature: Data
     
@@ -10,27 +12,17 @@ public struct OutputDescriptorResponseBody: Equatable {
     }
 }
 
-extension OutputDescriptorResponseBody: CBORTaggedCodable {
-    public static var cborTag: Tag = .outputDescriptorResponse
-    
-    public var untaggedCBOR: CBOR {
-        [ descriptor.sourceWithChecksum, challengeSignature ].cbor
+extension OutputDescriptorResponseBody: EnvelopeCodable {
+    public var envelope: Envelope {
+        descriptor.envelope
+            .addType(Self.type)
+            .addAssertion("challengeSignature", challengeSignature)
     }
-    
-    public init(untaggedCBOR cbor: CBOR) throws {
-        guard
-            case CBOR.array(let array) = cbor,
-            array.count == 2,
-            let source = try? String(cbor: array[0]),
-            let challengeSignature = try? Data(cbor: array[1])
-        else {
-            throw CBORError.invalidFormat
-        }
-        let descriptor = try OutputDescriptor(source)
+
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkType(Self.type)
+        let descriptor = try OutputDescriptor(envelope)
+        let challengeSignature = try envelope.extractObject(Data.self, forPredicate: "challengeSignature")
         self.init(descriptor: descriptor, challengeSignature: challengeSignature)
     }
-}
-
-extension OutputDescriptorResponseBody: TransactionResponseBody {
-    public var envelope: Envelope { Envelope(self) }
 }

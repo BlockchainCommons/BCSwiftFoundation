@@ -12,47 +12,50 @@ public extension ExampleStore {
             .encryptSubject(to: ExampleStore.publicKey)
     }
 
-    static func parseRequest(_ request: Envelope) throws -> TransactionRequest {
+    static func parseRequest(_ request: Envelope) throws -> ((TransactionRequest, any StoreRequestBody))? {
         let decryptedRequest = try request
             .decrypt(to: privateKey)
             .unwrap()
+        
+        let transactionRequest = try TransactionRequest(decryptedRequest)
+        let body: (any StoreRequestBody)?
+        switch transactionRequest.function {
+        case StoreShareRequestBody.function:
+            body = try StoreShareRequestBody(transactionRequest.body)
+        case UpdateFallbackRequestBody.function:
+            body = try UpdateFallbackRequestBody(transactionRequest.body)
+        case RetrieveFallbackRequestBody.function:
+            body = try RetrieveFallbackRequestBody(transactionRequest.body)
+        case UpdatePublicKeyRequestBody.function:
+            let b = try UpdatePublicKeyRequestBody(transactionRequest.body)
+            try request.verifySignature(from: b.newPublicKey)
+            body = b
+        case RetrieveSharesRequestBody.function:
+            body = try RetrieveSharesRequestBody(transactionRequest.body)
+        case DeleteSharesRequestBody.function:
+            body = try DeleteSharesRequestBody(transactionRequest.body)
+        case FallbackTransferRequestBody.function:
+            body = try FallbackTransferRequestBody(transactionRequest.body)
+        case DeleteAccountRequestBody.function:
+            body = try DeleteAccountRequestBody(transactionRequest.body)
+        default:
+            body = nil
+        }
 
-        let transactionRequest = try TransactionRequest(decryptedRequest) { bodyEnvelope in
-            let function = try bodyEnvelope.extractSubject(Function.self)
-            switch function {
-            case StoreShareRequestBody.function:
-                return try StoreShareRequestBody(bodyEnvelope)
-            case UpdateFallbackRequestBody.function:
-                return try UpdateFallbackRequestBody(bodyEnvelope)
-            case RetrieveFallbackRequestBody.function:
-                return try RetrieveFallbackRequestBody(bodyEnvelope)
-            case UpdatePublicKeyRequestBody.function:
-                let body = try UpdatePublicKeyRequestBody(bodyEnvelope)
-                try request.verifySignature(from: body.newPublicKey)
-                return body
-            case RetrieveSharesRequestBody.function:
-                return try RetrieveSharesRequestBody(bodyEnvelope)
-            case DeleteSharesRequestBody.function:
-                return try DeleteSharesRequestBody(bodyEnvelope)
-            case FallbackTransferRequestBody.function:
-                return try FallbackTransferRequestBody(bodyEnvelope)
-            case DeleteAccountRequestBody.function:
-                return try DeleteAccountRequestBody(bodyEnvelope)
-            default:
-                return nil
-            }
+        guard let body else {
+            return nil
         }
         
         print("\n=== Received Request ===")
         print(decryptedRequest.format)
 
-        return transactionRequest
+        return (transactionRequest, body)
     }
     
-    static func validateRequest(_ request: Envelope, _ transactionRequest: TransactionRequest) throws {
-        let body = transactionRequest.body as! StoreRequestBody
+    static func validateRequest(_ requestEnvelope: Envelope, _ transactionRequest: TransactionRequest) throws {
+        let (_, body) = try ExampleStore.parseRequest(requestEnvelope)!
         
-        try request.verifySignature(from: body.publicKey)
+        try requestEnvelope.verifySignature(from: body.publicKey)
         
         guard let transactionDate = transactionRequest.date else {
             throw Error.expiredRequest
@@ -68,10 +71,12 @@ public extension ExampleStore {
         var transactionID: CID!
         var response: Envelope!
         do {
-            let request = try Self.parseRequest(requestEnvelope)
-            transactionID = request.id
-            try Self.validateRequest(requestEnvelope, request)
-            switch request.body {
+            guard let (transactionRequest, requestBody) = try Self.parseRequest(requestEnvelope) else {
+                throw EnvelopeError.unknownFunction
+            }
+            transactionID = transactionRequest.id
+            try Self.validateRequest(requestEnvelope, transactionRequest)
+            switch requestBody {
             case let body as StoreShareRequestBody:
                 let receipt = try storeShare(publicKey: body.publicKey, payload: body.payload)
                 response = Envelope(response: transactionID, result: receipt)
@@ -99,7 +104,7 @@ public extension ExampleStore {
                 deleteAccount(publicKey: body.publicKey)
                 response = Envelope(response: transactionID)
             default:
-                throw TransactionRequestError.unknownRequestType
+                throw EnvelopeError.unknownFunction
             }
         } catch {
             if let transactionID {

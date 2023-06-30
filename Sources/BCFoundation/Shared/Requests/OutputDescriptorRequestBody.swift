@@ -14,15 +14,17 @@ public struct OutputDescriptorRequestBody: TransactionRequestBody {
     }
 }
 
-public extension OutputDescriptorRequestBody {
-    var envelope: Envelope {
-        try! Envelope(function: .getOutputDescriptor)
+extension OutputDescriptorRequestBody: EnvelopeCodable {
+    public var envelope: Envelope {
+        try! Envelope(function: Self.function)
             .addAssertion(.parameter(.challenge, value: challenge))
             .addAssertion(if: !name.isEmpty, .parameter(.name, value: name))
             .addAssertion(if: !useInfo.isDefault, .parameter(.useInfo, value: useInfo))
     }
     
-    init(_ envelope: Envelope) throws {
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkFunction(Self.function)
+        
         let name = (try? envelope.extractObject(String.self, forParameter: .name)) ?? ""
         let useInfo = (try? envelope.extractObject(UseInfo.self, forParameter: .useInfo)) ?? UseInfo()
         let challenge = try envelope.extractObject(Data.self, forParameter: .challenge)

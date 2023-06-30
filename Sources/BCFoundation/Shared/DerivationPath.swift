@@ -330,3 +330,21 @@ extension DerivationPath: CBORTaggedCodable {
         self.init(steps: steps, origin: origin, depth: depth)
     }
 }
+
+extension DerivationPath: EnvelopeCodable {
+    public var envelope: Envelope {
+        Envelope(self)
+            .addType(.derivationPath)
+    }
+    
+    public init(_ envelope: Envelope) throws {
+        try envelope.checkType(.derivationPath)
+        guard
+            let cbor = envelope.subject.leaf,
+            case CBOR.tagged(.derivationPath, let untaggedCBOR) = cbor
+        else {
+            throw EnvelopeError.invalidFormat
+        }
+        try self.init(untaggedCBOR: untaggedCBOR)
+    }
+}
