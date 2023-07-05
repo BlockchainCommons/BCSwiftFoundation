@@ -102,37 +102,23 @@ extension SeedProtocol {
     }
 }
 
-extension SeedProtocol {
-    public var untaggedCBOR: CBOR {
-        cbor().0
-    }
-
-    public func cbor(nameLimit: Int = .max, noteLimit: Int = .max) -> (CBOR, Bool) {
+public extension SeedProtocol {
+    var untaggedCBOR: CBOR {
         var a: Map = [1: data]
-        var didLimit = false
 
         if let creationDate = creationDate {
             a[2] = creationDate.cbor
         }
 
         if !name.isEmpty {
-            let limitedName = name.prefix(count: nameLimit)
-            didLimit = didLimit || limitedName.count < name.count
-            a[3] = limitedName.cbor
+            a[3] = name.cbor
         }
 
         if !note.isEmpty {
-            let limitedNote = note.prefix(count: noteLimit)
-            didLimit = didLimit || limitedNote.count < note.count
-            a[4] = limitedNote.cbor
+            a[4] = note.cbor
         }
 
-        return (CBOR.map(a), didLimit)
-    }
-    
-    public func sizeLimitedUR(nameLimit: Int = 100, noteLimit: Int = 500) -> (UR, Bool) {
-        let (c, didLimit) = cbor(nameLimit: nameLimit, noteLimit: noteLimit)
-        return try! (UR(type: Tag.seed.name!, untaggedCBOR: c), didLimit)
+        return CBOR.map(a)
     }
 }
 
@@ -194,11 +180,7 @@ extension SeedProtocol {
 
 public extension SeedProtocol {
     var envelope: Envelope {
-        Envelope(data)
-            .addType(.seed)
-            .addAssertion(if: !name.isEmpty, .hasName, name)
-            .addAssertion(if: !note.isEmpty, .note, note)
-            .addAssertion(.date, creationDate)
+        sizeLimitedEnvelope(nameLimit: .max, noteLimit: .max).0
     }
     
     init(_ envelope: Envelope) throws {
@@ -218,5 +200,29 @@ public extension SeedProtocol {
             throw EnvelopeError.invalidFormat
         }
         self = result
+    }
+}
+
+public extension SeedProtocol {
+    func sizeLimitedEnvelope(nameLimit: Int = 100, noteLimit: Int = 500) -> (Envelope, Bool) {
+        var e = Envelope(data)
+            .addType(.seed)
+            .addAssertion(.date, creationDate)
+        
+        var didLimit = false
+        
+        if !name.isEmpty {
+            let limitedName = name.prefix(count: nameLimit)
+            didLimit = didLimit || limitedName.count < name.count
+            e = e.addAssertion(.hasName, limitedName)
+        }
+        
+        if !note.isEmpty {
+            let limitedNote = note.prefix(count: noteLimit)
+            didLimit = didLimit || limitedNote.count < note.count
+            e = e.addAssertion(.note, limitedNote)
+        }
+        
+        return (e, didLimit)
     }
 }

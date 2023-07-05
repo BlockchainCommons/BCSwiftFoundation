@@ -46,7 +46,7 @@ class OutputDescriptorRequestTests: XCTestCase {
         let challengeSignature = signingKey.ecPrivateKey!.ecdsaSign(requestBody.challenge)
         let result = OutputDescriptorResponseBody(descriptor: descriptor, challengeSignature: challengeSignature)
         let response = TransactionResponse(id: request.id, result: result)
-        return response.envelope.ur
+        return response.ur
     }
     
     func validateResponse(_ responseUR: UR) throws {

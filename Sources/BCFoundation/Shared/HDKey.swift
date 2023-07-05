@@ -628,8 +628,8 @@ extension HDKeyProtocol {
     }
 }
 
-extension HDKeyProtocol {
-    public var identityDigestSource: Data {
+public extension HDKeyProtocol {
+    var identityDigestSource: Data {
         var result: [CBOR] = []
 
         result.append(keyData.cbor)
@@ -647,23 +647,12 @@ extension HDKeyProtocol {
     }
 }
 
-extension HDKeyProtocol {
-    public var envelope: Envelope {
-        let e = Envelope(keyData)
-            .addType(.bip32key)
-            .addType(keyType.envelope)
-            .addType(if: isMaster, .masterKey)
-            .addAssertion(.asset, useInfo.envelope)
-            .addAssertion(.chainCode, chainCode)
-            .addAssertion(if: !parent.isEmpty, .parentPath, parent.envelope)
-            .addAssertion(if: !children.isEmpty, .childrenPath, children.envelope)
-            .addAssertion(.parentFingerprint, parentFingerprint)
-            .addAssertion(if: !name.isEmpty, .hasName, name)
-            .addAssertion(if: !note.isEmpty, .note, note)
-        return e
+public extension HDKeyProtocol {
+    var envelope: Envelope {
+        sizeLimitedEnvelope(nameLimit: .max, noteLimit: .max).0
     }
     
-    public init(_ envelope: Envelope) throws {
+    init(_ envelope: Envelope) throws {
         if
             let subjectLeaf = envelope.leaf,
             case CBOR.tagged(.hdKey, let item) = subjectLeaf
@@ -693,5 +682,35 @@ extension HDKeyProtocol {
             throw EnvelopeError.invalidFormat
         }
         self.init(isMaster: isMaster, keyType: keyType, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: parent, children: children, parentFingerprint: parentFingerprint, name: name, note: note)
+    }
+}
+
+public extension HDKeyProtocol {
+    func sizeLimitedEnvelope(nameLimit: Int = 100, noteLimit: Int = 500) -> (Envelope, Bool) {
+        var e = Envelope(keyData)
+            .addType(.bip32key)
+            .addType(keyType.envelope)
+            .addType(if: isMaster, .masterKey)
+            .addAssertion(.asset, useInfo.envelope)
+            .addAssertion(.chainCode, chainCode)
+            .addAssertion(if: !parent.isEmpty, .parentPath, parent.envelope)
+            .addAssertion(if: !children.isEmpty, .childrenPath, children.envelope)
+            .addAssertion(.parentFingerprint, parentFingerprint)
+        
+        var didLimit = false
+        
+        if !name.isEmpty {
+            let limitedName = name.prefix(count: nameLimit)
+            didLimit = didLimit || limitedName.count < name.count
+            e = e.addAssertion(if: !name.isEmpty, .hasName, name)
+        }
+        
+        if !note.isEmpty {
+            let limitedNote = note.prefix(count: noteLimit)
+            didLimit = didLimit || limitedNote.count < note.count
+            e = e.addAssertion(if: !note.isEmpty, .note, note)
+        }
+
+        return (e, didLimit)
     }
 }

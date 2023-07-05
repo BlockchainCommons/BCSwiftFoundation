@@ -40,6 +40,10 @@ public extension TransactionResponse {
             throw URError.unexpectedType
         }
     }
+    
+    var ur: UR {
+        envelope.ur
+    }
 }
 
 public extension TransactionResponse {
