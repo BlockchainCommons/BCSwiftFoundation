@@ -154,10 +154,10 @@ func getSignatures(signatures: WallyMap) -> [ECPublicKey: Data] {
 
 extension PSBTInput {
     public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType]) -> [PSBTSigningStatus<SignerType>] {
-        let signatures = Set(signatures.map { $0.key })
+        let publicSigningKeys = Set(signatures.map { $0.key })
         var result: [PSBTSigningStatus<SignerType>] = []
         for origin in origins {
-            let status = origin.signingStatus(signers: signers, signatures: signatures)
+            let status = origin.signingStatus(signers: signers, publicSigningKeys: publicSigningKeys)
             result.append(status)
         }
         return result

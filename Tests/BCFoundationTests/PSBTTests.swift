@@ -362,6 +362,8 @@ class PSBTTests: XCTestCase {
 
     let alice = NamedSeed("Alice", Seed(hex: "82f32c855d3d542256180810797e0073")!)
     let bob = NamedSeed("Bob", Seed(hex: "187a5973c64d359c836eba466a44db7b")!)
+    let carol = NamedSeed("Carol", Seed(hex: "e3955cda304771c0031895637f55c3abe45153c87abd81c51ed14e8aafa1af13")!)
+    let dave = NamedSeed("Dave", Seed(hex: "605b79f555ffb9c10322858f4a11fc2c")!)
 
     func testPSBTSession1of2() {
         // A PSBT that can be fully signed by Alice or Bob (1 of 2).
@@ -376,7 +378,7 @@ class PSBTTests: XCTestCase {
         let psbt2of2 = PSBT(base64: "cHNidP8BAH0CAAAAAVDiIuDv/6eKF/3KA2FyMzrLVV5pk3G2NEhF73B5cHZCAAAAAAD9////AroQAQAAAAAAIgAgEJHB5dt2HT9eYRRt+DRB1VesE3u4PQnVjxslEzH30RQQJwAAAAAAABYAFP+dpWfmLzDqhlT6HV+9R774474TAAAAAAABASuAOAEAAAAAACIAIOqI/uwvV9W/A0OzXJIq/7ez8/Djlu5044ADEcHKoxeJAQVHUiECBea9jkSoCw14R3q/7TwiVNGLcj0FC+ifMpXQe3Xw3pUhAwxRX5TBJXgf73IHRs8KO3ogIAPLIGg4F5krQxtG4s23Uq4iBgIF5r2ORKgLDXhHer/tPCJU0YtyPQUL6J8yldB7dfDelRxVAWsvMAAAgAEAAIAAAACAAgAAgAAAAAABAAAAIgYDDFFflMEleB/vcgdGzwo7eiAgA8sgaDgXmStDG0bizbccp+jQbjAAAIABAACAAAAAgAIAAIAAAAAAAQAAAAABAUdSIQIotmH/B/ZiUBfIrNaQfgfTQYH8pMLZyaqeuXwhI6KUNSEC5LHB9GmJkMT3B59mRaTvNJqjEfxARIb5j/xjUYVKa89SriICAii2Yf8H9mJQF8is1pB+B9NBgfykwtnJqp65fCEjopQ1HFUBay8wAACAAQAAgAAAAIACAACAAQAAAAMAAAAiAgLkscH0aYmQxPcHn2ZFpO80mqMR/EBEhvmP/GNRhUprzxyn6NBuMAAAgAEAAIAAAACAAgAAgAEAAAADAAAAAAA=")!
         let psbt2of2ExpectedRequest = "ur:envelope/lftpsptpcstptktaadethdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbstpsptpsolftpsptpsgcsietpsplftpsptpcstpttcsiytpsptpsolftpsptpcstptdcssntpsplftpsptpcshkaogrjojkidjyzmadaekiaoaeaeaeadgdvocpvtwszmoslechzcsgaxhsjpeoftsbgohyinmujsrpeefdfewsjokkjokofwaeaeaeaeaezczmzmzmaordbeadaeaeaeaeaecpaecxbemesevwuykocafhhyhsbbjnyaeefptlhgpsbwkgrofsastlmycwdabwehylttbbbediaeaeaeaeaeaecmaebbzmntoniovadldywdlnghzscaheryflrnyavlrnbwaeaeaeaeaeadaddnlaetadaeaeaeaeaecpaecxwdlozewpdlhgtlrsaxfxqdhhmodrzmrlqdwfwtvlmtwyjyvllaaxbysesgotchldadahflgmclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgmclaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemwecclaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkgmplcpaoaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemweccegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaecpaoaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaeaeaetpsptpsolftpsptpsgadtpsptpsgcfadzsgosepdah"
         let psbt2of2ExpectedResponse = "ur:envelope/lftpsptpcstptitaadethdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbstpsptpsolftpsptpsgcsihtpsplftpsptpcshkaxcnjojkidjyzmadaekiaoaeaeaeadgdvocpvtwszmoslechzcsgaxhsjpeoftsbgohyinmujsrpeefdfewsjokkjokofwaeaeaeaeaezczmzmzmaordbeadaeaeaeaeaecpaecxbemesevwuykocafhhyhsbbjnyaeefptlhgpsbwkgrofsastlmycwdabwehylttbbbediaeaeaeaeaeaecmaebbzmntoniovadldywdlnghzscaheryflrnyavlrnbwaeaeaeaeaeadaddnlaetadaeaeaeaeaecpaecxwdlozewpdlhgtlrsaxfxqdhhmodrzmrlqdwfwtvlmtwyjyvllaaxbysesgotchldcpaoaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdfddyfeaoclaemyfprobarkytrllnvslagukitdtlbkwswsurlelppkfgpdptwfahdmlnetfzaxisaocxjtoyjtlsntinievytbrdlrrsmtbsfpdtlakpoyzmjpgllnkbpleobecpsbfwgwbkadcpaoaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlfddyfeaoclaemwvwinknzcutswguynisgybgjeluyatbhywtlgwfjnwmylptjygovadlvdsshtkeaocxksdsrhtantfegyuehdehjzdnleoxbekekbfhaoierkghrlcmmyjsfeadrpeslksfadadahflgmclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgmclaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemwecclaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkgmplcpaoaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemweccegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaecpaoaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaeaeaetpsptpsolftpsptpsgadtpsptpsgcfadzslgvwtece"
-        psbtSession(psbt2of2, seeds: [alice, bob], network: .testnet, expectedRequest: psbt2of2ExpectedRequest, expectedResponse: psbt2of2ExpectedResponse)
+        psbtSession(psbt2of2, seeds: [alice, bob, carol], network: .testnet, expectedRequest: psbt2of2ExpectedRequest, expectedResponse: psbt2of2ExpectedResponse)
     }
 }
 
@@ -404,7 +406,9 @@ struct NamedSeed: CustomStringConvertible, Hashable {
     }
     
     var masterKey: HDKey {
-        account.masterKey!
+        var key = account.masterKey!
+        key.name = seed.name
+        return key
     }
     
     var masterKeyFingerprint: UInt32 {
@@ -412,6 +416,8 @@ struct NamedSeed: CustomStringConvertible, Hashable {
     }
     
     init(_ name: String, _ seed: Seed) {
+        var seed = seed
+        seed.name = name
         self.account = AccountDerivations(seed: seed, useInfo: .init(), account: 0)
         self.name = name
     }

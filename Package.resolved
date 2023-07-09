@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftCrypto",
       "state" : {
-        "revision" : "3236af46adba5a48cbc100c4a181d38b37f2c822",
-        "version" : "0.5.0"
+        "revision" : "e4af871818343284575ecfec5248c427fe9ba0a1",
+        "version" : "0.7.1"
       }
     },
     {
@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftDCBOR",
       "state" : {
-        "revision" : "1ecccdc891f291402843420cb965923befee7cb4",
-        "version" : "0.9.0"
+        "revision" : "d7cf9436fccf01dbe64acf07e735f9eb7b867b40",
+        "version" : "0.9.1"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftEnvelope.git",
       "state" : {
-        "revision" : "741f56f4b66ce521fb5094b707cde12a9bb857c6",
-        "version" : "0.10.1"
+        "revision" : "d8c746a2e9327b0b3c9d8651ea9113b11ad6e01c",
+        "version" : "0.14.0"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git",
       "state" : {
-        "revision" : "fbfe46944bec36427e3852eee4d1d72e726b5c45",
-        "version" : "4.1.1"
+        "revision" : "991c3a53a9d7c107796c9628fc670ad666ab40f2",
+        "version" : "4.3.0"
       }
     },
     {
@@ -50,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
       "state" : {
-        "revision" : "eee9ad754926c40a0f7e73f152357d37b119b7fa",
-        "version" : "1.7.1"
+        "revision" : "32f641cf24fc7abc1c591a2025e9f2f572648b0f",
+        "version" : "1.7.2"
       }
     },
     {
@@ -140,8 +140,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/BlockchainCommons/URKit.git",
       "state" : {
-        "revision" : "938eebc6b65ec4c7a8a2b6c5699140e3cd436c43",
-        "version" : "11.2.1"
+        "revision" : "a395fef328f83f184d0fc28fc2413d70ffe54c50",
+        "version" : "11.3.0"
       }
     },
     {
@@ -149,8 +149,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/WolfMcNally/WolfBase",
       "state" : {
-        "revision" : "21feeff132b57bbdf0eb57fae73a5e36d485b32d",
-        "version" : "5.3.0"
+        "revision" : "d7219c703316956c42a7f47f926a442d082f043f",
+        "version" : "5.3.1"
       }
     }
   ],

@@ -31,12 +31,12 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
         key == childKey(for: masterKey)
     }
     
-    public func existingKnownSigner<SignerType: PSBTSigner>(signers: [SignerType], signatures: Set<ECPublicKey>) -> SignerType? {
+    public func existingKnownSigner<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECPublicKey>) -> SignerType? {
         for signer in signers {
             guard let key = childKey(for: signer.masterKey) else {
                 continue
             }
-            if signatures.contains(key) {
+            if publicSigningKeys.contains(key) {
                 return signer
             }
         }
@@ -59,12 +59,12 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
 }
 
 extension PSBTSigningOrigin {
-    public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType], signatures: Set<ECPublicKey>) -> PSBTSigningStatus<SignerType> {
-        if let existingSigner = existingKnownSigner(signers: signers, signatures: signatures) {
+    public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECPublicKey>) -> PSBTSigningStatus<SignerType> {
+        if let existingSigner = existingKnownSigner(signers: signers, publicSigningKeys: publicSigningKeys) {
             return PSBTSigningStatus(origin: self, isSigned: true, knownSigner: existingSigner)
-        } else if let possibleSigner = signers.first(where: { canSign(with: $0.masterKey)} ) {
+        } else if let possibleSigner = possibleKnownSigner(signers: signers) {
             return PSBTSigningStatus(origin: self, isSigned: false, knownSigner: possibleSigner)
-        } else if signatures.contains(key) {
+        } else if publicSigningKeys.contains(key) {
             return PSBTSigningStatus(origin: self, isSigned: true, knownSigner: nil)
         } else {
             return PSBTSigningStatus(origin: self, isSigned: false, knownSigner: nil)
