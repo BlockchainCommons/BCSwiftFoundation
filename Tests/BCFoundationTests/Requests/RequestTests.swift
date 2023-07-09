@@ -64,14 +64,21 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: useInfo)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgaatpsptpcsieghihjkjytpsptpsolftpsptpsgcsietpsplstpsptpcstpttcsihtpsptpsolftpsptpcstptdcssbtpsptpcstaadehoyaoadtpsptpsolftpsptpcstptdcssotpsptpcstaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwzosmkahrf"
+        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgaatpsptpcsieghihjkjytpsptpsolftpsptpsgcsietpsplstpsptpcstpttcsihtpsptpsolftpsptpcstptdcssbtpsplstpsptpsgcfaddptpsptpsolftpsptpsgadtpsptpsgcfaddwtpsptpsolftpsptpsgcfadmhtpsplftpsptpsgcfadmotpsptpsolftpsptpsgadtpsptpsgcfadmhtpsptpsolftpsptpcstptdcssotpsplftpsptpcstaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwztpsptpsolftpsptpsgadtpsptpsgcfadynrnlopmsb"
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: crypto-keypath(Map)
-                ❰useInfo❱: crypto-coin-info(Map)
+                ❰derivationPath❱: crypto-keypath(Map) [
+                    isA: derivationPath
+                ]
+                ❰useInfo❱: btc [
+                    isA: asset
+                    network: testNet [
+                        isA: network
+                    ]
+                ]
             ]
             note: "Test"
         ]
@@ -125,14 +132,21 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: .init(asset: .btc, network: .testnet))
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgcsietpsplstpsptpcstpttcsihtpsptpsolftpsptpcstptdcssbtpsptpcstaadehoyaoadtpsptpsolftpsptpcstptdcssotpsptpcstaaddyoyadlocsdyykaeykaeykaoyktpsptpsolftpsptpsgaatpsptpcsieghihjkjygtiodkdw"
+        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgaatpsptpcsieghihjkjytpsptpsolftpsptpsgcsietpsplstpsptpcstpttcsihtpsptpsolftpsptpcstptdcssotpsplftpsptpcstaaddyoyadlocsdyykaeykaeykaoyktpsptpsolftpsptpsgadtpsptpsgcfadyntpsptpsolftpsptpcstptdcssbtpsplstpsptpsgcfaddptpsptpsolftpsptpsgadtpsptpsgcfaddwtpsptpsolftpsptpsgcfadmhtpsplftpsptpsgcfadmotpsptpsolftpsptpsgadtpsptpsgcfadmhmtjshdsa"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: crypto-keypath(Map)
-                ❰useInfo❱: crypto-coin-info(Map)
+                ❰derivationPath❱: crypto-keypath(Map) [
+                    isA: derivationPath
+                ]
+                ❰useInfo❱: btc [
+                    isA: asset
+                    network: testNet [
+                        isA: network
+                    ]
+                ]
             ]
             note: "Test"
         ]
@@ -148,13 +162,15 @@ class RequestTests: XCTestCase {
         let body = PSBTSignatureRequestBody(psbt: Self.validPSBT, isRawPSBT: false)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgcsietpsplftpsptpcstpttcsiytpsptpsolftpsptpcstptdcssntpsptpcstaadenhkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaetpsptpsolftpsptpsgaatpsptpcsieghihjkjyrsdrjkrf"
+        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgcsietpsplftpsptpcstpttcsiytpsptpsolftpsptpcstptdcssntpsplftpsptpcshkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaetpsptpsolftpsptpsgadtpsptpsgcfadzstpsptpsolftpsptpsgaatpsptpcsieghihjkjyfrtbdrbd"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «signPSBT» [
-                ❰psbt❱: crypto-psbt(Bytes(555))
+                ❰psbt❱: Bytes(555) [
+                    isA: psbt
+                ]
             ]
             note: "Test"
         ]
@@ -192,7 +208,7 @@ class RequestTests: XCTestCase {
         let body = OutputDescriptorRequestBody(name: "Name", useInfo: useInfo, challenge: ‡"fcb2fc04b4e352dd10cfe6bc90fe80a8")
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgcsietpsplrtpsptpcstpttcsiotpsptpsolftpsptpcstptdcstotpsptpcsieglhsjnihtpsptpsolftpsptpcstptdcssbtpsptpcstaadehoyaoadtpsptpsolftpsptpcstptdcstktpsptpcsgdztprztaaqzvlgmutbetkvarfmhzelapdtpsptpsolftpsptpsgaatpsptpcsieghihjkjylndewlkb"
+        let expectedURString = "ur:envelope/lstpsptpcstptktaadethdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlzttpsptpsolftpsptpsgaatpsptpcsieghihjkjytpsptpsolftpsptpsgcsietpsplrtpsptpcstpttcsiotpsptpsolftpsptpcstptdcstotpsptpcsieglhsjnihtpsptpsolftpsptpcstptdcssbtpsplstpsptpsgcfaddptpsptpsolftpsptpsgadtpsptpsgcfaddwtpsptpsolftpsptpsgcfadmhtpsplftpsptpsgcfadmotpsptpsolftpsptpsgadtpsptpsgcfadmhtpsptpsolftpsptpcstptdcstktpsptpcsgdztprztaaqzvlgmutbetkvarfmhzelapddsfmeebb"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
@@ -200,7 +216,12 @@ class RequestTests: XCTestCase {
             body: «getOutputDescriptor» [
                 ❰challenge❱: Bytes(16)
                 ❰name❱: "Name"
-                ❰useInfo❱: crypto-coin-info(Map)
+                ❰useInfo❱: btc [
+                    isA: asset
+                    network: testNet [
+                        isA: network
+                    ]
+                ]
             ]
             note: "Test"
         ]

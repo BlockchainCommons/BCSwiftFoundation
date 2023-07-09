@@ -29,6 +29,8 @@ extension PSBTSignatureRequestBody: EnvelopeCodable {
     public init(_ envelope: Envelope) throws {
         try envelope.checkFunction(Self.function)
         
-        self.init(psbt: try envelope.extractObject(PSBT.self, forParameter: .psbt))
+        let object = try envelope.object(forParameter: .psbt)
+        let psbt = try PSBT(object)
+        self.init(psbt: psbt)
     }
 }

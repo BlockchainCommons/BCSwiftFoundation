@@ -280,99 +280,103 @@ class PSBTTests: XCTestCase {
         let psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
         XCTAssertEqual(psbt.fee, 181)
     }
+    
+    func printPSBT(_ psbt: PSBT, inputSigning: [PSBTInputSigning<NamedSeed>], outputSigning: [PSBTOutputSigning<NamedSeed>], network: Network) {
+        print("\n===== PSBT")
 
-    func testPSBTSession() {
-        func printPSBT(_ psbt: PSBT, inputSigning: [PSBTInputSigning<NamedSeed>], outputSigning: [PSBTOutputSigning<NamedSeed>], network: Network) {
-            print("\n===== PSBT")
+        print("TOTAL SENT: BTC \((psbt.totalSent?.btcFormat)†)")
+        print("TOTAL CHANGE: BTC \((psbt.totalChange?.btcFormat)†)")
+        print()
+        print("TOTAL IN: BTC \((psbt.totalIn?.btcFormat)†)")
+        print("TOTAL OUT: BTC \((psbt.totalOut?.btcFormat)†)")
+        print("MINING FEE: BTC \((psbt.fee?.btcFormat)†)")
+        print("\n=== INPUTS")
 
-            print("TOTAL SENT: BTC \((psbt.totalSent?.btcFormat)†)")
-            print("TOTAL CHANGE: BTC \((psbt.totalChange?.btcFormat)†)")
-            print()
-            print("TOTAL IN: BTC \((psbt.totalIn?.btcFormat)†)")
-            print("TOTAL OUT: BTC \((psbt.totalOut?.btcFormat)†)")
-            print("MINING FEE: BTC \((psbt.fee?.btcFormat)†)")
-            print("\n=== INPUTS")
-
-            for (index, info) in inputSigning.enumerated() {
-                let input = info.input
-                let signingStatuses = info.statuses
-                print("--- INPUT #\(index + 1)")
-                //print(input)
-                if let amount = input.amount?.btcFormat {
-                    print("Amount: BTC \(amount)")
-                }
-                if let address = input.address(network: network) {
-                    print("From Address: \(address)")
-                }
-                if
-                    !input.witnessStack.isEmpty,
-                    let (n, m) = input.witnessStack[0]?.multisigInfo
-                {
-                    print("Multisig \(n) of \(m)")
-                }
-                for status in signingStatuses {
-                    print(status.statusString)
-                }
+        for (index, info) in inputSigning.enumerated() {
+            let input = info.input
+            let signingStatuses = info.statuses
+            print("--- INPUT #\(index + 1)")
+            //print(input)
+            if let amount = input.amount?.btcFormat {
+                print("Amount: BTC \(amount)")
             }
-
-            print("\n=== OUTPUTS")
-            for (index, info) in outputSigning.enumerated() {
-                let output = info.output
-                let signingStatuses = info.statuses
-                print("--- OUTPUT #\(index + 1)")
-                //print(output)
-                print("Amount: BTC \(output.amount.btcFormat) \(output.isChange ? "CHANGE" : "")")
-                print("To Address: \(output.address(network: network))")
-                if let (n, m) = output.txOutput.scriptPubKey.multisigInfo {
-                    print("Multisig \(n) of \(m)")
-                }
-                for status in signingStatuses {
-                    print(status.statusString)
-                }
+            if let address = input.address(network: network) {
+                print("From Address: \(address)")
             }
-            
-            print("-----")
+            if
+                !input.witnessStack.isEmpty,
+                let (n, m) = input.witnessStack[0]?.multisigInfo
+            {
+                print("Multisig \(n) of \(m)")
+            }
+            for status in signingStatuses {
+                print(status.statusString)
+            }
+        }
+
+        print("\n=== OUTPUTS")
+        for (index, info) in outputSigning.enumerated() {
+            let output = info.output
+            let signingStatuses = info.statuses
+            print("--- OUTPUT #\(index + 1)")
+            //print(output)
+            print("Amount: BTC \(output.amount.btcFormat) \(output.isChange ? "CHANGE" : "")")
+            print("To Address: \(output.address(network: network))")
+            if let (n, m) = output.txOutput.scriptPubKey.multisigInfo {
+                print("Multisig \(n) of \(m)")
+            }
+            for status in signingStatuses {
+                print(status.statusString)
+            }
         }
         
+        print("-----")
+    }
+    
+    func psbtSession(_ psbt: PSBT, seeds: [NamedSeed], network: Network, expectedRequest: String, expectedResponse: String) {
+        let cid = CID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
+        let requestBody = PSBTSignatureRequestBody(psbt: psbt)
+        let request = TransactionRequest(id: cid, body: requestBody)
+        XCTAssertEqual(request.envelope.urString, expectedRequest)
+        
+        let inputSigning = psbt.inputSigning(signers: seeds)
+        let outputSigning = psbt.outputSigning(signers: seeds)
 
-        func psbtSession(_ psbt: PSBT, seeds: [NamedSeed], network: Network) {
-            let inputSigning = psbt.inputSigning(signers: seeds)
-            let outputSigning = psbt.outputSigning(signers: seeds)
-
-            print("\n======= BEFORE SIGNING")
-            printPSBT(psbt, inputSigning: inputSigning, outputSigning: outputSigning, network: network)
-            
-            guard let signedPSBT = psbt.signed(with: inputSigning) else {
-                print("\n======= UNABLE TO SIGN PSBT")
-                return
-            }
-            
-            print("\n======= AFTER SIGNING")
-            let updatedInputSigning = signedPSBT.inputSigning(signers: seeds)
-            printPSBT(signedPSBT, inputSigning: updatedInputSigning, outputSigning: outputSigning, network: network)
+        print("\n======= BEFORE SIGNING")
+        printPSBT(psbt, inputSigning: inputSigning, outputSigning: outputSigning, network: network)
+        
+        guard let signedPSBT = psbt.signed(with: inputSigning) else {
+            print("\n======= UNABLE TO SIGN PSBT")
+            return
         }
         
-        let alice = NamedSeed("Alice", Seed(hex: "82f32c855d3d542256180810797e0073")!)
-        let bob = NamedSeed("Bob", Seed(hex: "187a5973c64d359c836eba466a44db7b")!)
-
-        print(alice)
-        print(bob)
-
-        let seeds = [alice, bob]
+        print("\n======= AFTER SIGNING")
+        let updatedInputSigning = signedPSBT.inputSigning(signers: seeds)
+        printPSBT(signedPSBT, inputSigning: updatedInputSigning, outputSigning: outputSigning, network: network)
         
-        let network = Network.testnet
-
-        print("\n========= TEST 1")
+        let response = TransactionResponse(id: cid, result: signedPSBT)
+        XCTAssertEqual(response.envelope.urString, expectedResponse)
         
+        XCTAssertNotEqual(psbt.data, signedPSBT.data)
+    }
+
+    let alice = NamedSeed("Alice", Seed(hex: "82f32c855d3d542256180810797e0073")!)
+    let bob = NamedSeed("Bob", Seed(hex: "187a5973c64d359c836eba466a44db7b")!)
+
+    func testPSBTSession1of2() {
         // A PSBT that can be fully signed by Alice or Bob (1 of 2).
         let psbt1of2 = PSBT(base64: "cHNidP8BAIkCAAAAAQPwB5cTkHMnKTqvqrrLPS1eLOAftT5vFpGcmc/xOXbNAAAAAAD9////Aqk7AQAAAAAAIgAgvrSaYkbuN5hy0mVXVgDRa+5KruKkRvab01aabj0wgA7oAwAAAAAAACIAIPET3raA+LQKJEoBaMJuHbq+/sVlZ7wAKqhYrhBRqF7GAAAAAAABAStQQAEAAAAAACIAIGppYhdefSa0Tt20ryHx+9D6hYu1x22rAREe77meFBePAQVHUSECBea9jkSoCw14R3q/7TwiVNGLcj0FC+ifMpXQe3Xw3pUhA1NZQ82ujgajfnWaDcwQwQQnqdA2pJnhnnoAfY7hN9Y/Uq4iBgIF5r2ORKgLDXhHer/tPCJU0YtyPQUL6J8yldB7dfDelRxVAWsvMAAAgAEAAIAAAACAAgAAgAAAAAABAAAAIgYDU1lDza6OBqN+dZoNzBDBBCep0DakmeGeegB9juE31j8c3lhO/TAAAIABAACAAAAAgAIAAIAAAAAAAQAAAAABAUdRIQJ97wKVQ/jja6DUlf6gkEjHukxkcTmIRp4Q6MZnI/DOZiED9+crp4WXakT0kPqDtpDXzEHRdMmm1sNthOQfj/n86klSriICAn3vApVD+ONroNSV/qCQSMe6TGRxOYhGnhDoxmcj8M5mHFUBay8wAACAAQAAgAAAAIACAACAAQAAAAIAAAAiAgP35yunhZdqRPSQ+oO2kNfMQdF0yabWw22E5B+P+fzqSRzeWE79MAAAgAEAAIAAAACAAgAAgAEAAAACAAAAAAA=")!
-        psbtSession(psbt1of2, seeds: seeds, network: network)
-        
-        print("\n========= TEST 2")
-
+        let psbt1of2ExpectedRequest = "ur:envelope/lftpsptpcstptktaadethdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbstpsptpsolftpsptpsgcsietpsplftpsptpcstpttcsiytpsptpsolftpsptpcstptdcssntpsplftpsptpcshkaohgjojkidjyzmadaeldaoaeaeaeadaxwtatmsbwmhjkdidtftpepkrdsbfsdphydwvtctrefmjlcmmensnltkwneskosnaeaeaeaeaezczmzmzmaoptfradaeaeaeaeaecpaecxrnqznyidfgwyemmkjptdihhghfaettjewygeplvooxfgynndtehfnyjtfsdylabavsaxaeaeaeaeaeaecpaecxwnbwuerplayaqzbkdkgeadissajtcardrnzeskihiorfaedrpdhdplbegypdhyswaeaeaeaeaeadaddngdfzadaeaeaeaeaecpaecximinidchhykidsqzglutqzpeclwnzotizslplurestjnpyadbyckwsrhnnbbchmyadahflgyclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxguhkfxsnplmnamotkbkpnybtsfbeseaadipttienoxnlvynnknaekimnvyemtbfhgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxguhkfxsnplmnamotkbkpnybtsfbeseaadipttienoxnlvynnknaekimnvyemtbfhceuehdglzcdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgyclaokiwsaomdfxyavljenbtymdzenbmhfdstrdgsiejseslofgnnbevsswiocnwttoiyclaxylvddnoslpmsimfywkmhzslsrpmhtssffpttjysooltbsrjnlrvectmyytztwdgagmplcpaoaokiwsaomdfxyavljenbtymdzenbmhfdstrdgsiejseslofgnnbevsswiocnwttoiycegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaoaeaeaecpaoaxylvddnoslpmsimfywkmhzslsrpmhtssffpttjysooltbsrjnlrvectmyytztwdgaceuehdglzcdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaoaeaeaeaeaetpsptpsolftpsptpsgadtpsptpsgcfadzsswrdhppl"
+        let psbt1of2ExpectedResponse = "ur:envelope/lftpsptpcstptitaadethdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbstpsptpsolftpsptpsgcsihtpsplftpsptpcshkaosajojkidjyzmadaeldaoaeaeaeadaxwtatmsbwmhjkdidtftpepkrdsbfsdphydwvtctrefmjlcmmensnltkwneskosnaeaeaeaeaezczmzmzmaoptfradaeaeaeaeaecpaecxrnqznyidfgwyemmkjptdihhghfaettjewygeplvooxfgynndtehfnyjtfsdylabavsaxaeaeaeaeaeaecpaecxwnbwuerplayaqzbkdkgeadissajtcardrnzeskihiorfaedrpdhdplbegypdhyswaeaeaeaeaeadaddngdfzadaeaeaeaeaecpaecximinidchhykidsqzglutqzpeclwnzotizslplurestjnpyadbyckwsrhnnbbchmycpaoaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdfldyfyaocxcnctashskoaddyveprdirkmnmdhshtplinasluyldmolbntdvsswbbneesaewtimaocxjlbwvydejptbqdsnkpfrtpdrdezsioiomtpfhdjzbnnnlbtinsfsfgpdlaaopesgadadahflgyclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxguhkfxsnplmnamotkbkpnybtsfbeseaadipttienoxnlvynnknaekimnvyemtbfhgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxguhkfxsnplmnamotkbkpnybtsfbeseaadipttienoxnlvynnknaekimnvyemtbfhceuehdglzcdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgyclaokiwsaomdfxyavljenbtymdzenbmhfdstrdgsiejseslofgnnbevsswiocnwttoiyclaxylvddnoslpmsimfywkmhzslsrpmhtssffpttjysooltbsrjnlrvectmyytztwdgagmplcpaoaokiwsaomdfxyavljenbtymdzenbmhfdstrdgsiejseslofgnnbevsswiocnwttoiycegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaoaeaeaecpaoaxylvddnoslpmsimfywkmhzslsrpmhtssffpttjysooltbsrjnlrvectmyytztwdgaceuehdglzcdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaoaeaeaeaeaetpsptpsolftpsptpsgadtpsptpsgcfadzsadrdyadt"
+        psbtSession(psbt1of2, seeds: [alice, bob], network: .testnet, expectedRequest: psbt1of2ExpectedRequest, expectedResponse: psbt1of2ExpectedResponse)
+    }
+    
+    func testPSBTSession2of2() {
         // A PSBT that must be signed by Alice and Bob (2 of 2).
         let psbt2of2 = PSBT(base64: "cHNidP8BAH0CAAAAAVDiIuDv/6eKF/3KA2FyMzrLVV5pk3G2NEhF73B5cHZCAAAAAAD9////AroQAQAAAAAAIgAgEJHB5dt2HT9eYRRt+DRB1VesE3u4PQnVjxslEzH30RQQJwAAAAAAABYAFP+dpWfmLzDqhlT6HV+9R774474TAAAAAAABASuAOAEAAAAAACIAIOqI/uwvV9W/A0OzXJIq/7ez8/Djlu5044ADEcHKoxeJAQVHUiECBea9jkSoCw14R3q/7TwiVNGLcj0FC+ifMpXQe3Xw3pUhAwxRX5TBJXgf73IHRs8KO3ogIAPLIGg4F5krQxtG4s23Uq4iBgIF5r2ORKgLDXhHer/tPCJU0YtyPQUL6J8yldB7dfDelRxVAWsvMAAAgAEAAIAAAACAAgAAgAAAAAABAAAAIgYDDFFflMEleB/vcgdGzwo7eiAgA8sgaDgXmStDG0bizbccp+jQbjAAAIABAACAAAAAgAIAAIAAAAAAAQAAAAABAUdSIQIotmH/B/ZiUBfIrNaQfgfTQYH8pMLZyaqeuXwhI6KUNSEC5LHB9GmJkMT3B59mRaTvNJqjEfxARIb5j/xjUYVKa89SriICAii2Yf8H9mJQF8is1pB+B9NBgfykwtnJqp65fCEjopQ1HFUBay8wAACAAQAAgAAAAIACAACAAQAAAAMAAAAiAgLkscH0aYmQxPcHn2ZFpO80mqMR/EBEhvmP/GNRhUprzxyn6NBuMAAAgAEAAIAAAACAAgAAgAEAAAADAAAAAAA=")!
-        psbtSession(psbt2of2, seeds: seeds, network: network)
+        let psbt2of2ExpectedRequest = "ur:envelope/lftpsptpcstptktaadethdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbstpsptpsolftpsptpsgcsietpsplftpsptpcstpttcsiytpsptpsolftpsptpcstptdcssntpsplftpsptpcshkaogrjojkidjyzmadaekiaoaeaeaeadgdvocpvtwszmoslechzcsgaxhsjpeoftsbgohyinmujsrpeefdfewsjokkjokofwaeaeaeaeaezczmzmzmaordbeadaeaeaeaeaecpaecxbemesevwuykocafhhyhsbbjnyaeefptlhgpsbwkgrofsastlmycwdabwehylttbbbediaeaeaeaeaeaecmaebbzmntoniovadldywdlnghzscaheryflrnyavlrnbwaeaeaeaeaeadaddnlaetadaeaeaeaeaecpaecxwdlozewpdlhgtlrsaxfxqdhhmodrzmrlqdwfwtvlmtwyjyvllaaxbysesgotchldadahflgmclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgmclaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemwecclaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkgmplcpaoaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemweccegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaecpaoaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaeaeaetpsptpsolftpsptpsgadtpsptpsgcfadzsgosepdah"
+        let psbt2of2ExpectedResponse = "ur:envelope/lftpsptpcstptitaadethdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbstpsptpsolftpsptpsgcsihtpsplftpsptpcshkaxcnjojkidjyzmadaekiaoaeaeaeadgdvocpvtwszmoslechzcsgaxhsjpeoftsbgohyinmujsrpeefdfewsjokkjokofwaeaeaeaeaezczmzmzmaordbeadaeaeaeaeaecpaecxbemesevwuykocafhhyhsbbjnyaeefptlhgpsbwkgrofsastlmycwdabwehylttbbbediaeaeaeaeaeaecmaebbzmntoniovadldywdlnghzscaheryflrnyavlrnbwaeaeaeaeaeadaddnlaetadaeaeaeaeaecpaecxwdlozewpdlhgtlrsaxfxqdhhmodrzmrlqdwfwtvlmtwyjyvllaaxbysesgotchldcpaoaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdfddyfeaoclaemyfprobarkytrllnvslagukitdtlbkwswsurlelppkfgpdptwfahdmlnetfzaxisaocxjtoyjtlsntinievytbrdlrrsmtbsfpdtlakpoyzmjpgllnkbpleobecpsbfwgwbkadcpaoaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlfddyfeaoclaemwvwinknzcutswguynisgybgjeluyatbhywtlgwfjnwmylptjygovadlvdsshtkeaocxksdsrhtantfegyuehdehjzdnleoxbekekbfhaoierkghrlcmmyjsfeadrpeslksfadadahflgmclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgmclaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemwecclaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkgmplcpaoaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemweccegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaecpaoaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaeaeaetpsptpsolftpsptpsgadtpsptpsgcfadzslgvwtece"
+        psbtSession(psbt2of2, seeds: [alice, bob], network: .testnet, expectedRequest: psbt2of2ExpectedRequest, expectedResponse: psbt2of2ExpectedResponse)
     }
 }
 

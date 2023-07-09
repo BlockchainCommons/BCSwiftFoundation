@@ -15,12 +15,12 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
         "PSBTSigningOrigin(key: \(key), path: \(path))"
     }
     
-    public func childKey(for masterKey: HDKey) -> ECPublicKey? {
+    public func childKey(for parentKey: HDKey) -> ECPublicKey? {
+        let parentKeyFingerprint = parentKey.originFingerprint ?? parentKey.keyFingerprint
         guard
-            let masterKeyFingerprint = masterKey.originFingerprint,
             case .fingerprint(let originFingerprint) = path.origin,
-            masterKeyFingerprint == originFingerprint,
-            let childKey = try? HDKey(parent: masterKey, childDerivationPath: path).ecPublicKey
+            parentKeyFingerprint == originFingerprint,
+            let childKey = try? HDKey(parent: parentKey, childDerivationPath: path).ecPublicKey
         else {
             return nil
         }
@@ -31,22 +31,39 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
         key == childKey(for: masterKey)
     }
     
+    public func existingKnownSigner<SignerType: PSBTSigner>(signers: [SignerType], signatures: Set<ECPublicKey>) -> SignerType? {
+        for signer in signers {
+            guard let key = childKey(for: signer.masterKey) else {
+                continue
+            }
+            if signatures.contains(key) {
+                return signer
+            }
+        }
+        return nil
+    }
+    
+    public func possibleKnownSigner<SignerType: PSBTSigner>(signers: [SignerType]) -> SignerType? {
+        for signer in signers {
+            let childKey = childKey(for: signer.masterKey)
+            if childKey == key {
+                return signer
+            }
+        }
+        return nil
+    }
+    
     public var isChange: Bool {
         path.isChange
     }
 }
 
 extension PSBTSigningOrigin {
-    public func signingStatus<SignerType: PSBTSigner>(seeds: [SignerType], signatures: Set<ECPublicKey>) -> PSBTSigningStatus<SignerType> {
-        if let seed = seeds.first(where: {
-            guard let key = childKey(for: $0.masterKey) else {
-                return false
-            }
-            return signatures.contains(key)
-        }) {
-            return PSBTSigningStatus(origin: self, isSigned: true, knownSigner: seed)
-        } else if let seed = seeds.first(where: { canSign(with: $0.masterKey)} ) {
-            return PSBTSigningStatus(origin: self, isSigned: false, knownSigner: seed)
+    public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType], signatures: Set<ECPublicKey>) -> PSBTSigningStatus<SignerType> {
+        if let existingSigner = existingKnownSigner(signers: signers, signatures: signatures) {
+            return PSBTSigningStatus(origin: self, isSigned: true, knownSigner: existingSigner)
+        } else if let possibleSigner = signers.first(where: { canSign(with: $0.masterKey)} ) {
+            return PSBTSigningStatus(origin: self, isSigned: false, knownSigner: possibleSigner)
         } else if signatures.contains(key) {
             return PSBTSigningStatus(origin: self, isSigned: true, knownSigner: nil)
         } else {

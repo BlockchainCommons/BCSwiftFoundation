@@ -184,6 +184,7 @@ public extension SeedProtocol {
     }
     
     init(_ envelope: Envelope) throws {
+        try envelope.checkType(.seed)
         if
             let subjectLeaf = envelope.leaf,
             case CBOR.tagged(.seed, let item) = subjectLeaf

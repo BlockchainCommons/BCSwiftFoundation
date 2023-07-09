@@ -14,7 +14,7 @@ public struct TransactionRequest: Equatable {
     public let note: String
     public let date: Date?
     
-    public init(id: CID = CID(), body: any EnvelopeEncodable, note: String = "", date: Date? = nil) {
+    public init(id: CID = CID(), body: EnvelopeEncodable, note: String = "", date: Date? = nil) {
         self.id = id
         self.body = body.envelope
         self.function = try! self.body.function

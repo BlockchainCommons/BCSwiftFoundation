@@ -224,7 +224,13 @@ public struct PSBTOutputSigning<SignerType: PSBTSigner>: Identifiable {
 
 extension PSBT {
     public func inputSigning<SignerType: PSBTSigner>(signers: [SignerType]) -> [PSBTInputSigning<SignerType>] {
-        inputs.map { PSBTInputSigning(input: $0, statuses: $0.signingStatus(signers: signers)) }
+        var result: [PSBTInputSigning<SignerType>] = []
+        for input in inputs {
+            let statuses = input.signingStatus(signers: signers)
+            let inputSigning = PSBTInputSigning(input: input, statuses: statuses)
+            result.append(inputSigning)
+        }
+        return result
     }
     
     public func outputSigning<SignerType: PSBTSigner>(signers: [SignerType]) -> [PSBTOutputSigning<SignerType>] {

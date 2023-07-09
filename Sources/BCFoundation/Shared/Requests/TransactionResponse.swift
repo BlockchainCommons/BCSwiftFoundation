@@ -11,7 +11,7 @@ public struct TransactionResponse: Equatable {
     public let id: CID
     public let result: Envelope
     
-    public init(id: CID, result: any EnvelopeEncodable) {
+    public init(id: CID, result: EnvelopeEncodable) {
         self.id = id
         self.result = result.envelope
     }
