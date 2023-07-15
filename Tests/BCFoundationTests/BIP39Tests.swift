@@ -79,5 +79,9 @@ class BIP39Tests: XCTestCase {
         XCTAssertEqual(parsedSeed, expectedSeed)
     }
 
-
+    func testDecodeIncompleteMnemonicWords() throws {
+        let mnemonic = "fly mule exce reso trea plun nose soda refl adul ramp plan"
+        let bip39 = BIP39(mnemonic: mnemonic)!
+        XCTAssertEqual(bip39.description, "fly mule excess resource treat plunge nose soda reflect adult ramp planet")
+    }
 }

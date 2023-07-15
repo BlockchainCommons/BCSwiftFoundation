@@ -16,13 +16,32 @@ public struct BIP39 {
     }
 
     public init?(mnemonic: String) {
-        guard let data = Wally.bip39Decode(mnemonic: mnemonic) else {
+        let completedMnemonic = Self.completeMnemnoic(mnemonic)
+        guard let data = Wally.bip39Decode(mnemonic: completedMnemonic) else {
             return nil
         }
         self.data = data
-        self.mnemonic = mnemonic
+        self.mnemonic = completedMnemonic
     }
     
+    static func completeMnemnoic(_ mnemonic: String) -> String {
+        let bip39WordCompletions = Wally.bip39AllWords().reduce(into: [String: String]()) { result, word in
+            result[word.prefix(count: 4)] = word
+        }
+        
+        return mnemonic
+            .split(separator: " ")
+            .map { String($0) }
+            .map { word in
+                if let completedWord = bip39WordCompletions[word] {
+                    return completedWord
+                } else {
+                    return word
+                }
+            }
+            .joined(separator: " ")
+    }
+
     public init?(words: [String]) {
         self.init(mnemonic: words.joined(separator: " "))
     }
