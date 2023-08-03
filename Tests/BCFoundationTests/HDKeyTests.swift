@@ -190,4 +190,46 @@ class HDKeyTests: XCTestCase {
         
         XCTAssertEqual(childKey.base58PublicKey, expectedChildKey.base58PublicKey)
     }
+    
+    func testIdentityDigestSource() throws {
+        let keyData = ‡"026fe2355745bb2db3630bbc80ef5d58951c963c841f54170ba6e5c12be7fc12a6"
+        let chainCode = ‡"ced155c72456255881793514edc5bd9447e7f74abb88c6d6b6480fd016ee8c85"
+        let useInfo = UseInfo(asset: .btc, network: .testnet)
+        var keySource: [CBOR] = []
+        keySource.append(keyData.cbor)
+        keySource.append(chainCode.cbor)
+        keySource.append(useInfo.asset.rawValue.cbor)
+        keySource.append(useInfo.network.rawValue.cbor)
+        XCTAssertEqual(keySource.cbor.diagnostic(annotate: true, tags: globalTags),
+        """
+        [
+           h'026fe2355745bb2db3630bbc80ef5d58951c963c841f54170ba6e5c12be7fc12a6',
+           h'ced155c72456255881793514edc5bd9447e7f74abb88c6d6b6480fd016ee8c85',
+           0,
+           1
+        ]
+        """)
+        XCTAssertEqual(keySource.cbor.hex(annotate: true),
+        """
+        84                                       # array(4)
+           5821                                  # bytes(33)
+              026fe2355745bb2db3630bbc80ef5d58951c963c841f54170ba6e5c12be7fc12a6
+           5820                                  # bytes(32)
+              ced155c72456255881793514edc5bd9447e7f74abb88c6d6b6480fd016ee8c85
+           00                                    # unsigned(0)
+           01                                    # unsigned(1)
+        """)
+        
+        let digestSource = keySource.cborData
+        let expectedDigestSource = ‡"845821026fe2355745bb2db3630bbc80ef5d58951c963c841f54170ba6e5c12be7fc12a65820ced155c72456255881793514edc5bd9447e7f74abb88c6d6b6480fd016ee8c850001"
+        XCTAssertEqual(digestSource, expectedDigestSource)
+
+        let digest = expectedDigestSource.sha256Digest
+        let expectedDigest = ‡"362af3038da7600ad1581c19161c8594aafafc24e5acf1aefc8f7a0bbe366df2"
+        XCTAssertEqual(digest, expectedDigest)
+        
+        let hdKey = HDKey(isMaster: true, keyType: .private, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: nil, children: nil, parentFingerprint: nil, name: "", note: "")
+        XCTAssertEqual(hdKey.identityDigestSource, expectedDigestSource)
+        XCTAssertEqual(hdKey.identityDigest, digest)
+    }
 }
