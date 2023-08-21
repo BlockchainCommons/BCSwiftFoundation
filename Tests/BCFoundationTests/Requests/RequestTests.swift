@@ -46,7 +46,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(envelope.format(context: globalFormatContext), """
         response(CID(c66be27d)) [
             result: Bytes(16) [
-                isA: seed
+                isA: Seed
             ]
         ]
         """)
@@ -64,20 +64,15 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: useInfo)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpcstansfgcsihoytpcstansflcssblscfaddpoyadcfaddwoycfadmhlfcfadmooyadcfadmhoytpcstansflcssolftpcstaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwzoyadcfadynoyaatpcsieghihjkjycwwyjkfy"
+        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpcstansfgcsihoytpcstansflcssblfcfaddpoycfadmhcfadmooytpcstansflcssotpcstaaddyoeadlocsdyykaeykaeykaoykaocyhngrmuwzoyaatpcsieghihjkjyspheyave"
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: crypto-keypath(Map) [
-                    isA: derivationPath
-                ]
-                ❰useInfo❱: btc [
-                    isA: asset
-                    network: testNet [
-                        isA: network
-                    ]
+                ❰derivationPath❱: crypto-keypath(Map)
+                ❰useInfo❱: BTC [
+                    network: TestNet
                 ]
             ]
             note: "Test"
@@ -101,18 +96,13 @@ class RequestTests: XCTestCase {
         let expectedFormat = """
         response(CID(c66be27d)) [
             result: Bytes(33) [
-                isA: bip32key
-                isA: privateKey
-                asset: btc [
-                    isA: asset
-                    network: testNet [
-                        isA: network
-                    ]
+                isA: BIP32Key
+                isA: PrivateKey
+                asset: BTC [
+                    network: TestNet
                 ]
                 chainCode: Bytes(32)
-                parent: crypto-keypath(Map) [
-                    isA: derivationPath
-                ]
+                parent: crypto-keypath(Map)
                 parentFingerprint: 2683380607
             ]
         ]
@@ -120,7 +110,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let ur = envelope.ur
-        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlttpcshdclaevytktyhkfthkglbyzehflpenbsfxbkvlvyghtsondrzeskswvoclemaswtzodlhnoycfadyktpcshdcxlejtimcnrlbtdemdoereyaqzprkpndbdgwfzflqdbzkohgzobycxcnvabaosbglfoycfadyttpcscynewncnlboyadcfadwkoycfadyllftpcstaaddyotadlocsdyykaeykaeykaoykaocyhngrmuwzaxaaoyadcfadynoycfaddwlscfaddpoyadcfaddwoycfadmhlfcfadmooyadcfadmhoyadcssopdwkjkce"
+        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlttpcshdclaevytktyhkfthkglbyzehflpenbsfxbkvlvyghtsondrzeskswvoclemaswtzodlhnoycfadyktpcshdcxlejtimcnrlbtdemdoereyaqzprkpndbdgwfzflqdbzkohgzobycxcnvabaosbglfoycfaddwlfcfaddpoycfadmhcfadmooycfadyttpcscynewncnlboycfadyltpcstaaddyotadlocsdyykaeykaeykaoykaocyhngrmuwzaxaaoyadcfadwkoyadcssozowflfcx"
         XCTAssertEqual(ur.string, expectedURString)
 
         let response2 = try TransactionResponse(Envelope(ur: ur))
@@ -132,20 +122,15 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: .init(asset: .btc, network: .testnet))
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielstpcstansfgcsihoytpcstansflcssblscfaddpoyadcfaddwoycfadmhlfcfadmooyadcfadmhoytpcstansflcssolftpcstaaddyoyadlocsdyykaeykaeykaoykoyadcfadynhenlbbay"
+        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielstpcstansfgcsihoytpcstansflcssblfcfaddpoycfadmhcfadmooytpcstansflcssotpcstaaddyoyadlocsdyykaeykaeykaoykbtpflyki"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «getKey» [
-                ❰derivationPath❱: crypto-keypath(Map) [
-                    isA: derivationPath
-                ]
-                ❰useInfo❱: btc [
-                    isA: asset
-                    network: testNet [
-                        isA: network
-                    ]
+                ❰derivationPath❱: crypto-keypath(Map)
+                ❰useInfo❱: BTC [
+                    network: TestNet
                 ]
             ]
             note: "Test"
@@ -162,15 +147,13 @@ class RequestTests: XCTestCase {
         let body = PSBTSignatureRequestBody(psbt: Self.validPSBT, isRawPSBT: false)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielftpcstansfgcsiyoytpcstansflcssnlftpcshkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzsoyaatpcsieghihjkjyjemhihhf"
+        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielftpcstansfgcsiyoytpcstansflcssntpcshkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaebbbbcmuo"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
         request(CID(c66be27d)) [
             body: «signPSBT» [
-                ❰psbt❱: Bytes(555) [
-                    isA: psbt
-                ]
+                ❰psbt❱: Bytes(555)
             ]
             note: "Test"
         ]
@@ -187,16 +170,14 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(CID(c66be27d)) [
-            result: Bytes(555) [
-                isA: psbt
-            ]
+            result: Bytes(555)
         ]
         """
         let envelope = try response.envelope.checkEncoding()
         XCTAssertEqual(envelope.format(context: globalFormatContext), expectedFormat)
 
         let ur = envelope.ur
-        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlftpcshkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzskkcabbpe"
+        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihtpcshkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaessoehyrd"
         XCTAssertEqual(ur.string, expectedURString)
 
         let response2 = try TransactionResponse(Envelope(ur: ur))
@@ -208,7 +189,7 @@ class RequestTests: XCTestCase {
         let body = OutputDescriptorRequestBody(name: "Name", useInfo: useInfo, challenge: ‡"fcb2fc04b4e352dd10cfe6bc90fe80a8")
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielrtpcstansfgcsiooytpcstansflcssblscfaddpoyadcfaddwoycfadmhlfcfadmooyadcfadmhoytpcstansflcstktpcsgdztprztaaqzvlgmutbetkvarfmhzelapdoytpcstansflcstotpcsieglhsjnihvdhygefy"
+        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielrtpcstansfgcsiooytpcstansflcstktpcsgdztprztaaqzvlgmutbetkvarfmhzelapdoytpcstansflcssblfcfaddpoycfadmhcfadmooytpcstansflcstotpcsieglhsjnihhnidnskb"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
@@ -216,11 +197,8 @@ class RequestTests: XCTestCase {
             body: «getOutputDescriptor» [
                 ❰challenge❱: Bytes(16)
                 ❰name❱: "Name"
-                ❰useInfo❱: btc [
-                    isA: asset
-                    network: testNet [
-                        isA: network
-                    ]
+                ❰useInfo❱: BTC [
+                    network: TestNet
                 ]
             ]
             note: "Test"
@@ -243,7 +221,7 @@ class RequestTests: XCTestCase {
         response(CID(c66be27d)) [
             result: "pkh([37b5eed4/44'/0'/0']xpub6CnQkivUEH9bSbWVWfDLCtigKKgnSWGaVSRyCbN2QNBJzuvHT1vUQpgSpY1NiVvoeNEuVwk748Cn9G3NtbQB1aGGsEL7aYEnjVWgjj9tefu/<0;1>/*)#vxycy4eh" [
                 isA: "descriptorResponse"
-                isA: outputDescriptor
+                isA: OutputDescriptor
                 "challengeSignature": Bytes(32)
             ]
         ]

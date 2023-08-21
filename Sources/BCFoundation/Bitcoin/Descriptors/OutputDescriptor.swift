@@ -159,11 +159,11 @@ extension OutputDescriptor: Codable {
 extension OutputDescriptor: EnvelopeCodable {
     public var envelope: Envelope {
         Envelope(sourceWithChecksum)
-            .addType(.outputDescriptor)
+            .addType(.OutputDescriptor)
     }
     
     public init(_ envelope: Envelope) throws {
-        try envelope.checkType(.outputDescriptor)
+        try envelope.checkType(.OutputDescriptor)
         try self.init(envelope.extractSubject(String.self))
     }
 }

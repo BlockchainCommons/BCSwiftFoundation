@@ -79,20 +79,18 @@ extension Network: EnvelopeCodable {
         let type: KnownValue
         switch self {
         case .mainnet:
-            type = .mainNet
+            type = .MainNet
         case .testnet:
-            type = .testNet
+            type = .TestNet
         }
         return Envelope(type)
-            .addType(.network)
     }
     
     public init(_ envelope: Envelope) throws {
-        try envelope.checkType(.network)
         switch try envelope.extractSubject(KnownValue.self) {
-        case .mainNet:
+        case .MainNet:
             self = .mainnet
-        case .testNet:
+        case .TestNet:
             self = .testnet
         default:
             throw EnvelopeError.invalidFormat

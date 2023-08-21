@@ -65,7 +65,7 @@ public struct Seed: SeedProtocol {
 }
 
 extension Seed: TransactionResponseBody {
-    public static var type = Envelope(.seed)
+    public static var type = Envelope(.Seed)
 }
 
 public extension SeedProtocol {
@@ -184,7 +184,7 @@ public extension SeedProtocol {
     }
     
     init(_ envelope: Envelope) throws {
-        try envelope.checkType(.seed)
+        try envelope.checkType(.Seed)
         if
             let subjectLeaf = envelope.leaf,
             case CBOR.tagged(.seed, let item) = subjectLeaf
@@ -207,7 +207,7 @@ public extension SeedProtocol {
 public extension SeedProtocol {
     func sizeLimitedEnvelope(nameLimit: Int = 100, noteLimit: Int = 500) -> (Envelope, Bool) {
         var e = Envelope(data)
-            .addType(.seed)
+            .addType(.Seed)
             .addAssertion(.date, creationDate)
         
         var didLimit = false

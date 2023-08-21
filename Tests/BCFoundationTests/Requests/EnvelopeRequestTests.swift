@@ -7,11 +7,8 @@ class EnvelopeRequestTests: XCTestCase {
         let useInfo = UseInfo(asset: .btc, network: .mainnet)
         let envelope = useInfo.envelope
         XCTAssertEqual(useInfo.envelope.format(context: globalFormatContext), """
-        btc [
-            isA: asset
-            network: mainNet [
-                isA: network
-            ]
+        BTC [
+            network: MainNet
         ]
         """)
         XCTAssertEqual(useInfo, try UseInfo(envelope))
@@ -24,14 +21,11 @@ class EnvelopeRequestTests: XCTestCase {
         let masterEnvelope = masterKey.envelope
         XCTAssertEqual(masterEnvelope.format(context: globalFormatContext), """
         Bytes(33) [
-            isA: bip32key
-            isA: masterKey
-            isA: privateKey
-            asset: btc [
-                isA: asset
-                network: mainNet [
-                    isA: network
-                ]
+            isA: BIP32Key
+            isA: MasterKey
+            isA: PrivateKey
+            asset: BTC [
+                network: MainNet
             ]
             chainCode: Bytes(32)
         ]
@@ -47,20 +41,15 @@ class EnvelopeRequestTests: XCTestCase {
         let childEnvelope = childKey.envelope
         XCTAssertEqual(childEnvelope.format(context: globalFormatContext), """
         Bytes(33) [
-            isA: bip32key
-            isA: publicKey
-            asset: btc [
-                isA: asset
-                network: mainNet [
-                    isA: network
-                ]
+            isA: BIP32Key
+            isA: PublicKey
+            asset: BTC [
+                network: MainNet
             ]
             chainCode: Bytes(32)
             hasName: "This is the key name."
             note: "This is the key note."
-            parent: crypto-keypath(Map) [
-                isA: derivationPath
-            ]
+            parent: crypto-keypath(Map)
             parentFingerprint: 3912704230
         ]
         """)

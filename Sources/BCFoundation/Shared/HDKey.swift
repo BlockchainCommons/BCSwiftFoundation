@@ -79,7 +79,7 @@ public struct HDKey: HDKeyProtocol {
 }
 
 extension HDKey: TransactionResponseBody {
-    public static let type = Envelope(.bip32key)
+    public static let type = Envelope(.BIP32Key)
 }
 
 extension HDKeyProtocol {
@@ -661,9 +661,9 @@ public extension HDKeyProtocol {
             return
         }
         
-        let isMaster = envelope.hasType(.masterKey)
-        let isPrivate = envelope.hasType(.privateKey)
-        let isPublic = envelope.hasType(.publicKey)
+        let isMaster = envelope.hasType(.MasterKey)
+        let isPrivate = envelope.hasType(.PrivateKey)
+        let isPublic = envelope.hasType(.PublicKey)
         let keyData = try envelope.extractSubject(Data.self)
         let chainCode = try envelope.extractOptionalObject(Data.self, forPredicate: .chainCode)
         let useInfo = try UseInfo(envelope.object(forPredicate: .asset))
@@ -688,9 +688,9 @@ public extension HDKeyProtocol {
 public extension HDKeyProtocol {
     func sizeLimitedEnvelope(nameLimit: Int = 100, noteLimit: Int = 500) -> (Envelope, Bool) {
         var e = Envelope(keyData)
-            .addType(.bip32key)
+            .addType(.BIP32Key)
             .addType(keyType.envelope)
-            .addType(if: isMaster, .masterKey)
+            .addType(if: isMaster, .MasterKey)
             .addAssertion(.asset, useInfo.envelope)
             .addAssertion(.chainCode, chainCode)
             .addAssertion(if: !parent.isEmpty, .parentPath, parent.envelope)

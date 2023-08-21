@@ -43,9 +43,9 @@ extension KeyType: EnvelopeCodable {
     public var envelope: Envelope {
         switch self {
         case .private:
-            return Envelope(.privateKey)
+            return Envelope(.PrivateKey)
         case .public:
-            return Envelope(.publicKey)
+            return Envelope(.PublicKey)
         }
     }
     
@@ -54,9 +54,9 @@ extension KeyType: EnvelopeCodable {
             throw EnvelopeError.invalidFormat
         }
         switch v {
-        case .publicKey:
+        case .PublicKey:
             self = .public
-        case .privateKey:
+        case .PrivateKey:
             self = .private
         default:
             throw EnvelopeError.invalidFormat

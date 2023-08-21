@@ -86,20 +86,18 @@ extension Asset: EnvelopeCodable {
         let type: KnownValue
         switch self {
         case .btc:
-            type = .bitcoin
+            type = .Bitcoin
         case .eth:
-            type = .ethereum
+            type = .Ethereum
         }
         return Envelope(type)
-            .addType(.asset)
     }
     
     public init(_ envelope: Envelope) throws {
-        try envelope.checkType(.asset)
         switch try envelope.extractSubject(KnownValue.self) {
-        case .bitcoin:
+        case .Bitcoin:
             self = .btc
-        case .ethereum:
+        case .Ethereum:
             self = .eth
         default:
             throw EnvelopeError.invalidFormat

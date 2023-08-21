@@ -334,11 +334,9 @@ extension DerivationPath: CBORTaggedCodable {
 extension DerivationPath: EnvelopeCodable {
     public var envelope: Envelope {
         Envelope(self)
-            .addType(.derivationPath)
     }
     
     public init(_ envelope: Envelope) throws {
-        try envelope.checkType(.derivationPath)
         guard
             let cbor = envelope.subject.leaf,
             case CBOR.tagged(.derivationPath, let untaggedCBOR) = cbor

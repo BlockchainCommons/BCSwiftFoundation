@@ -99,7 +99,7 @@ public extension ExampleStore {
                 response = Envelope(response: transactionID)
             case let body as FallbackTransferRequestBody:
                 try fallbackTransfer(fallback: body.fallback, new: body.publicKey)
-                response = Envelope(response: transactionID, result: KnownValue.processing)
+                response = Envelope(response: transactionID, result: KnownValue.Processing)
             case let body as DeleteAccountRequestBody:
                 deleteAccount(publicKey: body.publicKey)
                 response = Envelope(response: transactionID)

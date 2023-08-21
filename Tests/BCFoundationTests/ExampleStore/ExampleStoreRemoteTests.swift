@@ -168,7 +168,7 @@ class ExampleStoreRemoteTests: XCTestCase {
             // Here the store must initiate asyncronously using the fallback to verify the
             // user's intent to change their key and only change it if the verification
             // succeeds.
-            XCTAssertEqual(try response.extractResult(KnownValue.self), .processing)
+            XCTAssertEqual(try response.extractResult(KnownValue.self), .Processing)
         }
         
         // Bob never confirms the transfer request, but instead decides to delete his entire account
