@@ -15,8 +15,9 @@ public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProv
     var name: String { get set }
     var note: String { get set }
     var creationDate: Date? { get set }
+    var attachments: [Envelope] { get set }
     
-    init?(data: DataProvider, name: String, note: String, creationDate: Date?)
+    init?(data: DataProvider, name: String, note: String, creationDate: Date?, attachments: [Envelope])
     init?(data: DataProvider)
     /// Copy constructor
     init(_ seed: any SeedProtocol)
@@ -38,8 +39,9 @@ public struct Seed: SeedProtocol {
     public var name: String
     public var note: String
     public var creationDate: Date?
+    public var attachments: [Envelope]
     
-    public init?(data: DataProvider, name: String = "", note: String = "", creationDate: Date? = nil) {
+    public init?(data: DataProvider, name: String = "", note: String = "", creationDate: Date? = nil, attachments: [Envelope] = []) {
         let data = data.providedData
         guard data.count >= minSeedSize else {
             return nil
@@ -48,19 +50,30 @@ public struct Seed: SeedProtocol {
         self.name = name
         self.note = note
         self.creationDate = creationDate
+        self.attachments = attachments
     }
     
     public init?(data: DataProvider) {
-        self.init(data: data, name: "", note: "", creationDate: nil)
+        self.init(data: data, name: "", note: "", creationDate: nil, attachments: [])
     }
 
     /// Copy constructor
     public init(_ seed: any SeedProtocol) {
-        self.init(data: seed.data, name: seed.name, note: seed.note, creationDate: seed.creationDate)!
+        self.init(data: seed.data, name: seed.name, note: seed.note, creationDate: seed.creationDate, attachments: seed.attachments)!
     }
 
     public init() {
         self.init(data: SecureRandomNumberGenerator.shared.data(count: minSeedSize))!
+    }
+    
+    public static func == (lhs: Seed, rhs: Seed) -> Bool {
+        lhs.data == rhs.data &&
+        lhs.name == rhs.name &&
+        lhs.creationDate == rhs.creationDate &&
+        lhs.attachments.count == rhs.attachments.count &&
+        zip(lhs.attachments, rhs.attachments).allSatisfy {
+            $0.0.isEquivalent(to: $0.1)
+        }
     }
 }
 
@@ -168,7 +181,7 @@ extension SeedProtocol {
         } else {
             note = ""
         }
-        self.init(data: data, name: name, note: note, creationDate: creationDate)!
+        self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: [])!
     }
 }
 
@@ -196,8 +209,9 @@ public extension SeedProtocol {
         let data = try envelope.extractSubject(Data.self)
         let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
         let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
-        let creationDate = try? envelope.extractObject(Date.self, forPredicate: .date)
-        guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate) else {
+        let creationDate = try envelope.extractOptionalObject(Date.self, forPredicate: .date)
+        let attachments = try envelope.attachments()
+        guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: attachments) else {
             throw EnvelopeError.invalidFormat
         }
         self = result
