@@ -298,9 +298,11 @@ extension PSBT: URCodable {
 extension PSBT: EnvelopeCodable {
     public var envelope: Envelope {
         Envelope(data)
+            .addType(.PSBT)
     }
     
     public init(_ envelope: Envelope) throws {
+        try envelope.checkType(.PSBT)
         if
             let subjectLeaf = envelope.leaf,
             case CBOR.tagged(.psbt, let item) = subjectLeaf
