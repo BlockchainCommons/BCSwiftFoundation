@@ -193,7 +193,8 @@ extension SeedProtocol {
 
 public extension SeedProtocol {
     var envelope: Envelope {
-        sizeLimitedEnvelope(nameLimit: .max, noteLimit: .max).0
+        try! sizeLimitedEnvelope(nameLimit: .max, noteLimit: .max).0
+            .addAssertions(attachments)
     }
     
     init(_ envelope: Envelope) throws {
