@@ -10,7 +10,7 @@ let globalFormatContext = {
 class RequestTests: XCTestCase {
     static let mnemonic = "fly mule excess resource treat plunge nose soda reflect adult ramp planet"
     static let seed = Seed(bip39: BIP39(mnemonic: mnemonic)!)
-    static let id = CID(‡"c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc")!
+    static let id = ARID(‡"c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc")!
     static let note = "Test"
     
     static let masterKey = try! HDKey(seed: seed)
@@ -26,7 +26,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
-        request(CID(c66be27d)) [
+        request(ARID(c66be27d)) [
             body: «getSeed» [
                 ❰seedDigest❱: seed-digest(Bytes(32))
             ]
@@ -44,7 +44,7 @@ class RequestTests: XCTestCase {
         let response = TransactionResponse(id: Self.id, result: Self.seed)
         let envelope = try response.envelope.checkEncoding()
         XCTAssertEqual(envelope.format(context: globalFormatContext), """
-        response(CID(c66be27d)) [
+        response(ARID(c66be27d)) [
             result: Bytes(16) [
                 isA: Seed
             ]
@@ -68,7 +68,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
-        request(CID(c66be27d)) [
+        request(ARID(c66be27d)) [
             body: «getKey» [
                 ❰derivationPath❱: crypto-keypath(Map)
                 ❰useInfo❱: BTC [
@@ -94,7 +94,7 @@ class RequestTests: XCTestCase {
         let envelope = try response.envelope.checkEncoding()
 
         let expectedFormat = """
-        response(CID(c66be27d)) [
+        response(ARID(c66be27d)) [
             result: Bytes(33) [
                 isA: BIP32Key
                 isA: PrivateKey
@@ -126,7 +126,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        request(CID(c66be27d)) [
+        request(ARID(c66be27d)) [
             body: «getKey» [
                 ❰derivationPath❱: crypto-keypath(Map)
                 ❰useInfo❱: BTC [
@@ -151,7 +151,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        request(CID(c66be27d)) [
+        request(ARID(c66be27d)) [
             body: «signPSBT» [
                 ❰psbt❱: Bytes(555) [
                     isA: PSBT
@@ -171,7 +171,7 @@ class RequestTests: XCTestCase {
         let response = TransactionResponse(id: Self.id, result: Self.validPSBT)
 
         let expectedFormat = """
-        response(CID(c66be27d)) [
+        response(ARID(c66be27d)) [
             result: Bytes(555) [
                 isA: PSBT
             ]
@@ -197,7 +197,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
-        request(CID(c66be27d)) [
+        request(ARID(c66be27d)) [
             body: «getOutputDescriptor» [
                 ❰challenge❱: Bytes(16)
                 ❰name❱: "Name"
@@ -222,7 +222,7 @@ class RequestTests: XCTestCase {
         let response = TransactionResponse(id: Self.id, result: result)
 
         let expectedFormat = """
-        response(CID(c66be27d)) [
+        response(ARID(c66be27d)) [
             result: "pkh([37b5eed4/44'/0'/0']xpub6CnQkivUEH9bSbWVWfDLCtigKKgnSWGaVSRyCbN2QNBJzuvHT1vUQpgSpY1NiVvoeNEuVwk748Cn9G3NtbQB1aGGsEL7aYEnjVWgjj9tefu/<0;1>/*)#vxycy4eh" [
                 isA: "descriptorResponse"
                 isA: OutputDescriptor

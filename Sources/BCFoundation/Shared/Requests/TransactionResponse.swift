@@ -8,10 +8,10 @@ public enum TransactionResponseError: Swift.Error {
 }
 
 public struct TransactionResponse: Equatable {
-    public let id: CID
+    public let id: ARID
     public let result: Envelope
     
-    public init(id: CID, result: EnvelopeEncodable) {
+    public init(id: ARID, result: EnvelopeEncodable) {
         self.id = id
         self.result = result.envelope
     }

@@ -25,7 +25,7 @@ public struct UpdatePublicKeyRequestBody: StoreRequestBody {
             .addParameter("new", value: newPublicKey)
     }
     
-    public static func makeRequest(privateKey: PrivateKeyBase, newPrivateKey: PrivateKeyBase, transactionID: CID? = nil) -> Envelope {
+    public static func makeRequest(privateKey: PrivateKeyBase, newPrivateKey: PrivateKeyBase, transactionID: ARID? = nil) -> Envelope {
         let body = UpdatePublicKeyRequestBody(publicKey: privateKey.publicKeys, newPublicKey: newPrivateKey.publicKeys)
         return ExampleStore.makeRequest(body, accountPrivateKey: privateKey, transactionID: transactionID)
             .sign(with: newPrivateKey)

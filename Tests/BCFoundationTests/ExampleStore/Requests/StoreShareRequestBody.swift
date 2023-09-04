@@ -25,7 +25,7 @@ public struct StoreShareRequestBody: StoreRequestBody {
             .addParameter("payload", value: payload)
     }
     
-    public static func makeRequest(accountPrivateKey: PrivateKeyBase, payload: Data, transactionID: CID? = nil) -> Envelope {
+    public static func makeRequest(accountPrivateKey: PrivateKeyBase, payload: Data, transactionID: ARID? = nil) -> Envelope {
         let body = StoreShareRequestBody(publicKey: accountPrivateKey.publicKeys, payload: payload)
         return ExampleStore.makeRequest(body, accountPrivateKey: accountPrivateKey, transactionID: transactionID)
     }

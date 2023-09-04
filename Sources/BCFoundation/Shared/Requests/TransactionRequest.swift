@@ -8,13 +8,13 @@ public enum TransactionRequestError: Swift.Error {
 }
 
 public struct TransactionRequest: Equatable {
-    public let id: CID
+    public let id: ARID
     public let body: Envelope
     public let function: Function
     public let note: String
     public let date: Date?
     
-    public init(id: CID = CID(), body: EnvelopeEncodable, note: String = "", date: Date? = nil) {
+    public init(id: ARID = ARID(), body: EnvelopeEncodable, note: String = "", date: Date? = nil) {
         self.id = id
         self.body = body.envelope
         self.function = try! self.body.function
@@ -46,7 +46,7 @@ public extension TransactionRequest {
     init(psbtCBOR cbor: CBOR) throws {
         let psbt = try PSBT(untaggedCBOR: cbor)
         let body = PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true)
-        self.init(id: CID(), body: body)
+        self.init(id: ARID(), body: body)
     }
 }
 

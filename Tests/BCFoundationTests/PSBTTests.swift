@@ -334,9 +334,9 @@ class PSBTTests: XCTestCase {
     }
     
     func psbtSession(_ psbt: PSBT, seeds: [NamedSeed], network: Network, expectedRequest: String, expectedResponse: String) {
-        let cid = CID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
+        let arid = ARID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
         let requestBody = PSBTSignatureRequestBody(psbt: psbt)
-        let request = TransactionRequest(id: cid, body: requestBody)
+        let request = TransactionRequest(id: arid, body: requestBody)
         XCTAssertEqual(request.envelope.urString, expectedRequest)
         
         let inputSigning = psbt.inputSigning(signers: seeds)
@@ -354,7 +354,7 @@ class PSBTTests: XCTestCase {
         let updatedInputSigning = signedPSBT.inputSigning(signers: seeds)
         printPSBT(signedPSBT, inputSigning: updatedInputSigning, outputSigning: outputSigning, network: network)
         
-        let response = TransactionResponse(id: cid, result: signedPSBT)
+        let response = TransactionResponse(id: arid, result: signedPSBT)
         XCTAssertEqual(response.envelope.urString, expectedResponse)
         
         XCTAssertNotEqual(psbt.data, signedPSBT.data)

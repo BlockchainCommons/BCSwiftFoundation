@@ -50,28 +50,28 @@ public class ExampleStore {
         // The userID is for internal use only, and never changes for a given account.
         // Users always identify themselves by a public key, which can change over the
         // lifetime of the account.
-        let userID: CID
+        let userID: ARID
         var publicKey: PublicKeyBase
         var fallback: String? = nil
     }
     
     struct Record: Hashable {
-        let userID: CID
+        let userID: ARID
         let payload: Data
         let receipt: Receipt
         
-        init(userID: CID, payload: Data) {
+        init(userID: ARID, payload: Data) {
             self.userID = userID
             self.payload = payload
             self.receipt = Receipt(userID: userID, payload: payload)
         }
     }
     
-    var usersByID: [CID: User] = [:]
-    var userIDsByFallback: [String: CID] = [:]
-    var userIDsByPublicKey: [PublicKeyBase: CID] = [:]
+    var usersByID: [ARID: User] = [:]
+    var userIDsByFallback: [String: ARID] = [:]
+    var userIDsByPublicKey: [PublicKeyBase: ARID] = [:]
     var recordsByReceipt: [Receipt: Record] = [:]
-    var receiptsByUserID: [CID: Set<Receipt>] = [:]
+    var receiptsByUserID: [ARID: Set<Receipt>] = [:]
 }
 
 extension ExampleStore.Record: CustomStringConvertible {
@@ -81,7 +81,7 @@ extension ExampleStore.Record: CustomStringConvertible {
 }
 
 extension ExampleStore {
-    func record(userID: CID, receipt: Receipt) throws -> Record? {
+    func record(userID: ARID, receipt: Receipt) throws -> Record? {
         guard let record = recordsByReceipt[receipt] else {
             return nil
         }
@@ -91,7 +91,7 @@ extension ExampleStore {
         return record
     }
     
-    func getUserID(for publicKey: PublicKeyBase) throws -> CID {
+    func getUserID(for publicKey: PublicKeyBase) throws -> ARID {
         guard let userID = userIDsByPublicKey[publicKey] else {
             throw Error.unknownPublicKey
         }
@@ -165,9 +165,9 @@ public protocol ExampleStoreProtocol {
 
 extension ExampleStore: ExampleStoreProtocol {
     public func storeShare(publicKey: PublicKeyBase, payload: Data) throws -> Receipt {
-        var userID: CID! = userIDsByPublicKey[publicKey]
+        var userID: ARID! = userIDsByPublicKey[publicKey]
         if userID == nil {
-            userID = CID()
+            userID = ARID()
             usersByID[userID] = User(userID: userID, publicKey: publicKey)
             userIDsByPublicKey[publicKey] = userID
             receiptsByUserID[userID] = []

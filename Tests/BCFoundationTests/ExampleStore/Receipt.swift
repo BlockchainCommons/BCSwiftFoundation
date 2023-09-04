@@ -8,7 +8,7 @@ public struct Receipt: Hashable {
         self.data = data
     }
     
-    init(userID: CID, payload: Data) {
+    init(userID: ARID, payload: Data) {
         self.data = Digest(userID.data + payload).data
     }
 }

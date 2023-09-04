@@ -25,7 +25,7 @@ public struct FallbackTransferRequestBody: StoreRequestBody {
             .addParameter("new", value: publicKey)
     }
     
-    public static func makeRequest(fallback: String, newPrivateKey: PrivateKeyBase, transactionID: CID? = nil) -> Envelope {
+    public static func makeRequest(fallback: String, newPrivateKey: PrivateKeyBase, transactionID: ARID? = nil) -> Envelope {
         let body = FallbackTransferRequestBody(fallback: fallback, newPublicKey: newPrivateKey.publicKeys)
         return ExampleStore.makeRequest(body, accountPrivateKey: newPrivateKey, transactionID: transactionID)
     }

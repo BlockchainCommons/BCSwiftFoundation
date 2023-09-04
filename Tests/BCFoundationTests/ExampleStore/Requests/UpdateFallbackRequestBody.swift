@@ -25,7 +25,7 @@ public struct UpdateFallbackRequestBody: StoreRequestBody {
             .addParameter("fallback", value: fallback)
     }
     
-    public static func makeRequest(accountPrivateKey: PrivateKeyBase, fallback: String?, transactionID: CID? = nil) -> Envelope {
+    public static func makeRequest(accountPrivateKey: PrivateKeyBase, fallback: String?, transactionID: ARID? = nil) -> Envelope {
         let body = UpdateFallbackRequestBody(publicKey: accountPrivateKey.publicKeys, fallback: fallback)
         return ExampleStore.makeRequest(body, accountPrivateKey: accountPrivateKey, transactionID: transactionID)
     }

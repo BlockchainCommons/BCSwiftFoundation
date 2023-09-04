@@ -30,7 +30,7 @@ public struct RetrieveSharesRequestBody: StoreRequestBody {
         return e
     }
     
-    public static func makeRequest(accountPrivateKey: PrivateKeyBase, receipts: Set<Receipt> = [], transactionID: CID? = nil) -> Envelope {
+    public static func makeRequest(accountPrivateKey: PrivateKeyBase, receipts: Set<Receipt> = [], transactionID: ARID? = nil) -> Envelope {
         let body = RetrieveSharesRequestBody(publicKey: accountPrivateKey.publicKeys, receipts: receipts)
         return ExampleStore.makeRequest(body, accountPrivateKey: accountPrivateKey, transactionID: transactionID)
     }

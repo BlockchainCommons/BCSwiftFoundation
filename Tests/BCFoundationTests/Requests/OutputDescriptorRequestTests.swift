@@ -3,7 +3,7 @@ import BCFoundation
 import WolfBase
 
 class OutputDescriptorRequestTests: XCTestCase {
-    let slotID = CID()
+    let slotID = ARID()
     let useInfo = UseInfo(asset: .btc, network: .testnet)
     let challenge = SecureRandomNumberGenerator.shared.data(count: 16)
     let accountNumber: UInt32 = 0

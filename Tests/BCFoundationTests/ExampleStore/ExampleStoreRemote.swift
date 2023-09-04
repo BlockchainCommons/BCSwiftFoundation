@@ -3,8 +3,8 @@ import BCFoundation
 import WolfBase
 
 public extension ExampleStore {
-    static func makeRequest(_ body: StoreRequestBody, accountPrivateKey: PrivateKeyBase, transactionID: CID? = nil) -> Envelope {
-        let transactionID = transactionID ?? CID()
+    static func makeRequest(_ body: StoreRequestBody, accountPrivateKey: PrivateKeyBase, transactionID: ARID? = nil) -> Envelope {
+        let transactionID = transactionID ?? ARID()
         let request = TransactionRequest(id: transactionID, body: body, date: Date()).envelope
         return try! request
             .wrap()
@@ -68,7 +68,7 @@ public extension ExampleStore {
     }
     
     func handleRequest(_ requestEnvelope: Envelope) -> Envelope {
-        var transactionID: CID!
+        var transactionID: ARID!
         var response: Envelope!
         do {
             guard let (transactionRequest, requestBody) = try Self.parseRequest(requestEnvelope) else {

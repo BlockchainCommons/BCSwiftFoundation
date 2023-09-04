@@ -21,7 +21,7 @@ public struct DeleteAccountRequestBody: StoreRequestBody {
             .addParameter("publicKey", value: publicKey)
     }
     
-    public static func makeRequest(accountPrivateKey: PrivateKeyBase, transactionID: CID? = nil) -> Envelope {
+    public static func makeRequest(accountPrivateKey: PrivateKeyBase, transactionID: ARID? = nil) -> Envelope {
         let body = DeleteAccountRequestBody(publicKey: accountPrivateKey.publicKeys)
         return ExampleStore.makeRequest(body, accountPrivateKey: accountPrivateKey, transactionID: transactionID)
     }
