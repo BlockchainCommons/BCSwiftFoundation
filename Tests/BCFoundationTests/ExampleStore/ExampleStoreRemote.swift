@@ -17,27 +17,27 @@ public extension ExampleStore {
             .decrypt(to: privateKey)
             .unwrap()
         
-        let transactionRequest = try TransactionRequest(decryptedRequest)
+        let transactionRequest = try TransactionRequest(envelope: decryptedRequest)
         let body: (any StoreRequestBody)?
         switch transactionRequest.function {
         case StoreShareRequestBody.function:
-            body = try StoreShareRequestBody(transactionRequest.body)
+            body = try StoreShareRequestBody(envelope: transactionRequest.body)
         case UpdateFallbackRequestBody.function:
-            body = try UpdateFallbackRequestBody(transactionRequest.body)
+            body = try UpdateFallbackRequestBody(envelope: transactionRequest.body)
         case RetrieveFallbackRequestBody.function:
-            body = try RetrieveFallbackRequestBody(transactionRequest.body)
+            body = try RetrieveFallbackRequestBody(envelope: transactionRequest.body)
         case UpdatePublicKeyRequestBody.function:
-            let b = try UpdatePublicKeyRequestBody(transactionRequest.body)
+            let b = try UpdatePublicKeyRequestBody(envelope: transactionRequest.body)
             try request.verifySignature(from: b.newPublicKey)
             body = b
         case RetrieveSharesRequestBody.function:
-            body = try RetrieveSharesRequestBody(transactionRequest.body)
+            body = try RetrieveSharesRequestBody(envelope: transactionRequest.body)
         case DeleteSharesRequestBody.function:
-            body = try DeleteSharesRequestBody(transactionRequest.body)
+            body = try DeleteSharesRequestBody(envelope: transactionRequest.body)
         case FallbackTransferRequestBody.function:
-            body = try FallbackTransferRequestBody(transactionRequest.body)
+            body = try FallbackTransferRequestBody(envelope: transactionRequest.body)
         case DeleteAccountRequestBody.function:
-            body = try DeleteAccountRequestBody(transactionRequest.body)
+            body = try DeleteAccountRequestBody(envelope: transactionRequest.body)
         default:
             body = nil
         }

@@ -21,9 +21,9 @@ extension OutputDescriptorResponseBody: EnvelopeCodable {
             .addAssertion("challengeSignature", challengeSignature)
     }
 
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try envelope.checkType(Self.type)
-        let descriptor = try OutputDescriptor(envelope.unwrap())
+        let descriptor = try OutputDescriptor(envelope: envelope.unwrap())
         let challengeSignature = try envelope.extractObject(Data.self, forPredicate: "challengeSignature")
         self.init(descriptor: descriptor, challengeSignature: challengeSignature)
     }

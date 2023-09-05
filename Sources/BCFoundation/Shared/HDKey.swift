@@ -652,7 +652,7 @@ public extension HDKeyProtocol {
         sizeLimitedEnvelope(nameLimit: .max, noteLimit: .max).0
     }
     
-    init(_ envelope: Envelope) throws {
+    init(envelope: Envelope) throws {
         if
             let subjectLeaf = envelope.leaf,
             case CBOR.tagged(.hdKey, let item) = subjectLeaf
@@ -666,9 +666,9 @@ public extension HDKeyProtocol {
         let isPublic = envelope.hasType(.PublicKey)
         let keyData = try envelope.extractSubject(Data.self)
         let chainCode = try envelope.extractOptionalObject(Data.self, forPredicate: .chainCode)
-        let useInfo = try UseInfo(envelope.object(forPredicate: .asset))
-        let parent = try DerivationPath(envelope.optionalObject(forPredicate: .parentPath))
-        let children = try DerivationPath(envelope.optionalObject(forPredicate: .childrenPath))
+        let useInfo = try UseInfo(envelope: envelope.object(forPredicate: .asset))
+        let parent = try DerivationPath(envelope: envelope.optionalObject(forPredicate: .parentPath))
+        let children = try DerivationPath(envelope: envelope.optionalObject(forPredicate: .childrenPath))
         let parentFingerprint = try envelope.extractOptionalObject(UInt32.self, forPredicate: .parentFingerprint)
         let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
         let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""

@@ -34,7 +34,7 @@ extension KeyRequestBody: EnvelopeCodable {
             .addAssertion(if: !isDerivable, .parameter(.isDerivable, value: false))
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try envelope.checkFunction(Self.function)
         
         let path = try envelope.extractObject(DerivationPath.self, forParameter: .derivationPath)

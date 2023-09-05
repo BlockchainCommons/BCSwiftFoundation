@@ -11,7 +11,7 @@ class EnvelopeRequestTests: XCTestCase {
             network: MainNet
         ]
         """)
-        XCTAssertEqual(useInfo, try UseInfo(envelope))
+        XCTAssertEqual(useInfo, try UseInfo(envelope: envelope))
     }
     
     func testHDKey() throws {
@@ -30,7 +30,7 @@ class EnvelopeRequestTests: XCTestCase {
             chainCode: Bytes(32)
         ]
         """)
-        let masterKey2 = try HDKey(masterEnvelope)
+        let masterKey2 = try HDKey(envelope: masterEnvelope)
         XCTAssertEqual(masterKey, masterKey2)
 
         let absolutePath = DerivationPath(string: "m/48h/0h/0h/2h/0/0")!
@@ -53,7 +53,7 @@ class EnvelopeRequestTests: XCTestCase {
             parentFingerprint: 3912704230
         ]
         """)
-        let childKey2 = try HDKey(childEnvelope)
+        let childKey2 = try HDKey(envelope: childEnvelope)
         XCTAssertEqual(childKey, childKey2)
     }
 }

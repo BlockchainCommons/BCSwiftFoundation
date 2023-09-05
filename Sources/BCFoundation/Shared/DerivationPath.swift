@@ -336,7 +336,7 @@ extension DerivationPath: EnvelopeCodable {
         Envelope(self)
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         guard
             let cbor = envelope.subject.leaf,
             case CBOR.tagged(.derivationPath, let untaggedCBOR) = cbor

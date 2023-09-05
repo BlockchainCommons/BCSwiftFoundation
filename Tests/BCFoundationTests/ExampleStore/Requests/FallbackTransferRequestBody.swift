@@ -11,7 +11,7 @@ public struct FallbackTransferRequestBody: StoreRequestBody {
         self.publicKey = newPublicKey
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         guard try envelope.extractSubject(Function.self) == Self.function else {
             throw GeneralError("Incorrect function.")
         }

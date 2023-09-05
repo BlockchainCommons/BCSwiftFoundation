@@ -301,7 +301,7 @@ extension PSBT: EnvelopeCodable {
             .addType(.PSBT)
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try envelope.checkType(.PSBT)
         if
             let subjectLeaf = envelope.leaf,

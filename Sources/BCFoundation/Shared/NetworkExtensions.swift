@@ -86,7 +86,7 @@ extension Network: EnvelopeCodable {
         return Envelope(type)
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         switch try envelope.extractSubject(KnownValue.self) {
         case .MainNet:
             self = .mainnet

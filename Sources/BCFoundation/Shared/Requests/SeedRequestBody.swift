@@ -31,7 +31,7 @@ public extension SeedRequestBody {
             .addParameter(.seedDigest, value: seedDigest)
     }
     
-    init(_ envelope: Envelope) throws {
+    init(envelope: Envelope) throws {
         try envelope.checkFunction(Self.function)
         
         self.init(seedDigest: try envelope.extractObject(SeedDigest.self, forParameter: .seedDigest))

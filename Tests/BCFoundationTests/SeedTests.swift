@@ -62,4 +62,46 @@ class SeedTests: XCTestCase {
         let seedEnvelope2 = try seed.envelope.addAssertions(seedEnvelope.attachments())
         XCTAssertTrue(seedEnvelope2.isEquivalent(to: seedEnvelope))
     }
+    
+    func testOutputDescriptor() throws {
+        var seed = Seed(
+            data: ‡"82f32c855d3d542256180810797e0073",
+            name: "Alice's Seed",
+            note: "This is the note."
+        )!
+        
+        let masterKey = try HDKey(seed: seed)
+        
+        var desc = try AccountOutputType.wpkh.accountDescriptor(masterKey: masterKey, network: .testnet, account: 2)
+        desc.name = "Alice's output descriptor"
+        desc.note = "Output descriptor note"
+        
+        XCTAssertEqual(desc.sourceWithChecksum, "wpkh([55016b2f/84'/1'/2']xpub6BkiBzPzLUEo9F5n6N4CSKWzFeXdWaKGhYsVNXH8bqfbeAhdpvNeGhu2mP35cABAwDHNpHD5hmXfZcMSdpTUmAyCYnQggXkk9hwbTP9KRRB/<0;1>/*)#cf9l9nxt")
+        XCTAssertEqual(desc.envelope.format(context: globalFormatContext),
+        """
+        "wpkh([55016b2f/84'/1'/2']xpub6BkiBzPzLUEo9F5n6N4CSKWzFeXdWaKGhYsVNXH8bqfbeAhdpvNeGhu2mP35cABAwDHNpHD5hmXfZcMSdpTUmAyCYnQggXkk9hwbTP9KRRB/<0;1>/*)#cf9l9nxt" [
+            isA: OutputDescriptor
+            hasName: "Alice's output descriptor"
+            note: "Output descriptor note"
+        ]
+        """)
+        
+        seed.outputDescriptor = desc
+        
+        XCTAssertEqual(seed.envelope.format(context: globalFormatContext),
+        """
+        Bytes(16) [
+            isA: Seed
+            hasName: "Alice's Seed"
+            note: "This is the note."
+            outputDescriptor: "wpkh([55016b2f/84'/1'/2']xpub6BkiBzPzLUEo9F5n6N4CSKWzFeXdWaKGhYsVNXH8bqfbeAhdpvNeGhu2mP35cABAwDHNpHD5hmXfZcMSdpTUmAyCYnQggXkk9hwbTP9KRRB/<0;1>/*)#cf9l9nxt" [
+                isA: OutputDescriptor
+                hasName: "Alice's output descriptor"
+                note: "Output descriptor note"
+            ]
+        ]
+        """)
+        
+        XCTAssert(desc.isDerivedFromSeed(seed))
+    }
 }

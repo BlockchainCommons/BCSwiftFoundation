@@ -26,11 +26,11 @@ extension PSBTSignatureRequestBody: EnvelopeCodable {
             .addAssertion(.parameter(.psbt, value: psbt))
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try envelope.checkFunction(Self.function)
         
         let object = try envelope.object(forParameter: .psbt)
-        let psbt = try PSBT(object)
+        let psbt = try PSBT(envelope: object)
         self.init(psbt: psbt)
     }
 }

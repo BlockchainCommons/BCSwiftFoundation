@@ -25,7 +25,7 @@ extension Receipt: EnvelopeCodable {
             .addType("receipt")
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try envelope.checkType("receipt")
         self.init(try envelope.extractSubject(Data.self))
     }

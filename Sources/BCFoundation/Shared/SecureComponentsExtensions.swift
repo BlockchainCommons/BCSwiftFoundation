@@ -7,7 +7,7 @@ extension PublicKeyBase: EnvelopeCodable {
         Envelope(self)
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         self = try envelope.extractSubject(Self.self)
     }
 }

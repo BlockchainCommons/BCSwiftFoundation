@@ -26,7 +26,7 @@ extension TransactionResponse: EnvelopeCodable {
         Envelope(response: id, result: result)
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try self.init(id: envelope.responseID, result: envelope.result())
     }
 }
@@ -35,7 +35,7 @@ public extension TransactionResponse {
     init(ur: UR) throws {
         switch ur.type {
         case Envelope.cborTag.name!:
-            try self.init(Envelope(untaggedCBOR: ur.cbor))
+            try self.init(envelope: Envelope(untaggedCBOR: ur.cbor))
         default:
             throw URError.unexpectedType
         }
@@ -49,13 +49,13 @@ public extension TransactionResponse {
 public extension TransactionResponse {
     func parseResult() throws -> any TransactionResponseBody {
         if result.hasType(OutputDescriptorResponseBody.type) {
-            return try OutputDescriptorResponseBody(result)
+            return try OutputDescriptorResponseBody(envelope: result)
         } else if result.hasType(HDKey.type) {
-            return try HDKey(result)
+            return try HDKey(envelope: result)
         } else if result.hasType(Seed.type) {
-            return try Seed(result)
+            return try Seed(envelope: result)
         } else if result.hasType(PSBT.type) {
-            return try PSBT(result)
+            return try PSBT(envelope: result)
         } else {
             throw TransactionResponseError.unknownResponseType
         }

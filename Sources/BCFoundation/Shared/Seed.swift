@@ -16,8 +16,9 @@ public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProv
     var note: String { get set }
     var creationDate: Date? { get set }
     var attachments: [Envelope] { get set }
+    var outputDescriptor: OutputDescriptor? { get set }
     
-    init?(data: DataProvider, name: String, note: String, creationDate: Date?, attachments: [Envelope])
+    init?(data: DataProvider, name: String, note: String, creationDate: Date?, attachments: [Envelope], outputDescriptor: OutputDescriptor?)
     init?(data: DataProvider)
     /// Copy constructor
     init(_ seed: any SeedProtocol)
@@ -40,8 +41,9 @@ public struct Seed: SeedProtocol {
     public var note: String
     public var creationDate: Date?
     public var attachments: [Envelope]
+    public var outputDescriptor: OutputDescriptor?
     
-    public init?(data: DataProvider, name: String = "", note: String = "", creationDate: Date? = nil, attachments: [Envelope] = []) {
+    public init?(data: DataProvider, name: String = "", note: String = "", creationDate: Date? = nil, attachments: [Envelope] = [], outputDescriptor: OutputDescriptor? = nil) {
         let data = data.providedData
         guard data.count >= minSeedSize else {
             return nil
@@ -51,15 +53,16 @@ public struct Seed: SeedProtocol {
         self.note = note
         self.creationDate = creationDate
         self.attachments = attachments
+        self.outputDescriptor = outputDescriptor
     }
     
     public init?(data: DataProvider) {
-        self.init(data: data, name: "", note: "", creationDate: nil, attachments: [])
+        self.init(data: data, name: "", note: "", creationDate: nil, attachments: [], outputDescriptor: nil)
     }
 
     /// Copy constructor
     public init(_ seed: any SeedProtocol) {
-        self.init(data: seed.data, name: seed.name, note: seed.note, creationDate: seed.creationDate, attachments: seed.attachments)!
+        self.init(data: seed.data, name: seed.name, note: seed.note, creationDate: seed.creationDate, attachments: seed.attachments, outputDescriptor: seed.outputDescriptor)!
     }
 
     public init() {
@@ -181,7 +184,7 @@ extension SeedProtocol {
         } else {
             note = ""
         }
-        self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: [])!
+        self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: [], outputDescriptor: nil)!
     }
 }
 
@@ -195,9 +198,10 @@ public extension SeedProtocol {
     var envelope: Envelope {
         try! sizeLimitedEnvelope(nameLimit: .max, noteLimit: .max).0
             .addAssertions(attachments)
+            .addAssertion(.outputDescriptor, outputDescriptor?.envelope)
     }
     
-    init(_ envelope: Envelope) throws {
+    init(envelope: Envelope) throws {
         try envelope.checkType(.Seed)
         if
             let subjectLeaf = envelope.leaf,
@@ -212,7 +216,10 @@ public extension SeedProtocol {
         let note = try envelope.extractOptionalNonemptyString(forPredicate: .note) ?? ""
         let creationDate = try envelope.extractOptionalObject(Date.self, forPredicate: .date)
         let attachments = try envelope.attachments()
-        guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: attachments) else {
+        let outputDescriptor = try OutputDescriptor(
+            envelope: envelope.optionalAssertion(withPredicate: .outputDescriptor)
+        )
+        guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: attachments, outputDescriptor: outputDescriptor) else {
             throw EnvelopeError.invalidFormat
         }
         guard result.envelope.isEquivalent(to: envelope) else {

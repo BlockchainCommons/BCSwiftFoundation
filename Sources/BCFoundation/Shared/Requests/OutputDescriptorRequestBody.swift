@@ -22,7 +22,7 @@ extension OutputDescriptorRequestBody: EnvelopeCodable {
             .addAssertion(if: !useInfo.isDefault, .parameter(.useInfo, value: useInfo))
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try envelope.checkFunction(Self.function)
         
         let name = (try? envelope.extractObject(String.self, forParameter: .name)) ?? ""

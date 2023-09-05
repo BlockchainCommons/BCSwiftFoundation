@@ -11,7 +11,7 @@ public struct DeleteSharesRequestBody: StoreRequestBody {
         self.receipts = receipts
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         guard try envelope.extractSubject(Function.self) == Self.function else {
             throw GeneralError("Incorrect function.")
         }

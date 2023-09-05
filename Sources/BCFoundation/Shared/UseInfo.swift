@@ -113,9 +113,9 @@ extension UseInfo: EnvelopeCodable {
             .addAssertion(.network, network.envelope)
     }
     
-    public init(_ envelope: Envelope) throws {
-        let asset = try Asset(envelope)
-        let network = try Network(envelope.object(forPredicate: .network))
+    public init(envelope: Envelope) throws {
+        let asset = try Asset(envelope: envelope)
+        let network = try Network(envelope: envelope.object(forPredicate: .network))
         self.init(asset: asset, network: network)
     }
 }

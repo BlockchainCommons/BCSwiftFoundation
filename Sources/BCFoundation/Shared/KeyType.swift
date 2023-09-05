@@ -49,7 +49,7 @@ extension KeyType: EnvelopeCodable {
         }
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         guard let v = envelope.subject.knownValue else {
             throw EnvelopeError.invalidFormat
         }

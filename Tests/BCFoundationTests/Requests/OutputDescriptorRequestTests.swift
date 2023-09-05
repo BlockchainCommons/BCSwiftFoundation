@@ -51,7 +51,7 @@ class OutputDescriptorRequestTests: XCTestCase {
     
     func validateResponse(_ responseUR: UR) throws {
         let envelope = try Envelope(ur: responseUR)
-        let response = try TransactionResponse(envelope)
+        let response = try TransactionResponse(envelope: envelope)
         guard let responseBody = try response.parseResult() as? OutputDescriptorResponseBody else {
             throw GeneralError("Not a response for an output descriptor.")
         }

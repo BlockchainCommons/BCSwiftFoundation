@@ -13,8 +13,8 @@ import Flexer
 public struct OutputDescriptor {
     public let source: String
     private let astRoot: DescriptorAST
-    var name: String = ""
-    var note: String = ""
+    public var name: String = ""
+    public var note: String = ""
     
     public init(_ source: String, name: String = "", note: String = "") throws {
         let source = try Self.validateChecksum(source)
@@ -85,20 +85,20 @@ extension OutputDescriptor: CustomStringConvertible {
     }
 }
 
-extension OutputDescriptor {
-    public var checksum: String {
+public extension OutputDescriptor {
+    var checksum: String {
         Self.checksum(source)!
     }
     
-    public var sourceWithChecksum: String {
+    var sourceWithChecksum: String {
         return "\(source)#\(checksum)"
     }
     
-    public static func checksum(_ source: String) -> String? {
+    static func checksum(_ source: String) -> String? {
         descriptorChecksum(source)
     }
     
-    public static func extractChecksum(_ source: String) -> (String, String?, StringRange?) {
+    static func extractChecksum(_ source: String) -> (String, String?, StringRange?) {
         let regex = try! ~/".*#(.*)$"
         let matches = regex ~?? source
         if matches.isEmpty {
@@ -110,7 +110,7 @@ extension OutputDescriptor {
         return (strippedSource, checksum, range)
     }
     
-    public static func validateChecksum(_ source: String) throws -> String {
+    static func validateChecksum(_ source: String) throws -> String {
         let (strippedSource, checksum, range) = extractChecksum(source)
         if
             let checksum = checksum,
@@ -125,15 +125,15 @@ extension OutputDescriptor {
     }
 }
 
-extension OutputDescriptor {
-    public func address(useInfo: UseInfo, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> Bitcoin.Address? {
+public extension OutputDescriptor {
+    func address(useInfo: UseInfo, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> Bitcoin.Address? {
         guard let scriptPubKey = self.scriptPubKey(chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput) else {
             return nil
         }
         return Bitcoin.Address(scriptPubKey: scriptPubKey, useInfo: useInfo)
     }
     
-    public func addresses(useInfo: UseInfo, chain: Chain?, indexes: IndexSet, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
+    func addresses(useInfo: UseInfo, chain: Chain?, indexes: IndexSet, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
         var result: [UInt32: Bitcoin.Address] = [:]
         for index in indexes.lazy.map({ UInt32($0) }) {
             result[index] = address(useInfo: useInfo, chain: chain, addressIndex: index, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
@@ -141,9 +141,24 @@ extension OutputDescriptor {
         return result
     }
     
-    public func addresses(useInfo: UseInfo, chain: Chain, indexes: Range<UInt32>, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
+    func addresses(useInfo: UseInfo, chain: Chain, indexes: Range<UInt32>, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> [UInt32: Bitcoin.Address] {
         let indexes = IndexSet(Int(indexes.startIndex)..<Int(indexes.endIndex))
         return addresses(useInfo: useInfo, chain: chain, indexes: indexes, privateKeyProvider: privateKeyProvider, comboOutput: comboOutput)
+    }
+}
+
+public extension OutputDescriptor {
+    func isDerivedFromSeed(_ seed: any SeedProtocol) -> Bool {
+        guard
+            let descriptorBaseKey = baseKey,
+            let seedMasterKey = try? HDKey(seed: seed),
+            descriptorBaseKey.parent.originFingerprint == seedMasterKey.keyFingerprint,
+            let derivedKey = try? HDKey(parent: seedMasterKey, derivedKeyType: .public, childDerivationPath: descriptorBaseKey.parent),
+            descriptorBaseKey.base58 == derivedKey.base58
+        else {
+            return false
+        }
+        return true
     }
 }
 
@@ -176,7 +191,7 @@ extension OutputDescriptor: EnvelopeCodable {
         return e
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         try envelope.checkType(.OutputDescriptor)
         let source = try envelope.extractSubject(String.self)
         let name = try envelope.extractOptionalNonemptyString(forPredicate: .hasName) ?? ""

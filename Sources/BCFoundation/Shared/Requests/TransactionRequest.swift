@@ -32,7 +32,7 @@ extension TransactionRequest: EnvelopeCodable {
         self.envelope(noteLimit: .max)
     }
     
-    public init(_ envelope: Envelope) throws {
+    public init(envelope: Envelope) throws {
         let id = try envelope.requestID
         let body = try envelope.requestBody
         let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
@@ -54,7 +54,7 @@ public extension TransactionRequest {
     init(ur: UR) throws {
         switch ur.type {
         case Envelope.cborTag.name!:
-            try self.init(Envelope(untaggedCBOR: ur.cbor))
+            try self.init(envelope: Envelope(untaggedCBOR: ur.cbor))
         case PSBT.cborTag.name!:
             try self.init(psbtCBOR: ur.cbor)
         default:
@@ -66,19 +66,19 @@ public extension TransactionRequest {
         guard function == type.function else {
             throw EnvelopeError.unknownFunction
         }
-        return try type.self.init(body)
+        return try type.self.init(envelope: body)
     }
     
     func parseBody() throws -> any TransactionRequestBody {
         switch function {
         case .getSeed:
-            return try SeedRequestBody(body)
+            return try SeedRequestBody(envelope: body)
         case .getKey:
-            return try KeyRequestBody(body)
+            return try KeyRequestBody(envelope: body)
         case .signPSBT:
-            return try PSBTSignatureRequestBody(body)
+            return try PSBTSignatureRequestBody(envelope: body)
         case .getOutputDescriptor:
-            return try OutputDescriptorRequestBody(body)
+            return try OutputDescriptorRequestBody(envelope: body)
         default:
             throw EnvelopeError.unknownFunction
         }
