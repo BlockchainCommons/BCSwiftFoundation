@@ -13,12 +13,16 @@ import Flexer
 public struct OutputDescriptor {
     public let source: String
     private let astRoot: DescriptorAST
+    var name: String = ""
+    var note: String = ""
     
-    public init(_ source: String) throws {
+    public init(_ source: String, name: String = "", note: String = "") throws {
         let source = try Self.validateChecksum(source)
         self.source = source
         let tokens = try DescriptorLexer(source: source).lex()
         self.astRoot = try DescriptorParser(tokens: tokens, source: source).parse()
+        self.name = name
+        self.note = note
     }
     
     public func scriptPubKey(chain: Chain? = nil, addressIndex: UInt32? = nil, privateKeyProvider: PrivateKeyProvider? = nil, comboOutput: ComboOutput? = nil) -> ScriptPubKey? {
@@ -158,12 +162,28 @@ extension OutputDescriptor: Codable {
 
 extension OutputDescriptor: EnvelopeCodable {
     public var envelope: Envelope {
-        Envelope(sourceWithChecksum)
+        var e = Envelope(sourceWithChecksum)
             .addType(.OutputDescriptor)
+        
+        if !name.isEmpty {
+            e = e.addAssertion(.hasName, name)
+        }
+        
+        if !note.isEmpty {
+            e = e.addAssertion(.note, note)
+        }
+        
+        return e
     }
     
     public init(_ envelope: Envelope) throws {
         try envelope.checkType(.OutputDescriptor)
-        try self.init(envelope.extractSubject(String.self))
+        let source = try envelope.extractSubject(String.self)
+        let name = try envelope.extractOptionalNonemptyString(forPredicate: .hasName) ?? ""
+        let note = try envelope.extractOptionalNonemptyString(forPredicate: .note) ?? ""
+        try self.init(source, name: name, note: note)
+        guard self.envelope.isEquivalent(to: envelope) else {
+            throw EnvelopeError.invalidFormat
+        }
     }
 }

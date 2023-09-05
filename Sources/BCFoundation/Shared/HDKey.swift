@@ -682,6 +682,9 @@ public extension HDKeyProtocol {
             throw EnvelopeError.invalidFormat
         }
         self.init(isMaster: isMaster, keyType: keyType, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: parent, children: children, parentFingerprint: parentFingerprint, name: name, note: note)
+        guard self.envelope.isEquivalent(to: envelope) else {
+            throw EnvelopeError.invalidFormat
+        }
     }
 }
 

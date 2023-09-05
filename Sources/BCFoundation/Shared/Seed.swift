@@ -208,11 +208,14 @@ public extension SeedProtocol {
         }
 
         let data = try envelope.extractSubject(Data.self)
-        let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
-        let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
+        let name = try envelope.extractOptionalNonemptyString(forPredicate: .hasName) ?? ""
+        let note = try envelope.extractOptionalNonemptyString(forPredicate: .note) ?? ""
         let creationDate = try envelope.extractOptionalObject(Date.self, forPredicate: .date)
         let attachments = try envelope.attachments()
         guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: attachments) else {
+            throw EnvelopeError.invalidFormat
+        }
+        guard result.envelope.isEquivalent(to: envelope) else {
             throw EnvelopeError.invalidFormat
         }
         self = result
