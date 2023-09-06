@@ -217,7 +217,7 @@ public extension SeedProtocol {
         let creationDate = try envelope.extractOptionalObject(Date.self, forPredicate: .date)
         let attachments = try envelope.attachments()
         let outputDescriptor = try OutputDescriptor(
-            envelope: envelope.optionalAssertion(withPredicate: .outputDescriptor)
+            envelope: envelope.optionalObject(forPredicate: .outputDescriptor)
         )
         guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: attachments, outputDescriptor: outputDescriptor) else {
             throw EnvelopeError.invalidFormat

@@ -154,7 +154,7 @@ public extension OutputDescriptor {
             let seedMasterKey = try? HDKey(seed: seed),
             descriptorBaseKey.parent.originFingerprint == seedMasterKey.keyFingerprint,
             let derivedKey = try? HDKey(parent: seedMasterKey, derivedKeyType: .public, childDerivationPath: descriptorBaseKey.parent),
-            descriptorBaseKey.base58 == derivedKey.base58
+            descriptorBaseKey.keyData == derivedKey.keyData
         else {
             return false
         }
