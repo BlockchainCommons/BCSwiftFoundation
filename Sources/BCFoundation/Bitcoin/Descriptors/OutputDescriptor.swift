@@ -100,7 +100,8 @@ extension OutputDescriptor: URCodable {
             if case CBOR.bytes(let data) = item {
                 return data.hex
             } else if let key = try? HDKey(cbor: item) {
-                return key.description(withParent: true, withChildren: true)
+                let withParent = key.parent.steps.count > 1
+                return key.description(withParent: withParent, withChildren: true)
             } else if
                 case CBOR.tagged(let tag, let untaggedCBOR) = item,
                 [.ecKey, .ecKeyV1].contains(tag),
