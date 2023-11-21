@@ -15,6 +15,7 @@ protocol DescriptorAST: CustomStringConvertible {
     var requiresAddressIndex: Bool { get }
     var requiresChain: Bool { get }
     var unparsed: String { get }
+    func unparsedCompact(keys: inout [CBOR]) -> String
     var untaggedCBOR: CBOR { get }
     var taggedCBOR: CBOR { get }
 

@@ -263,17 +263,17 @@ extension DerivationPath {
 }
 
 extension DerivationPath: CBORTaggedCodable {
-    public static var cborTag: DCBOR.Tag = .derivationPath
+    public static var cborTags = [Tag.derivationPath, Tag.derivationPathV1]
     
     public var untaggedCBOR: CBOR {
         var a: Map = [1: steps.flatMap { $0.array }]
         
         if case let .fingerprint(sourceFingerprint) = origin {
-            a[2] = sourceFingerprint.cbor
+            a[2] = sourceFingerprint
         }
         
         if let depth = depth {
-            a[3] = depth.cbor
+            a[3] = depth
         }
         
         return CBOR.map(a)
@@ -286,22 +286,30 @@ extension DerivationPath: CBORTaggedCodable {
         }
 
         guard
-            case let CBOR.array(componentsItem) = map[1] ?? CBOR.null,
-            componentsItem.count.isMultiple(of: 2)
+            let arrayItem = map.get(1),
+            case let CBOR.array(componentsItem) = arrayItem
         else {
             throw DerivationPathError.invalidDerivationPathComponents
         }
         
-        let steps: [any DerivationStep] = try stride(from: 0, to: componentsItem.count, by: 2).map { i in
-            let childIndexSpec = try ChildIndexSpec(cbor: componentsItem[i])
-            guard let isHardened = try? Bool(cbor: componentsItem[i + 1]) else {
-                throw DerivationPathError.invalidPathComponent
+        var steps: [any DerivationStep] = []
+        var remaining = Array(componentsItem.reversed())
+        while let next = remaining.popLast() {
+            if let step = PairDerivationStep(cbor: next) {
+                steps.append(step)
+            } else {
+                guard 
+                    let second = remaining.popLast(),
+                    let step = BasicDerivationStep(cbor1: next, cbor2: second)
+                else {
+                    throw DerivationPathError.invalidPathComponent
+                }
+                steps.append(step)
             }
-            return BasicDerivationStep(childIndexSpec, isHardened: isHardened)
         }
-        
+                
         let origin: Origin?
-        if let sourceFingerprintItem = map[2] {
+        if let sourceFingerprintItem = map.get(2) {
             guard
                 case let CBOR.unsigned(sourceFingerprintValue) = sourceFingerprintItem,
                 sourceFingerprintValue != 0,
@@ -315,7 +323,7 @@ extension DerivationPath: CBORTaggedCodable {
         }
         
         let depth: Int?
-        if let depthItem = map[3] {
+        if let depthItem = map.get(3) {
             guard
                 case let CBOR.unsigned(depthValue) = depthItem,
                 depthValue <= UInt8.max
@@ -338,11 +346,17 @@ extension DerivationPath: EnvelopeCodable {
     
     public init(envelope: Envelope) throws {
         guard
-            let cbor = envelope.subject.leaf,
-            case CBOR.tagged(.derivationPath, let untaggedCBOR) = cbor
+            let cbor = envelope.subject.leaf
         else {
             throw EnvelopeError.invalidFormat
         }
-        try self.init(untaggedCBOR: untaggedCBOR)
+        try self.init(taggedCBOR: cbor)
+//        guard
+//            let cbor = envelope.subject.leaf,
+//            case CBOR.tagged(.derivationPathV1, let untaggedCBOR) = cbor
+//        else {
+//            throw EnvelopeError.invalidFormat
+//        }
+//        try self.init(untaggedCBOR: untaggedCBOR)
     }
 }

@@ -190,7 +190,7 @@ extension Bitcoin {
 }
 
 extension Bitcoin.Address: CBORTaggedCodable {
-    public static var cborTag: DCBOR.Tag = .address
+    public static var cborTags = [Tag.address, Tag.addressV1]
     
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl
@@ -208,21 +208,21 @@ extension Bitcoin.Address: CBORTaggedCodable {
         }
 
         let useInfo: UseInfo
-        if let rawUseInfo = map[1] {
+        if let rawUseInfo = map.get(1) {
             useInfo = try UseInfo(taggedCBOR: rawUseInfo)
         } else {
             useInfo = UseInfo()
         }
 
         guard
-            let typeItem = map[2]
+            let typeItem = map.get(2)
         else {
             throw CBORError.invalidFormat
         }
         let cborType = try CBORType(untaggedCBOR: typeItem)
 
         guard
-            let dataItem = map[3],
+            let dataItem = map.get(3),
             case let CBOR.bytes(bytes) = dataItem,
             !bytes.isEmpty
         else {

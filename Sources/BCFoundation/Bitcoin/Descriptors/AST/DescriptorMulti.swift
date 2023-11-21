@@ -76,6 +76,20 @@ struct DescriptorMulti: DescriptorAST {
         let prefix = isSorted ? "sortedmulti" : "multi"
         return "\(prefix)(\(threshold),\(keysString))"
     }
+    
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        var keyStrings: [String] = []
+        for key in self.keys {
+            if let cbor = key.compactCBOR {
+                let index = keys.count
+                keys.append(cbor)
+                keyStrings.append("@\(index)")
+            }
+        }
+        let keysString = keyStrings.map({$0}).joined(separator: ",")
+        let prefix = isSorted ? "sortedmulti" : "multi"
+        return "\(prefix)(\(threshold),\(keysString))"
+    }
 
     var untaggedCBOR: CBOR {
         let map: DCBOR.Map = [

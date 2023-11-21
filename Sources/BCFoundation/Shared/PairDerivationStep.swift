@@ -35,6 +35,18 @@ public struct PairDerivationStep : DerivationStep {
         [CBOR.array(external.array + `internal`.array)]
     }
     
+    public init?(cbor: CBOR) {
+        guard 
+            case CBOR.array(let array) = cbor,
+            array.count == 4,
+            let external = BasicDerivationStep(cbor1: array[0], cbor2: array[1]),
+            let `internal` = BasicDerivationStep(cbor1: array[2], cbor2: array[3])
+        else {
+            return nil
+        }
+        self.init(external: external, internal: `internal`)
+    }
+    
     public func rawValue(chain: Chain?, addressIndex: UInt32?) -> UInt32? {
         resolve(chain: chain, addressIndex: addressIndex)?.rawValue()
     }

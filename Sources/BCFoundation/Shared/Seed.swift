@@ -34,7 +34,7 @@ public extension SeedProtocol/*: PrivateKeysDataProvider*/ {
 public let minSeedSize = 16
 
 public struct Seed: SeedProtocol {
-    public static var cborTag: Tag = .seed
+    public static var cborTags = [Tag.seed, Tag.seedV1]
     
     public let data: Data
     public var name: String
@@ -123,15 +123,15 @@ public extension SeedProtocol {
         var a: Map = [1: data]
 
         if let creationDate = creationDate {
-            a[2] = creationDate.cbor
+            a[2] = creationDate
         }
 
         if !name.isEmpty {
-            a[3] = name.cbor
+            a[3] = name
         }
 
         if !note.isEmpty {
-            a[4] = note.cbor
+            a[4] = note
         }
 
         return CBOR.map(a)
@@ -146,7 +146,7 @@ extension SeedProtocol {
         }
         
         guard
-            let dataItem = map[1],
+            let dataItem = map.get(1),
             case let CBOR.bytes(bytes) = dataItem,
             !bytes.isEmpty
         else {
@@ -156,7 +156,7 @@ extension SeedProtocol {
         let data = bytes.data
         
         let creationDate: Date?
-        if let dateItem = map[2] {
+        if let dateItem = map.get(2) {
             
             creationDate = try Date(cbor: dateItem)
         } else {
@@ -164,7 +164,7 @@ extension SeedProtocol {
         }
 
         let name: String
-        if let nameItem = map[3] {
+        if let nameItem = map.get(3) {
             guard case let CBOR.text(s) = nameItem else {
                 // Name field doesn't contain string.
                 throw CBORError.invalidFormat
@@ -175,7 +175,7 @@ extension SeedProtocol {
         }
 
         let note: String
-        if let noteItem = map[4] {
+        if let noteItem = map.get(4) {
             guard case let CBOR.text(s) = noteItem else {
                 // Note field doesn't contain string.
                 throw CBORError.invalidFormat
@@ -205,7 +205,7 @@ public extension SeedProtocol {
         try envelope.checkType(.Seed)
         if
             let subjectLeaf = envelope.leaf,
-            case CBOR.tagged(.seed, let item) = subjectLeaf
+            case CBOR.tagged(.seedV1, let item) = subjectLeaf
         {
             self = try Self.init(untaggedCBOR: item)
             return

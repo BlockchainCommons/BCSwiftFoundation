@@ -41,7 +41,7 @@ public struct OutputDescriptorBundle {
 }
 
 extension OutputDescriptorBundle: UREncodable {
-    public static var cborTag: Tag = .account
+    public static var cborTags = [Tag.account, Tag.accountV1]
 
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md#cddl

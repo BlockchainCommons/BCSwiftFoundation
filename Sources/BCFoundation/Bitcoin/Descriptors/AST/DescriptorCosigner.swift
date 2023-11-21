@@ -35,6 +35,16 @@ struct DescriptorCosigner: DescriptorAST {
     var unparsed: String {
         "cosigner(\(key))"
     }
+    
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        if let cbor = key.compactCBOR {
+            let index = keys.count
+            keys.append(cbor)
+            return "cosigner(@\(index))"
+        } else {
+            return unparsed
+        }
+    }
 
     var untaggedCBOR: CBOR {
         key.taggedCBOR

@@ -68,17 +68,17 @@ extension UseInfo {
 }
 
 extension UseInfo: CBORTaggedCodable {
-    public static var cborTag: Tag = .useInfo
+    public static var cborTags = [Tag.useInfo, Tag.useInfoV1]
     
     public var untaggedCBOR: CBOR {
         var a = DCBOR.Map()
         
         if asset != .btc {
-            a[1] = asset.untaggedCBOR
+            a.insert(1, asset.untaggedCBOR)
         }
         
         if network != .mainnet {
-            a[2] = network.untaggedCBOR
+            a.insert(2, network.untaggedCBOR)
         }
         
         return a.cbor
@@ -90,14 +90,14 @@ extension UseInfo: CBORTaggedCodable {
         }
 
         let asset: Asset
-        if let rawAsset = map[1] {
+        if let rawAsset = map.get(1) {
             asset = try Asset(untaggedCBOR: rawAsset)
         } else {
             asset = .btc
         }
         
         let network: Network
-        if let rawNetwork = map[2] {
+        if let rawNetwork = map.get(2) {
             network = try Network(untaggedCBOR: rawNetwork)
         } else {
             network = .mainnet

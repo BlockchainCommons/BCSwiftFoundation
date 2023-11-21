@@ -31,6 +31,19 @@ struct DescriptorKeyExpression {
             return k.taggedCBOR
         }
     }
+    
+    var compactCBOR: CBOR? {
+        switch key {
+        case .ecCompressedPublicKey(let k):
+            return k.taggedCBOR
+        case .ecUncompressedPublicKey(let k):
+            return k.taggedCBOR
+        case .wif(_):
+            return nil
+        case .hdKey(let k):
+            return k.taggedCBOR
+        }
+    }
 }
 
 extension DescriptorKeyExpression {
@@ -97,17 +110,29 @@ extension DescriptorKeyExpression {
 
 extension DescriptorKeyExpression : CustomStringConvertible {
     var description: String {
+        self.description()
+    }
+}
+
+extension DescriptorKeyExpression {
+    func description(withChildren: Bool = true) -> String {
         var comps: [String] = []
         if let origin = origin, !origin.isEmpty {
             comps.append("[\(origin)]")
         }
-        comps.append(key.description)
+        comps.append(key.description(withChildren: withChildren))
         return comps.joined()
     }
 }
 
 extension DescriptorKeyExpression.Key : CustomStringConvertible {
     var description: String {
+        self.description()
+    }
+}
+
+extension DescriptorKeyExpression.Key {
+    func description(withChildren: Bool = true) -> String {
         switch self {
         case .ecCompressedPublicKey(let key):
             return key.data.hex
@@ -118,7 +143,7 @@ extension DescriptorKeyExpression.Key : CustomStringConvertible {
         case .wif(let key):
             return key.description
         case .hdKey(let key):
-            return key.description(withChildren: true)
+            return key.description(withChildren: withChildren)
         }
     }
 }

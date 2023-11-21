@@ -14,7 +14,7 @@ public struct SeedDigest: Equatable {
 }
 
 extension SeedDigest: CBORTaggedCodable {
-    public static var cborTag: Tag = .seedDigest
+    public static var cborTags = [Tag.seedDigest]
     
     public var untaggedCBOR: CBOR {
         digest.cbor

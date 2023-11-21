@@ -46,6 +46,16 @@ struct DescriptorPK: DescriptorAST {
     var unparsed: String {
         "pk(\(key))"
     }
+    
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        if let cbor = key.compactCBOR {
+            let index = keys.count
+            keys.append(cbor)
+            return "pk(@\(index))"
+        } else {
+            return unparsed
+        }
+    }
 
     var untaggedCBOR: CBOR {
         key.taggedCBOR

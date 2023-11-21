@@ -57,6 +57,11 @@ struct DescriptorWSH: DescriptorAST {
     var unparsed: String {
         "wsh(\(redeemScript))"
     }
+    
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        let content = redeemScript.unparsedCompact(keys: &keys)
+        return "wsh(\(content))"
+    }
 
     var untaggedCBOR: CBOR {
         redeemScript.taggedCBOR

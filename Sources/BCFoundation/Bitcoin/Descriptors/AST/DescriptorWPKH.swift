@@ -46,6 +46,16 @@ struct DescriptorWPKH: DescriptorAST {
     var unparsed: String {
         "wpkh(\(key))"
     }
+    
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        if let cbor = key.compactCBOR {
+            let index = keys.count
+            keys.append(cbor)
+            return "wpkh(@\(index))"
+        } else {
+            return unparsed
+        }
+    }
 
     var untaggedCBOR: CBOR {
         key.taggedCBOR

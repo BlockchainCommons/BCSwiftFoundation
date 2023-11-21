@@ -61,6 +61,11 @@ struct DescriptorSH: DescriptorAST {
     var unparsed: String {
         "sh(\(redeemScript))"
     }
+    
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        let content = redeemScript.unparsedCompact(keys: &keys)
+        return "sh(\(content))"
+    }
 
     var untaggedCBOR: CBOR {
         redeemScript.taggedCBOR

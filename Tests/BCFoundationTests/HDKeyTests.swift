@@ -200,7 +200,7 @@ class HDKeyTests: XCTestCase {
         keySource.append(chainCode.cbor)
         keySource.append(useInfo.asset.rawValue.cbor)
         keySource.append(useInfo.network.rawValue.cbor)
-        XCTAssertEqual(keySource.cbor.diagnostic(annotate: true, tags: globalTags),
+        XCTAssertEqual(keySource.cbor.diagnostic(tags: globalTags),
         """
         [
            h'026fe2355745bb2db3630bbc80ef5d58951c963c841f54170ba6e5c12be7fc12a6',

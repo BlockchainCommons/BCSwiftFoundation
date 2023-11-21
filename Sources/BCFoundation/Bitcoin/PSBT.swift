@@ -257,7 +257,7 @@ extension PSBT {
 }
 
 extension PSBT: URCodable {
-    public static var cborTag: Tag = .psbt
+    public static var cborTags = [Tag.psbt, Tag.psbtV1]
     
     public init(parse string: String) throws {
         if let a = PSBT(base64: string) {
@@ -305,7 +305,7 @@ extension PSBT: EnvelopeCodable {
         try envelope.checkType(.PSBT)
         if
             let subjectLeaf = envelope.leaf,
-            case CBOR.tagged(.psbt, let item) = subjectLeaf
+            case CBOR.tagged(.psbtV1, let item) = subjectLeaf
         {
             self = try Self.init(untaggedCBOR: item)
             return

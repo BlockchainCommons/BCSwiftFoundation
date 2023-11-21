@@ -83,6 +83,16 @@ public struct BasicDerivationStep : DerivationStep {
     public var isFixed: Bool {
         childIndexSpec.isFixed
     }
+    
+    public init?(cbor1: CBOR, cbor2: CBOR) {
+        guard 
+            let childIndexSpec = try? ChildIndexSpec(cbor: cbor1),
+            let isHardened = try? Bool(cbor: cbor2)
+        else {
+            return nil
+        }
+        self.init(childIndexSpec, isHardened: isHardened)
+    }
 }
 
 extension BasicDerivationStep: ExpressibleByIntegerLiteral {

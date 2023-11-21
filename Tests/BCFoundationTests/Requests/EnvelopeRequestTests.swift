@@ -6,9 +6,9 @@ class EnvelopeRequestTests: XCTestCase {
     func testUseInfo() throws {
         let useInfo = UseInfo(asset: .btc, network: .mainnet)
         let envelope = useInfo.envelope
-        XCTAssertEqual(useInfo.envelope.format(context: globalFormatContext), """
-        BTC [
-            network: MainNet
+        XCTAssertEqual(useInfo.envelope.format(), """
+        'BTC' [
+            'network': 'MainNet'
         ]
         """)
         XCTAssertEqual(useInfo, try UseInfo(envelope: envelope))
@@ -19,15 +19,15 @@ class EnvelopeRequestTests: XCTestCase {
         let masterKey = try HDKey(bip39Seed: bip39Seed)
         
         let masterEnvelope = masterKey.envelope
-        XCTAssertEqual(masterEnvelope.format(context: globalFormatContext), """
+        XCTAssertEqual(masterEnvelope.format(), """
         Bytes(33) [
-            isA: BIP32Key
-            isA: MasterKey
-            isA: PrivateKey
-            asset: BTC [
-                network: MainNet
+            'isA': 'BIP32Key'
+            'isA': 'MasterKey'
+            'isA': 'PrivateKey'
+            'asset': 'BTC' [
+                'network': 'MainNet'
             ]
-            chainCode: Bytes(32)
+            'chainCode': Bytes(32)
         ]
         """)
         let masterKey2 = try HDKey(envelope: masterEnvelope)
@@ -39,18 +39,18 @@ class EnvelopeRequestTests: XCTestCase {
         childKey.note = "This is the key note."
         
         let childEnvelope = childKey.envelope
-        XCTAssertEqual(childEnvelope.format(context: globalFormatContext), """
+        XCTAssertEqual(childEnvelope.format(), """
         Bytes(33) [
-            isA: BIP32Key
-            isA: PublicKey
-            asset: BTC [
-                network: MainNet
+            'isA': 'BIP32Key'
+            'isA': 'PublicKey'
+            'asset': 'BTC' [
+                'network': 'MainNet'
             ]
-            chainCode: Bytes(32)
-            hasName: "This is the key name."
-            note: "This is the key note."
-            parent: crypto-keypath(Map)
-            parentFingerprint: 3912704230
+            'chainCode': Bytes(32)
+            'hasName': "This is the key name."
+            'note': "This is the key note."
+            'parent': keypath(Map)
+            'parentFingerprint': 3912704230
         ]
         """)
         let childKey2 = try HDKey(envelope: childEnvelope)

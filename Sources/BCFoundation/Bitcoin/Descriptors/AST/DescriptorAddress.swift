@@ -21,6 +21,10 @@ struct DescriptorAddress: DescriptorAST {
     var baseKey: HDKey? {
         nil
     }
+    
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        unparsed
+    }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {
         guard parser.parseKind(.addr) else {

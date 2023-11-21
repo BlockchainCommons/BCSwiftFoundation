@@ -36,6 +36,12 @@ struct DescriptorRaw: DescriptorAST {
         "raw(\(script.hex))"
     }
     
+    func unparsedCompact(keys: inout [CBOR]) -> String {
+        let index = keys.count
+        keys.append(script.data.cbor)
+        return "raw(@\(index))"
+    }
+
     var untaggedCBOR: CBOR {
         CBOR.bytes(script.data)
     }

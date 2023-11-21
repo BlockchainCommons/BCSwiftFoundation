@@ -59,23 +59,72 @@ public struct OutputDescriptor {
     public var unparsed: String {
         astRoot.unparsed
     }
+    
+    public func unparsedCompact() -> (String, [CBOR]) {
+        var keys: [CBOR] = []
+        let string = astRoot.unparsedCompact(keys: &keys)
+        return (string, keys)
+    }
 }
 
 extension OutputDescriptor: URCodable {
-    public static var cborTag: Tag = .output
+    public static var cborTags = [Tag.outputDescriptor, Tag.outputDescriptorV1]
     
     public var untaggedCBOR: CBOR {
-        astRoot.taggedCBOR
+//        astRoot.taggedCBOR
+        let (compactSource, keys) = self.unparsedCompact()
+        
+        var map: DCBOR.Map = [
+            1: compactSource,
+            2: keys
+        ]
+        if !self.name.isEmpty {
+            map[3] = self.name
+        }
+        if !self.note.isEmpty {
+            map[4] = self.note
+        }
+        return map.cbor
     }
     
     public init(untaggedCBOR: CBOR) throws {
-        unimplemented()
+        guard
+            case CBOR.map(let map) = untaggedCBOR,
+            let compactSource: String = map[1],
+            let keysItem: CBOR = map.get(2),
+            case CBOR.array(let array) = keysItem
+        else {
+            throw CBORError.invalidFormat
+        }
+        let keys: [String] = try array.map { (item: CBOR) in
+            if case CBOR.bytes(let data) = item {
+                return data.hex
+            } else if let key = try? HDKey(cbor: item) {
+                return key.description(withParent: true, withChildren: true)
+            } else if
+                case CBOR.tagged(let tag, let untaggedCBOR) = item,
+                [.ecKey, .ecKeyV1].contains(tag),
+                case CBOR.map(let map) = untaggedCBOR,
+                let data = map[3] as Data?
+            {
+                return data.hex
+            } else {
+                throw CBORError.invalidFormat
+            }
+        }
+        var source = compactSource
+        for (index, key) in keys.enumerated() {
+            source.replace(try! Regex("@\(index)"), with: key)
+        }
+        let name: String = map[3] ?? ""
+        let note: String = map[4] ?? ""
+        try self.init(source, name: name, note: note)
     }
 }
 
 extension OutputDescriptor: Equatable {
     public static func ==(lhs: OutputDescriptor, rhs: OutputDescriptor) -> Bool {
-        lhs.source == rhs.source
+        lhs.cbor == rhs.cbor
     }
 }
 
