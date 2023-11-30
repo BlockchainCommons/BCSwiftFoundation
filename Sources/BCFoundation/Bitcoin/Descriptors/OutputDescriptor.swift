@@ -75,9 +75,11 @@ extension OutputDescriptor: URCodable {
         let (compactSource, keys) = self.unparsedCompact()
         
         var map: DCBOR.Map = [
-            1: compactSource,
-            2: keys
+            1: compactSource
         ]
+        if !keys.isEmpty {
+            map[2] = keys
+        }
         if !self.name.isEmpty {
             map[3] = self.name
         }
@@ -90,12 +92,20 @@ extension OutputDescriptor: URCodable {
     public init(untaggedCBOR: CBOR) throws {
         guard
             case CBOR.map(let map) = untaggedCBOR,
-            let compactSource: String = map[1],
-            let keysItem: CBOR = map.get(2),
-            case CBOR.array(let array) = keysItem
+            let compactSource: String = map[1]
         else {
             throw CBORError.invalidFormat
         }
+        
+        let array: [CBOR]
+        if let keysItem: CBOR = map.get(2),
+           case CBOR.array(let a) = keysItem
+        {
+            array = a
+        } else {
+            array = []
+        }
+
         let keys: [String] = try array.map { (item: CBOR) in
             if case CBOR.bytes(let data) = item {
                 return data.hex
