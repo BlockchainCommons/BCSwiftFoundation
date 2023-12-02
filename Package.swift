@@ -15,10 +15,10 @@ let package = Package(
             targets: ["BCFoundation"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/WolfMcNally/WolfBase", from: "5.0.0"),
+        .package(url: "https://github.com/WolfMcNally/WolfBase", from: "6.0.0"),
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
-        .package(url: "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git", from: "4.6.0"),
-        .package(url: "https://github.com/BlockchainCommons/BCSwiftEnvelope.git", from: "0.22.0")
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git", from: "5.0.0"),
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftEnvelope.git", from: "1.0.0")
     ],
     targets: [
         .target(
