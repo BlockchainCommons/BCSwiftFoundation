@@ -112,13 +112,29 @@ extension OutputDescriptor: URCodable {
             } else if let key = try? HDKey(cbor: item) {
                 let withParent = key.parent.steps.count > 1
                 return key.description(withParent: withParent, withChildren: true)
+            } else if let address = try? Bitcoin.Address(cbor: item) {
+                return address.description
             } else if
                 case CBOR.tagged(let tag, let untaggedCBOR) = item,
                 [.ecKey, .ecKeyV1].contains(tag),
                 case CBOR.map(let map) = untaggedCBOR,
                 let data = map[3] as Data?
             {
-                return data.hex
+                let isPrivate = map[2] as Bool? ?? false
+                if isPrivate {
+                    guard let privateKey = ECPrivateKey(data) else {
+                        throw CBORError.invalidFormat
+                    }
+                    return privateKey.wif
+                } else {
+                    if let publicKey = ECPublicKey(data) {
+                        return publicKey.data.hex
+                    } else if let publicKey = ECUncompressedPublicKey(data) {
+                        return publicKey.data.hex
+                    } else {
+                        throw CBORError.invalidFormat
+                    }
+                }
             } else {
                 throw CBORError.invalidFormat
             }

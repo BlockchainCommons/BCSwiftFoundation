@@ -23,7 +23,10 @@ struct DescriptorAddress: DescriptorAST {
     }
     
     func unparsedCompact(keys: inout [CBOR]) -> String {
-        unparsed
+        let cbor = address.cbor
+        let index = keys.count
+        keys.append(cbor)
+        return "addr(@\(index))"
     }
 
     static func parse(_ parser: DescriptorParser) throws -> DescriptorAST? {

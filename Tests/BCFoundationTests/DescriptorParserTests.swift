@@ -159,12 +159,23 @@ class DescriptorParserTests: XCTestCase {
         XCTAssert(checkRoundTrip(
             source: source,
             scriptPubKey: "pk:[03e220e776d811c44075a4a260734445c8967865f5357ba98ead3bc6a6552c36f2 OP_CHECKSIG]",
-            cborHex: "d99d74a1017838706b284b78796a6469324b684a4d427450424a696135626d685a4666644d6931597256596371343151626e47546f61324a586f6b65417529",
+            cborHex: "d99d74a20166706b284030290281d99d72a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e",
             diag: """
             40308(   / output-descriptor /
                {
                   1:
-                  "pk(Kxyjdi2KhJMBtPBJia5bmhZFfdMi1YrVYcq41QbnGToa2JXokeAu)"
+                  "pk(@0)",
+                  2:
+                  [
+                     40306(   / eckey /
+                        {
+                           2:
+                           true,
+                           3:
+                           h'347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e'
+                        }
+                     )
+                  ]
                }
             )
             """
@@ -317,12 +328,23 @@ class DescriptorParserTests: XCTestCase {
         let source = "cosigner(\(Self.wif))"
         XCTAssert(checkRoundTrip(
             source: source,
-            cborHex: "d99d74a101783e636f7369676e6572284b78796a6469324b684a4d427450424a696135626d685a4666644d6931597256596371343151626e47546f61324a586f6b65417529",
+            cborHex: "d99d74a2016c636f7369676e6572284030290281d99d72a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e",
             diag: """
             40308(   / output-descriptor /
                {
                   1:
-                  "cosigner(Kxyjdi2KhJMBtPBJia5bmhZFfdMi1YrVYcq41QbnGToa2JXokeAu)"
+                  "cosigner(@0)",
+                  2:
+                  [
+                     40306(   / eckey /
+                        {
+                           2:
+                           true,
+                           3:
+                           h'347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e'
+                        }
+                     )
+                  ]
                }
             )
             """
@@ -476,12 +498,23 @@ class DescriptorParserTests: XCTestCase {
         XCTAssert(checkRoundTrip(
             source: source,
             scriptPubKey: "pkh:[OP_DUP OP_HASH160 4efd3ded47d967e4122982422c9d84db60503972 OP_EQUALVERIFY OP_CHECKSIG]",
-            cborHex: "d99d74a1017839706b68284b78796a6469324b684a4d427450424a696135626d685a4666644d6931597256596371343151626e47546f61324a586f6b65417529",
+            cborHex: "d99d74a20167706b68284030290281d99d72a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e",
             diag: """
             40308(   / output-descriptor /
                {
                   1:
-                  "pkh(Kxyjdi2KhJMBtPBJia5bmhZFfdMi1YrVYcq41QbnGToa2JXokeAu)"
+                  "pkh(@0)",
+                  2:
+                  [
+                     40306(   / eckey /
+                        {
+                           2:
+                           true,
+                           3:
+                           h'347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e'
+                        }
+                     )
+                  ]
                }
             )
             """
@@ -637,12 +670,23 @@ class DescriptorParserTests: XCTestCase {
         XCTAssert(checkRoundTrip(
             source: source,
             scriptPubKey: "wpkh:[OP_0 4efd3ded47d967e4122982422c9d84db60503972]",
-            cborHex: "d99d74a101783a77706b68284b78796a6469324b684a4d427450424a696135626d685a4666644d6931597256596371343151626e47546f61324a586f6b65417529",
+            cborHex: "d99d74a2016877706b68284030290281d99d72a202f5035820347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e",
             diag: """
             40308(   / output-descriptor /
                {
                   1:
-                  "wpkh(Kxyjdi2KhJMBtPBJia5bmhZFfdMi1YrVYcq41QbnGToa2JXokeAu)"
+                  "wpkh(@0)",
+                  2:
+                  [
+                     40306(   / eckey /
+                        {
+                           2:
+                           true,
+                           3:
+                           h'347c4acb73f7bf2268b958230e215986eda87a984959c4ddbd4d62c07de6310e'
+                        }
+                     )
+                  ]
                }
             )
             """
@@ -1069,12 +1113,27 @@ class DescriptorParserTests: XCTestCase {
         XCTAssert(checkRoundTrip(
             source: source,
             scriptPubKey: "pkh:[OP_DUP OP_HASH160 4efd3ded47d967e4122982422c9d84db60503972 OP_EQUALVERIFY OP_CHECKSIG]",
-            cborHex: "d99d74a101782861646472286d6e69634e6141567a7947644676446139566b4d726a674e646e723277484257786b29",
+            cborHex: "d99d74a2016861646472284030290281d99d73a301d99d71a10201020003544efd3ded47d967e4122982422c9d84db60503972",
             diag: """
             40308(   / output-descriptor /
                {
                   1:
-                  "addr(mnicNaAVzyGdFvDa9VkMrjgNdnr2wHBWxk)"
+                  "addr(@0)",
+                  2:
+                  [
+                     40307(   / address /
+                        {
+                           1:
+                           40305(   / coin-info /
+                              {2: 1}
+                           ),
+                           2:
+                           0,
+                           3:
+                           h'4efd3ded47d967e4122982422c9d84db60503972'
+                        }
+                     )
+                  ]
                }
             )
             """
@@ -1089,12 +1148,27 @@ class DescriptorParserTests: XCTestCase {
         XCTAssert(checkRoundTrip(
             source: source,
             scriptPubKey: "sh:[OP_HASH160 8fb371a0195598d96e634b9eddb645fa1f128e11 OP_EQUAL]",
-            cborHex: "d99d74a10178296164647228324e364d33616839456f6767696d4e7a35706e416d51776e7045315a3379613356374129",
+            cborHex: "d99d74a2016861646472284030290281d99d73a301d99d71a10201020103548fb371a0195598d96e634b9eddb645fa1f128e11",
             diag: """
             40308(   / output-descriptor /
                {
                   1:
-                  "addr(2N6M3ah9EoggimNz5pnAmQwnpE1Z3ya3V7A)"
+                  "addr(@0)",
+                  2:
+                  [
+                     40307(   / address /
+                        {
+                           1:
+                           40305(   / coin-info /
+                              {2: 1}
+                           ),
+                           2:
+                           1,
+                           3:
+                           h'8fb371a0195598d96e634b9eddb645fa1f128e11'
+                        }
+                     )
+                  ]
                }
             )
             """
@@ -1107,12 +1181,27 @@ class DescriptorParserTests: XCTestCase {
         XCTAssert(checkRoundTrip(
             source: source,
             scriptPubKey: "wpkh:[OP_0 4efd3ded47d967e4122982422c9d84db60503972]",
-            cborHex: "d99d74a1017830616464722874623171666d376e6d6d32386d396e37677933667366707a653876796d6473397177746a776e3477377929",
+            cborHex: "d99d74a2016861646472284030290281d99d73a301d99d71a10201020203544efd3ded47d967e4122982422c9d84db60503972",
             diag: """
             40308(   / output-descriptor /
                {
                   1:
-                  "addr(tb1qfm7nmm28m9n7gy3fsfpze8vymds9qwtjwn4w7y)"
+                  "addr(@0)",
+                  2:
+                  [
+                     40307(   / address /
+                        {
+                           1:
+                           40305(   / coin-info /
+                              {2: 1}
+                           ),
+                           2:
+                           2,
+                           3:
+                           h'4efd3ded47d967e4122982422c9d84db60503972'
+                        }
+                     )
+                  ]
                }
             )
             """

@@ -377,7 +377,7 @@ extension DescriptorParser {
                 resultKey = nil
             }
         case .wif:
-            resultKey = .wif(token.wif)
+            resultKey = .wif(token.wif.key)
         case .hdKey:
             let key = token.hdKey
             let children = try parseChildren()

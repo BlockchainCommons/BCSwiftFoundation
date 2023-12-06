@@ -15,7 +15,7 @@ struct DescriptorKeyExpression {
         case ecCompressedPublicKey(any ECPublicKeyProtocol)
         case ecUncompressedPublicKey(ECUncompressedPublicKey)
         //case ecXOnlyPublicKey(SchnorrPublicKey)
-        case wif(WIF)
+        case wif(ECPrivateKey)
         case hdKey(HDKey)
     }
     
@@ -38,8 +38,8 @@ struct DescriptorKeyExpression {
             return k.taggedCBOR
         case .ecUncompressedPublicKey(let k):
             return k.taggedCBOR
-        case .wif(_):
-            return nil
+        case .wif(let k):
+            return k.taggedCBOR
         case .hdKey(let k):
             return k.taggedCBOR
         }
@@ -61,7 +61,7 @@ extension DescriptorKeyExpression {
         // case .ecXOnlyPublicKey(let k):
         //     data = k.data
         case .wif(let k):
-            data = k.key.publicKey.data
+            data = k.publicKey.data
         case .hdKey(let k):
             guard let k2 = try? HDKey(parent: k, childDerivationPath: k.children, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider) else {
                 return nil
@@ -141,7 +141,7 @@ extension DescriptorKeyExpression.Key {
         // case .ecXOnlyPublicKey(let key):
         //    return key.data.hex
         case .wif(let key):
-            return key.description
+            return key.wif
         case .hdKey(let key):
             return key.description(withChildren: withChildren)
         }
