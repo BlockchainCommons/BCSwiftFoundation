@@ -7,33 +7,37 @@
 
 import Foundation
 import URKit
+import SecureComponents
 
 public struct SeedRequestBody: TransactionRequestBody {
     public static var function = Function.getSeed
-    public let seedDigest: SeedDigest
+    public let seedDigest: Digest
     
-    public init(seedDigest: SeedDigest) {
+    public init(seedDigest: Digest) {
         self.seedDigest = seedDigest
     }
 
     public init(seedDigest digest: Data) throws {
-        self.init(seedDigest: try SeedDigest(digest: digest))
+        guard let digest = Digest(rawValue: digest) else {
+            throw CBORError.invalidFormat
+        }
+        self.init(seedDigest: digest)
     }
 
     public var digest: Data {
-        seedDigest.digest
+        seedDigest.digest.data
     }
 }
 
 public extension SeedRequestBody {
     var envelope: Envelope {
         Envelope(function: Self.function)
-            .addParameter(.seedDigest, value: seedDigest)
+            .addParameter(.seedDigest, value: Envelope(seedDigest))
     }
     
     init(envelope: Envelope) throws {
         try envelope.checkFunction(Self.function)
         
-        self.init(seedDigest: try envelope.extractObject(SeedDigest.self, forParameter: .seedDigest))
+        self.init(seedDigest: try envelope.extractObject(Digest.self, forParameter: .seedDigest))
     }
 }

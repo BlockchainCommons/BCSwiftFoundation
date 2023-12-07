@@ -21,13 +21,13 @@ class RequestTests: XCTestCase {
         let body = try SeedRequestBody(seedDigest: Self.seed.identityDigest)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielftpcstansfgcsieoytpcstansflcssptpcstansgthdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdpasstijl"
+        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielftpcstansfgcsieoytpcstansflcssptpcstansfphdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdwfcwcpsp"
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
         request(ARID(c66be27d)) [
             'body': «getSeed» [
-                ❰seedDigest❱: seed-digest(Bytes(32))
+                ❰seedDigest❱: Digest(ffa11a8b)
             ]
             'note': "Test"
         ]
