@@ -13,7 +13,7 @@ public struct TransactionRequest: Equatable {
     public let function: Function
     public let note: String
     public let date: Date?
-    
+
     public init(id: ARID = ARID(), body: EnvelopeEncodable, note: String = "", date: Date? = nil) {
         self.id = id
         self.body = body.envelope
@@ -43,9 +43,9 @@ extension TransactionRequest: EnvelopeCodable {
 
 
 public extension TransactionRequest {
-    init(psbtCBOR cbor: CBOR) throws {
+    init(psbtCBOR cbor: CBOR, psbtRequestStyle: PSBTRequestStyle) throws {
         let psbt = try PSBT(untaggedCBOR: cbor)
-        let body = PSBTSignatureRequestBody(psbt: psbt, isRawPSBT: true)
+        let body = PSBTSignatureRequestBody(psbt: psbt, psbtRequestStyle: psbtRequestStyle)
         self.init(id: ARID(), body: body)
     }
 }
@@ -55,8 +55,10 @@ public extension TransactionRequest {
         switch ur.type {
         case Envelope.cborTag.name!:
             try self.init(envelope: Envelope(untaggedCBOR: ur.cbor))
-        case PSBT.cborTags[0].name!, PSBT.cborTags[1].name!:
-            try self.init(psbtCBOR: ur.cbor)
+        case PSBT.cborTags[0].name!:
+            try self.init(psbtCBOR: ur.cbor, psbtRequestStyle: .urVersion2)
+        case PSBT.cborTags[1].name!:
+            try self.init(psbtCBOR: ur.cbor, psbtRequestStyle: .urVersion1)
         default:
             throw URError.unexpectedType
         }
