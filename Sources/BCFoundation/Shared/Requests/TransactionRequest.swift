@@ -55,7 +55,7 @@ public extension TransactionRequest {
         switch ur.type {
         case Envelope.cborTag.name!:
             try self.init(envelope: Envelope(untaggedCBOR: ur.cbor))
-        case PSBT.cborTag.name!:
+        case PSBT.cborTags[0].name!, PSBT.cborTags[1].name!:
             try self.init(psbtCBOR: ur.cbor)
         default:
             throw URError.unexpectedType
