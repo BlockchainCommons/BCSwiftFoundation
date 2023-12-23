@@ -670,8 +670,8 @@ public extension HDKeyProtocol {
         let parent = try DerivationPath(envelope: envelope.optionalObject(forPredicate: .parentPath))
         let children = try DerivationPath(envelope: envelope.optionalObject(forPredicate: .childrenPath))
         let parentFingerprint = try envelope.extractOptionalObject(UInt32.self, forPredicate: .parentFingerprint)
-        let name = try envelope.extractOptionalObject(String.self, forPredicate: .hasName) ?? ""
-        let note = try envelope.extractOptionalObject(String.self, forPredicate: .note) ?? ""
+        let name = (try? envelope.extractOptionalObject(String.self, forPredicate: .hasName)) ?? ""
+        let note = (try? envelope.extractOptionalObject(String.self, forPredicate: .note)) ?? ""
         let keyType: KeyType = isPrivate ? .private : .public
         guard
             isPrivate || isPublic,
@@ -682,15 +682,17 @@ public extension HDKeyProtocol {
             throw EnvelopeError.invalidFormat
         }
         self.init(isMaster: isMaster, keyType: keyType, keyData: keyData, chainCode: chainCode, useInfo: useInfo, parent: parent, children: children, parentFingerprint: parentFingerprint, name: name, note: note)
-        guard self.envelope.isEquivalent(to: envelope) else {
-            throw EnvelopeError.invalidFormat
-        }
+        // This can't be properly checked unless we reconstruct possibly
+        // elided `name` and `notes`.
+//        guard self.envelope.isEquivalent(to: envelope) else {
+//            throw EnvelopeError.invalidFormat
+//        }
     }
 }
 
 public extension HDKeyProtocol {
-    func sizeLimitedEnvelope(nameLimit: Int = 100, noteLimit: Int = 500) -> (Envelope, Bool) {
-        var e = Envelope(keyData)
+    func sizeLimitedEnvelope(nameLimit: Int, noteLimit: Int) -> (Envelope, Bool) {
+        let e1 = Envelope(keyData)
             .addType(.BIP32Key)
             .addType(keyType.envelope)
             .addType(if: isMaster, .MasterKey)
@@ -700,20 +702,10 @@ public extension HDKeyProtocol {
             .addAssertion(if: !children.isEmpty, .childrenPath, children.envelope)
             .addAssertion(.parentFingerprint, parentFingerprint)
         
-        var didLimit = false
-        
-        if !name.isEmpty {
-            let limitedName = name.prefix(count: nameLimit)
-            didLimit = didLimit || limitedName.count < name.count
-            e = e.addAssertion(if: !name.isEmpty, .hasName, name)
-        }
-        
-        if !note.isEmpty {
-            let limitedNote = note.prefix(count: noteLimit)
-            didLimit = didLimit || limitedNote.count < note.count
-            e = e.addAssertion(if: !note.isEmpty, .note, note)
-        }
+        let (e2, didElideName) = e1.addOptionalStringAssertionWithElisionLimit(.hasName, name, limit: nameLimit)
 
-        return (e, didLimit)
+        let (e3, didElideNote) = e2.addOptionalStringAssertionWithElisionLimit(.note, note, limit: noteLimit)
+        
+        return (e3, didElideName || didElideNote)
     }
 }

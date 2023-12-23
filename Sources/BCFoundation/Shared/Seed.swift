@@ -212,8 +212,8 @@ public extension SeedProtocol {
         }
 
         let data = try envelope.extractSubject(Data.self)
-        let name = try envelope.extractOptionalNonemptyString(forPredicate: .hasName) ?? ""
-        let note = try envelope.extractOptionalNonemptyString(forPredicate: .note) ?? ""
+        let name = (try? envelope.extractOptionalNonemptyString(forPredicate: .hasName)) ?? ""
+        let note = (try? envelope.extractOptionalNonemptyString(forPredicate: .note)) ?? ""
         let creationDate = try envelope.extractOptionalObject(Date.self, forPredicate: .date)
         let attachments = try envelope.attachments()
         let outputDescriptor = try OutputDescriptor(
@@ -222,33 +222,27 @@ public extension SeedProtocol {
         guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: attachments, outputDescriptor: outputDescriptor) else {
             throw EnvelopeError.invalidFormat
         }
-        guard result.envelope.isEquivalent(to: envelope) else {
-            throw EnvelopeError.invalidFormat
-        }
+
+        // This can't be properly checked unless we reconstruct possibly
+        // elided `name` and `notes`.
+//        guard result.envelope.isEquivalent(to: envelope) else {
+//            throw EnvelopeError.invalidFormat
+//        }
+
         self = result
     }
 }
 
 public extension SeedProtocol {
-    func sizeLimitedEnvelope(nameLimit: Int = 100, noteLimit: Int = 500) -> (Envelope, Bool) {
-        var e = Envelope(data)
+    func sizeLimitedEnvelope(nameLimit: Int, noteLimit: Int) -> (Envelope, Bool) {
+        let e1 = Envelope(data)
             .addType(.Seed)
             .addAssertion(.date, creationDate)
         
-        var didLimit = false
+        let (e2, didElideName) = e1.addOptionalStringAssertionWithElisionLimit(.hasName, name, limit: nameLimit)
+
+        let (e3, didElideNote) = e2.addOptionalStringAssertionWithElisionLimit(.note, note, limit: noteLimit)
         
-        if !name.isEmpty {
-            let limitedName = name.prefix(count: nameLimit)
-            didLimit = didLimit || limitedName.count < name.count
-            e = e.addAssertion(.hasName, limitedName)
-        }
-        
-        if !note.isEmpty {
-            let limitedNote = note.prefix(count: noteLimit)
-            didLimit = didLimit || limitedNote.count < note.count
-            e = e.addAssertion(.note, limitedNote)
-        }
-        
-        return (e, didLimit)
+        return (e3, didElideName || didElideNote)
     }
 }
