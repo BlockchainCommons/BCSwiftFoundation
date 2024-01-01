@@ -35,6 +35,8 @@ extension UseInfo {
             return DerivationPath(string: "44'/\(coinType)'/\(account)'")!
         case .eth:
             return DerivationPath(string: "44'/\(coinType)'/\(account)'/0/0")!
+        case .xtz:
+            return DerivationPath(string: "44'/\(coinType)'/\(account)'/0/0")!
         }
     }
 }

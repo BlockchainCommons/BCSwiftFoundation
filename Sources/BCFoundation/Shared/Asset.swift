@@ -9,9 +9,11 @@ import Foundation
 import URKit
 
 public enum Asset: UInt32, CaseIterable, Equatable {
-    // Values from [SLIP44] with high bit turned off
+    // Values from SLIP-0044 with high bit turned off
+    // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
     case btc = 0
     case eth = 0x3c
+    case xtz = 0x6c1
 }
 
 extension Asset {
@@ -33,6 +35,8 @@ extension Asset {
             self = .btc
         case "eth":
             self = .eth
+        case "xtz":
+            self = .xtz
         default:
             return nil
         }
@@ -44,6 +48,8 @@ extension Asset {
             return "btc"
         case .eth:
             return "eth"
+        case .xtz:
+            return "xtz"
         }
     }
 }
@@ -55,6 +61,8 @@ extension Asset {
             return "Bitcoin"
         case .eth:
             return "Ethereum"
+        case .xtz:
+            return "Tezos"
         }
     }
 }
@@ -89,6 +97,8 @@ extension Asset: EnvelopeCodable {
             type = .Bitcoin
         case .eth:
             type = .Ethereum
+        case .xtz:
+            type = .Tezos
         }
         return Envelope(type)
     }

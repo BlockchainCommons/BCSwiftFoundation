@@ -18,7 +18,8 @@ let package = Package(
         .package(url: "https://github.com/WolfMcNally/WolfBase", from: "6.0.0"),
         .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
         .package(url: "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git", from: "5.0.0"),
-        .package(url: "https://github.com/BlockchainCommons/BCSwiftEnvelope.git", from: "1.0.0")
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftEnvelope.git", from: "1.0.0"),
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftCrypto", from: "1.1.0"),
     ],
     targets: [
         .target(
@@ -28,6 +29,7 @@ let package = Package(
                 "Flexer",
                 .product(name: "SecureComponents", package: "BCSwiftSecureComponents"),
                 .product(name: "Envelope", package: "BCSwiftEnvelope"),
+                .product(name: "BCCrypto", package: "BCSwiftCrypto"),
             ]
         ),
         .testTarget(
