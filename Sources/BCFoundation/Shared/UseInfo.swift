@@ -21,11 +21,16 @@ public struct UseInfo: Equatable {
 
 extension UseInfo {
     public var coinType: UInt32 {
-        switch network {
-        case .mainnet:
+        switch asset {
+        case .btc, .eth:
+            switch network {
+            case .mainnet:
+                return asset.coinType
+            case .testnet:
+                return 1
+            }
+        case .xtz:
             return asset.coinType
-        case .testnet:
-            return 1
         }
     }
     
