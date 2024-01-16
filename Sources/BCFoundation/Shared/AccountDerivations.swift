@@ -86,10 +86,17 @@ public class AccountDerivations {
         return accountKey.ecPrivateKey
     }()
     
-    public private(set) lazy var accountECPublicKey: (any ECPublicKeyProtocol)? = {
+    public private(set) lazy var accountECDSAPublicKey: (any ECDSAPublicKeyProtocol)? = {
         guard let accountECPrivateKey = accountECPrivateKey else {
             return nil
         }
-        return accountECPrivateKey.publicKey
+        return accountECPrivateKey.ecdsaPublicKey
+    }()
+    
+    public private(set) lazy var accountEd25519PublicKey: Ed25519PublicKey? = {
+        guard let accountECPrivateKey = accountECPrivateKey else {
+            return nil
+        }
+        return accountECPrivateKey.ed25519PublicKey
     }()
 }

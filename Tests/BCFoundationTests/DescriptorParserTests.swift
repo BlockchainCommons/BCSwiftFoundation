@@ -12,8 +12,8 @@ import WolfBase
 class DescriptorParserTests: XCTestCase {
     static let tprv = "tprv8gzC1wn3dmCrBiqDFrqhw9XXgy5t4mzeL5SdWayHBHz1GmWbRKoqDBSwDLfunPAWxMqZ9bdGsdpTiYUfYiWypv4Wfj9g7AYX5K3H9gRYNCA"
     static let hdKey = try! HDKey(base58: tprv)
-    static let ecPub = hdKey.ecPublicKey.hex
-    static let ecPubUncompressed = hdKey.ecPublicKey.uncompressedPublicKey.hex
+    static let ecPub = hdKey.ecdsaPublicKey.hex
+    static let ecPubUncompressed = hdKey.ecdsaPublicKey.uncompressedPublicKey.hex
     static let wif = hdKey.ecPrivateKey!.wif
     static let tpub = hdKey.base58PublicKey!
     

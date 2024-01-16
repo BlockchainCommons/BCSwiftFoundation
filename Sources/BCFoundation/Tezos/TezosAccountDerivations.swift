@@ -5,10 +5,10 @@ extension AccountDerivations {
     public var tezosAddress: Tezos.Address? {
         guard
             useInfo.asset == .xtz,
-            let accountECPublicKey = accountECPublicKey
+            let accountEd25519PublicKey = accountEd25519PublicKey
         else {
             return nil
         }
-        return Tezos.Address(key: accountECPublicKey, network: useInfo.network)
+        return Tezos.Address(key: accountEd25519PublicKey, network: useInfo.network)
     }
 }

@@ -47,7 +47,7 @@ public struct PSBTOutput {
         self.txOutput = TxOutput(scriptPubKey: scriptPubKey, amount: wallyTxOutput.satoshi)
     }
 
-    static func commonOriginChecks(originPath: DerivationPath, rootPathLength: Int, pubKey: ECPublicKey, signer: HDKey, cosigners: [HDKey]) ->  Bool {
+    static func commonOriginChecks(originPath: DerivationPath, rootPathLength: Int, pubKey: ECDSAPublicKey, signer: HDKey, cosigners: [HDKey]) ->  Bool {
         // Check that origin ends with 0/* or 1/*
         let steps = originPath.steps
         if steps.count < 2 ||
@@ -89,7 +89,7 @@ public struct PSBTOutput {
             return false
         }
 
-        if childKey.ecPublicKey != pubKey {
+        if childKey.ecdsaPublicKey != pubKey {
             return false
         }
 
@@ -188,7 +188,7 @@ public struct PSBTOutput {
 extension PSBTOutput {
     public func signingStatus<SignerType: PSBTSigner>(origin: PSBTSigningOrigin, signers: [SignerType]) -> PSBTSigningStatus<SignerType> {
         if let signer = signers.first(where: {
-            try! HDKey(parent: $0.masterKey, childDerivationPath: origin.path).ecPublicKey == origin.key
+            try! HDKey(parent: $0.masterKey, childDerivationPath: origin.path).ecdsaPublicKey == origin.key
         }) {
             return PSBTSigningStatus(origin: origin, isSigned: false, knownSigner: signer)
         } else {

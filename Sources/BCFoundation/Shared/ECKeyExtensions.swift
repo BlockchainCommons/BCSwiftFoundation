@@ -1,6 +1,6 @@
 import Foundation
 
-public extension ECPublicKey {
+public extension ECDSAPublicKey {
     func address(version: UInt8) -> String {
         var hash = hash160
         hash.insert(version, at: 0)

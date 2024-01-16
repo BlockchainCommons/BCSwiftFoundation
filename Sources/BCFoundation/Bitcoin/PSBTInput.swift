@@ -10,7 +10,7 @@ import WolfBase
 
 public struct PSBTInput {
     public let origins: [PSBTSigningOrigin]
-    public let signatures: [ECPublicKey: Data]
+    public let signatures: [ECDSAPublicKey: Data]
     public let witnessStack: [ScriptPubKey?]
     public let isSegwit: Bool
     public let amount: Satoshi?
@@ -81,7 +81,7 @@ public struct PSBTInput {
             if
                 case .fingerprint(let originFingerprint) = path.origin,
                 masterKeyFingerprint == originFingerprint,
-                let childKey = try? HDKey(parent: masterKey, childDerivationPath: path).ecPublicKey,
+                let childKey = try? HDKey(parent: masterKey, childDerivationPath: path).ecdsaPublicKey,
                 signatures.keys.contains(childKey)
             {
                 result.append(origin)
@@ -105,7 +105,7 @@ public struct PSBTInput {
     }
     
     public var isFullySigned: Bool {
-        let signatureKeys: Set<ECPublicKey> = Set(signatures.keys)
+        let signatureKeys: Set<ECDSAPublicKey> = Set(signatures.keys)
         return origins.allSatisfy { origin in
             signatureKeys.contains(origin.key)
         }
@@ -124,7 +124,7 @@ func getOrigins(keypaths: WallyMap) -> [PSBTSigningOrigin] {
         // TOOD: simplify after https://github.com/ElementsProject/libwally-core/issues/241
         let item = keypaths[i]
 
-        let pubKey = ECPublicKey(item.key)!
+        let pubKey = ECDSAPublicKey(item.key)!
         let itemValue = item.value
         let fingerprint = deserialize(UInt32.self, itemValue)!
         let keyPath = itemValue.subdata(in: WallyExtKey.keyFingerprintLen..<itemValue.count)
@@ -142,11 +142,11 @@ func getOrigins(keypaths: WallyMap) -> [PSBTSigningOrigin] {
     return result
 }
 
-func getSignatures(signatures: WallyMap) -> [ECPublicKey: Data] {
-    var result: [ECPublicKey: Data] = [:]
+func getSignatures(signatures: WallyMap) -> [ECDSAPublicKey: Data] {
+    var result: [ECDSAPublicKey: Data] = [:]
     for i in 0 ..< signatures.count {
         let item = signatures[i]
-        let pubKey = ECPublicKey(item.key)!
+        let pubKey = ECDSAPublicKey(item.key)!
         result[pubKey] = item.value
     }
     return result

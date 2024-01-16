@@ -8,19 +8,19 @@
 import Foundation
 
 public struct PSBTSigningOrigin: CustomStringConvertible {
-    public let key: ECPublicKey
+    public let key: ECDSAPublicKey
     public let path: DerivationPath
     
     public var description: String {
         "PSBTSigningOrigin(key: \(key), path: \(path))"
     }
     
-    public func childKey(for parentKey: HDKey) -> ECPublicKey? {
+    public func childKey(for parentKey: HDKey) -> ECDSAPublicKey? {
         let parentKeyFingerprint = parentKey.originFingerprint ?? parentKey.keyFingerprint
         guard
             case .fingerprint(let originFingerprint) = path.origin,
             parentKeyFingerprint == originFingerprint,
-            let childKey = try? HDKey(parent: parentKey, childDerivationPath: path).ecPublicKey
+            let childKey = try? HDKey(parent: parentKey, childDerivationPath: path).ecdsaPublicKey
         else {
             return nil
         }
@@ -31,7 +31,7 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
         key == childKey(for: masterKey)
     }
     
-    public func existingKnownSigner<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECPublicKey>) -> SignerType? {
+    public func existingKnownSigner<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECDSAPublicKey>) -> SignerType? {
         for signer in signers {
             guard let key = childKey(for: signer.masterKey) else {
                 continue
@@ -59,7 +59,7 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
 }
 
 extension PSBTSigningOrigin {
-    public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECPublicKey>) -> PSBTSigningStatus<SignerType> {
+    public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECDSAPublicKey>) -> PSBTSigningStatus<SignerType> {
         if let existingSigner = existingKnownSigner(signers: signers, publicSigningKeys: publicSigningKeys) {
             return PSBTSigningStatus(origin: self, isSigned: true, knownSigner: existingSigner)
         } else if let possibleSigner = possibleKnownSigner(signers: signers) {

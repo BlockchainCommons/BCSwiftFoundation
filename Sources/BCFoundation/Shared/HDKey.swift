@@ -393,8 +393,8 @@ extension HDKeyProtocol {
         Wally.base58(from: wallyExtKey, isPrivate: true)
     }
     
-    public var ecPublicKey: ECPublicKey {
-        ECPublicKey(wallyExtKey.pubKey)!
+    public var ecdsaPublicKey: ECDSAPublicKey {
+        ECDSAPublicKey(wallyExtKey.pubKey)!
     }
 
     public var ecPrivateKey: ECPrivateKey? {

@@ -22,7 +22,7 @@ extension Wally {
 }
 
 extension Wally {
-    public static func multisigScriptPubKey(publicKeys:[any ECPublicKeyProtocol], threshold: UInt, isBIP67: Bool = true) -> ScriptPubKey {
+    public static func multisigScriptPubKey(publicKeys:[any ECDSAPublicKeyProtocol], threshold: UInt, isBIP67: Bool = true) -> ScriptPubKey {
         let publicKeysData = publicKeys.map { $0.data }
         let output = Wally.multisigScriptPubKey(pubKeys: publicKeysData, threshold: threshold, isBIP67: isBIP67)
         return ScriptPubKey(Script(output))

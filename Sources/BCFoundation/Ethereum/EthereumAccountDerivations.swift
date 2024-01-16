@@ -11,10 +11,10 @@ extension AccountDerivations {
     public var ethereumAddress: Ethereum.Address? {
         guard
             useInfo.asset == .eth,
-            let accountECPublicKey = accountECPublicKey
+            let accountECDSAPublicKey = accountECDSAPublicKey
         else {
             return nil
         }
-        return Ethereum.Address(key: accountECPublicKey, network: useInfo.network)
+        return Ethereum.Address(key: accountECDSAPublicKey, network: useInfo.network)
     }
 }

@@ -24,14 +24,14 @@ extension Ethereum {
             self.useInfo = UseInfo(asset: .eth, network: network)
         }
         
-        public init(key: any ECKey, network: Network) {
-            let hash = key.publicKey.uncompressedPublicKey.data.dropFirst().keccak256
+        public init(key: any ECDSAKey, network: Network) {
+            let hash = key.ecdsaPublicKey.uncompressedPublicKey.data.dropFirst().keccak256
             self.string = "0x" + hash.suffix(20).hex
             self.useInfo = UseInfo(asset: .eth, network: network)
         }
         
         public init(hdKey: HDKey) {
-            self.init(key: hdKey.ecPublicKey, network: hdKey.useInfo.network)
+            self.init(key: hdKey.ecdsaPublicKey, network: hdKey.useInfo.network)
         }
 
         public var description: String {
