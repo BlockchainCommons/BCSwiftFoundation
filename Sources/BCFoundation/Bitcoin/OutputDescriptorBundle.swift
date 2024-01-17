@@ -22,7 +22,7 @@ public struct OutputDescriptorBundle {
             masterKey.isMaster,
             !outputTypes.isEmpty,
             let descriptors: [OutputDescriptor] = try? outputTypes.map( {
-                let a = try $0.accountDescriptor(masterKey: masterKey, network: network, account: account)
+                let a = try $0.accountDescriptor(masterKey: masterKey, network: network, account: account, includeAddressDerivationPath: false)
                 return a;
             })
         else {
@@ -41,7 +41,7 @@ public struct OutputDescriptorBundle {
 }
 
 extension OutputDescriptorBundle: UREncodable {
-    public static var cborTags = [Tag.account, Tag.accountV1]
+    public static var cborTags = [Tag.accountDescriptor, Tag.accountV1]
 
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md#cddl
