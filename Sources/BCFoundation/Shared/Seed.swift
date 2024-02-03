@@ -198,7 +198,6 @@ public extension SeedProtocol {
     var envelope: Envelope {
         try! sizeLimitedEnvelope(nameLimit: .max, noteLimit: .max).0
             .addAssertions(attachments)
-            .addAssertion(.outputDescriptor, outputDescriptor?.envelope)
     }
     
     init(envelope: Envelope) throws {
@@ -238,6 +237,7 @@ public extension SeedProtocol {
         let e1 = Envelope(data)
             .addType(.Seed)
             .addAssertion(.date, creationDate)
+            .addAssertion(.outputDescriptor, outputDescriptor?.envelope)
         
         let (e2, didElideName) = e1.addOptionalStringAssertionWithElisionLimit(.hasName, name, limit: nameLimit)
 
