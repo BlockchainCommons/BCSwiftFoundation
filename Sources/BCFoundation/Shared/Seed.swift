@@ -209,15 +209,26 @@ public extension SeedProtocol {
             self = try Self.init(untaggedCBOR: item)
             return
         }
-
+        
         let data = try envelope.extractSubject(Data.self)
         let name = (try? envelope.extractOptionalNonemptyString(forPredicate: .hasName)) ?? ""
         let note = (try? envelope.extractOptionalNonemptyString(forPredicate: .note)) ?? ""
         let creationDate = try envelope.extractOptionalObject(Date.self, forPredicate: .date)
         let attachments = try envelope.attachments()
-        let outputDescriptor = try OutputDescriptor(
-            envelope: envelope.optionalObject(forPredicate: .outputDescriptor)
-        )
+        let outputDescriptor: OutputDescriptor?
+        if let descObj = try envelope.optionalObject(forPredicate: .outputDescriptor) {
+            // Try to parse version 2 output descriptor (Envelope)
+            if let desc = try? OutputDescriptor(envelope: descObj) {
+                outputDescriptor = desc
+            } else if let leaf = descObj.leaf {
+                // Try to parse version 3 output descriptor (CBOR)
+                outputDescriptor = try OutputDescriptor(cbor: leaf)
+            } else {
+                throw EnvelopeError.invalidFormat
+            }
+        } else {
+            outputDescriptor = nil
+        }
         guard let result = Self.init(data: data, name: name, note: note, creationDate: creationDate, attachments: attachments, outputDescriptor: outputDescriptor) else {
             throw EnvelopeError.invalidFormat
         }
@@ -237,8 +248,9 @@ public extension SeedProtocol {
         let e1 = Envelope(data)
             .addType(.Seed)
             .addAssertion(.date, creationDate)
-            .addAssertion(.outputDescriptor, outputDescriptor?.envelope)
-        
+//            .addAssertion(.outputDescriptor, outputDescriptor?.envelope)
+            .addAssertion(.outputDescriptor, outputDescriptor?.cbor)
+
         let (e2, didElideName) = e1.addOptionalStringAssertionWithElisionLimit(.hasName, name, limit: nameLimit)
 
         let (e3, didElideNote) = e2.addOptionalStringAssertionWithElisionLimit(.note, note, limit: noteLimit)

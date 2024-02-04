@@ -70,6 +70,7 @@ public struct OutputDescriptor {
 extension OutputDescriptor: URCodable {
     public static var cborTags = [Tag.outputDescriptor, Tag.outputDescriptorV1]
     
+    /// Version 3 output descriptor
     public var untaggedCBOR: CBOR {
 //        astRoot.taggedCBOR
         let (compactSource, keys) = self.unparsedCompact()
@@ -89,6 +90,7 @@ extension OutputDescriptor: URCodable {
         return map.cbor
     }
     
+    /// Version 3 output descriptor
     public init(untaggedCBOR: CBOR) throws {
         guard
             case CBOR.map(let map) = untaggedCBOR,
@@ -252,6 +254,7 @@ extension OutputDescriptor: Codable {
 }
 
 extension OutputDescriptor: EnvelopeCodable {
+    /// Version 2 output descriptor
     public var envelope: Envelope {
         var e = Envelope(sourceWithChecksum)
             .addType(.OutputDescriptor)
@@ -267,6 +270,7 @@ extension OutputDescriptor: EnvelopeCodable {
         return e
     }
     
+    /// Parse version 2 output descriptor
     public init(envelope: Envelope) throws {
         try envelope.checkType(.OutputDescriptor)
         let source = try envelope.extractSubject(String.self)
