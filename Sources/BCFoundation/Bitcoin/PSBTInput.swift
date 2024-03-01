@@ -10,7 +10,7 @@ import WolfBase
 
 public struct PSBTInput {
     public let origins: [PSBTSigningOrigin]
-    public let signatures: [ECDSAPublicKey: Data]
+    public let signatures: [SecP256K1PublicKey: Data]
     public let witnessStack: [ScriptPubKey?]
     public let isSegwit: Bool
     public let amount: Satoshi?
@@ -105,7 +105,7 @@ public struct PSBTInput {
     }
     
     public var isFullySigned: Bool {
-        let signatureKeys: Set<ECDSAPublicKey> = Set(signatures.keys)
+        let signatureKeys: Set<SecP256K1PublicKey> = Set(signatures.keys)
         return origins.allSatisfy { origin in
             signatureKeys.contains(origin.key)
         }
@@ -124,7 +124,7 @@ func getOrigins(keypaths: WallyMap) -> [PSBTSigningOrigin] {
         // TOOD: simplify after https://github.com/ElementsProject/libwally-core/issues/241
         let item = keypaths[i]
 
-        let pubKey = ECDSAPublicKey(item.key)!
+        let pubKey = SecP256K1PublicKey(item.key)!
         let itemValue = item.value
         let fingerprint = deserialize(UInt32.self, itemValue)!
         let keyPath = itemValue.subdata(in: WallyExtKey.keyFingerprintLen..<itemValue.count)
@@ -142,11 +142,11 @@ func getOrigins(keypaths: WallyMap) -> [PSBTSigningOrigin] {
     return result
 }
 
-func getSignatures(signatures: WallyMap) -> [ECDSAPublicKey: Data] {
-    var result: [ECDSAPublicKey: Data] = [:]
+func getSignatures(signatures: WallyMap) -> [SecP256K1PublicKey: Data] {
+    var result: [SecP256K1PublicKey: Data] = [:]
     for i in 0 ..< signatures.count {
         let item = signatures[i]
-        let pubKey = ECDSAPublicKey(item.key)!
+        let pubKey = SecP256K1PublicKey(item.key)!
         result[pubKey] = item.value
     }
     return result

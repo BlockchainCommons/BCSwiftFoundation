@@ -222,11 +222,7 @@ class RequestTests: XCTestCase {
 
         let expectedFormat = """
         response(ARID(c66be27d)) [
-            'result': {
-                "pkh([37b5eed4/44'/0'/0']xpub6CnQkivUEH9bSbWVWfDLCtigKKgnSWGaVSRyCbN2QNBJzuvHT1vUQpgSpY1NiVvoeNEuVwk748Cn9G3NtbQB1aGGsEL7aYEnjVWgjj9tefu/<0;1>/*)#vxycy4eh" [
-                    'isA': 'OutputDescriptor'
-                ]
-            } [
+            'result': output-descriptor(Map) [
                 'isA': "descriptorResponse"
                 "challengeSignature": Bytes(32)
             ]
@@ -236,7 +232,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(envelope.format(), expectedFormat)
 
         let ur = envelope.ur
-        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlstpsplftpcsksnljojeisdehpeoemidecihihieeedleeeedidldydidldydihlksjokpidenfxjtgyjeinkogofefdesidguidhghfhgiyfygsfxjyiniogrgriojtguhgflhshfgugmkkfxidgleygyglfwgeknkpkofdghehkogogyjoiogujohkehglinhfkojlihglfekphfktjeemeeetfxjtesfleogljyidgyfwehhsflfljkfegsemhshkfejtimhfhgioimimesjyihiykpdlfndyfrehfmdldrdtcnkokskkiakkeeihisoyadcfadzooytpcsjpiaishsjzjzihjtioihguiniojthsjykpjpihtpcshdcxjybnpepypttdhgiybamofyltbnykbdheflsbswkkeywlptzebsptgsqdjnetcffnoyadtpcsjpieihjkiajpinjojyjljpgmihjkjojljtjkihplkijksp"
+        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlstpcstantjyoeadiojojeisdefzdydtaolytantjlonaxhdclaxwmfmdeiamecsdsemgtvsjzcncygrkowtrontzschgezokstswkkscfmklrtauteyaahdcxiehfonurdppfyntapejpproypegrdawkgmaewejlsfdtsrfybdehcaflmtrlbdhpamtantjooeadlncsdwykaeykaeykaocyemrewytyattantjooyadlslraewkadwklawkaycynlytsnyloytpcsjpiaishsjzjzihjtioihguiniojthsjykpjpihtpcshdcxjybnpepypttdhgiybamofyltbnykbdheflsbswkkeywlptzebsptgsqdjnetcffnoyadtpcsjpieihjkiajpinjojyjljpgmihjkjojljtjkihgugyhkfl"
         XCTAssertEqual(ur.string, expectedURString)
 
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))

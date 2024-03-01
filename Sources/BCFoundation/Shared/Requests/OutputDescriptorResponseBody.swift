@@ -14,16 +14,14 @@ public struct OutputDescriptorResponseBody: Equatable, TransactionResponseBody {
 
 extension OutputDescriptorResponseBody: EnvelopeCodable {
     public var envelope: Envelope {
-        descriptor
-            .envelope
-            .wrap()
+        Envelope(descriptor)
             .addType(Self.type)
             .addAssertion("challengeSignature", challengeSignature)
     }
 
     public init(envelope: Envelope) throws {
         try envelope.checkType(Self.type)
-        let descriptor = try OutputDescriptor(envelope: envelope.unwrap())
+        let descriptor = try envelope.extractSubject(OutputDescriptor.self)
         let challengeSignature = try envelope.extractObject(Data.self, forPredicate: "challengeSignature")
         self.init(descriptor: descriptor, challengeSignature: challengeSignature)
     }

@@ -47,7 +47,7 @@ public struct PSBTOutput {
         self.txOutput = TxOutput(scriptPubKey: scriptPubKey, amount: wallyTxOutput.satoshi)
     }
 
-    static func commonOriginChecks(originPath: DerivationPath, rootPathLength: Int, pubKey: ECDSAPublicKey, signer: HDKey, cosigners: [HDKey]) ->  Bool {
+    static func commonOriginChecks(originPath: DerivationPath, rootPathLength: Int, pubKey: SecP256K1PublicKey, signer: HDKey, cosigners: [HDKey]) ->  Bool {
         // Check that origin ends with 0/* or 1/*
         let steps = originPath.steps
         if steps.count < 2 ||

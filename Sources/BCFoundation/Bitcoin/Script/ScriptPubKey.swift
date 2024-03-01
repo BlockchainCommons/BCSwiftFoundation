@@ -70,7 +70,7 @@ public struct ScriptPubKey : Equatable {
         self.script = Script(data)
     }
     
-    public init(multisig publicKeys: [ECDSAPublicKey], threshold: UInt, isBIP67: Bool = true) {
+    public init(multisig publicKeys: [SecP256K1PublicKey], threshold: UInt, isBIP67: Bool = true) {
         self = Wally.multisigScriptPubKey(publicKeys: publicKeys, threshold: threshold, isBIP67: isBIP67)
     }
 

@@ -362,15 +362,15 @@ extension DescriptorParser {
         case .data:
             let data = token.data
             if
-                data.count == ECDSAPublicKey.keyLen,
+                data.count == SecP256K1PublicKey.keyLen,
                 [0x02, 0x03].contains(data[0])
             {
-                resultKey = .ecCompressedPublicKey(ECDSAPublicKey(data)!)
+                resultKey = .ecCompressedPublicKey(SecP256K1PublicKey(data)!)
             } else if
                 allowUncompressed,
-                data.count == ECUncompressedPublicKey.keyLen
+                data.count == SecP256K1UncompressedPublicKey.keyLen
             {
-                resultKey = .ecUncompressedPublicKey(ECUncompressedPublicKey(data)!)
+                resultKey = .ecUncompressedPublicKey(SecP256K1UncompressedPublicKey(data)!)
             // } else if data.count == SchnorrPublicKey.keyLen {
             //     resultKey = .ecXOnlyPublicKey(SchnorrPublicKey(data)!)
             } else {

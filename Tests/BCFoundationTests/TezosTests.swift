@@ -15,13 +15,13 @@ class TezosTests: XCTestCase {
         XCTAssertEqual(publicKey.tezos1Address, "tz1V1iyRr7gzs9uhup4cdGiWyDXc5K2yYXo9")
     }
 
-    // SecP256k1
+    // Secp256k1
     func testFormats2() {
         let privateKey = ECPrivateKey(‡"bb94bb005d190f67d84ed58c153b7ed5c6e40fc2ca7f4140d0e2c32ddd50dd57")!
         
         XCTAssertEqual(privateKey.tezos2Format, "spsk2rBBj5a6ahir2xZwbNkdeBuyZTxQZC9Pr6UvSAM4GNPeXfM3ix")
         
-        let publicKey = privateKey.ecdsaPublicKey
+        let publicKey = privateKey.secp256k1PublicKey
         XCTAssertEqual(publicKey.tezos2Format, "sppk7c9QAGWCJEvFWp6vGBs3VuxFax7GDwWQiPXR2rGSYPN7NMQN9rP")
         
         XCTAssertEqual(publicKey.tezos2Address, "tz2PH72CdqfsBJRsDcGfUu3UvuXwEyzqzs3s")

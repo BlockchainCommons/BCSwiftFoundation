@@ -94,11 +94,7 @@ class SeedTests: XCTestCase {
             'isA': 'Seed'
             'hasName': "Alice's Seed"
             'note': "This is the note."
-            'outputDescriptor': "wpkh([55016b2f/84'/1'/2']xpub6BkiBzPzLUEo9F5n6N4CSKWzFeXdWaKGhYsVNXH8bqfbeAhdpvNeGhu2mP35cABAwDHNpHD5hmXfZcMSdpTUmAyCYnQggXkk9hwbTP9KRRB/<0;1>/*)#cf9l9nxt" [
-                'isA': 'OutputDescriptor'
-                'hasName': "Alice's output descriptor"
-                'note': "Output descriptor note"
-            ]
+            'outputDescriptor': output-descriptor(Map)
         ]
         """)
         

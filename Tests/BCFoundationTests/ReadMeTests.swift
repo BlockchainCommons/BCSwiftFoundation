@@ -38,7 +38,7 @@ class ReadMeTests: XCTestCase {
     }
     
     func testCreateAndSignTransaction() {
-        let pubKey = ECDSAPublicKey(hex: "03501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c")!
+        let pubKey = SecP256K1PublicKey(hex: "03501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c")!
         let prevTx = TxHash(hex: "0000000000000000000000000000000000000000000000000000000000000000")!
         let vout: UInt32 = 0
         let legacyInputBytes: Int = 192

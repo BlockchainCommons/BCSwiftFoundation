@@ -3,7 +3,7 @@ import WolfBase
 import BCCrypto
 
 // Format 1: Ed25519
-// Format 2: SecP256k1
+// Format 2: Secp256k1
 
 public extension ECPrivateKey {
     var tezos1Format: String {
@@ -17,14 +17,14 @@ public extension ECPrivateKey {
     }
 }
 
-public extension ECDSAPublicKey {
+public extension SecP256K1PublicKey {
     var tezos2Format: String {
         let d = ‡"03fee256" + data // `sppk`
         return d.base58(isCheck: true)
     }
     
     var tezos2Address: String {
-        let digest = blake2b(data, len: 20)
+        let digest = BLAKE2b.hash(data, len: 20)
         let d = ‡"06a1a1" + digest // `tz2`
         return d.base58(isCheck: true)
     }
@@ -37,7 +37,7 @@ public extension Ed25519PublicKey {
     }
 
     var tezos1Address: String {
-        let digest = blake2b(data, len: 20)
+        let digest = BLAKE2b.hash(data, len: 20)
         let d = ‡"06a19f" + digest // `tz1`
         return d.base58(isCheck: true)
     }

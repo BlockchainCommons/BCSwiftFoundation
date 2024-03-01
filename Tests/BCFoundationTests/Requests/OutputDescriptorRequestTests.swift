@@ -43,7 +43,7 @@ class OutputDescriptorRequestTests: XCTestCase {
             try HDKey(parent: masterKey, childDerivationPath: key.parent)
         })!
         
-        let challengeSignature = signingKey.ecPrivateKey!.ecdsaSign(requestBody.challenge)
+        let challengeSignature = signingKey.ecPrivateKey!.secp256k1ecdsaSign(requestBody.challenge)
         let result = OutputDescriptorResponseBody(descriptor: descriptor, challengeSignature: challengeSignature)
         let response = TransactionResponse(id: request.id, result: result)
         return response.ur

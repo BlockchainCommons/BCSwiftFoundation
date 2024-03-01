@@ -12,8 +12,8 @@ struct DescriptorKeyExpression {
     let key: Key
 
     enum Key {
-        case ecCompressedPublicKey(any ECDSAPublicKeyProtocol)
-        case ecUncompressedPublicKey(ECUncompressedPublicKey)
+        case ecCompressedPublicKey(any SecP256K1PublicKeyProtocol)
+        case ecUncompressedPublicKey(SecP256K1UncompressedPublicKey)
         //case ecXOnlyPublicKey(SchnorrPublicKey)
         case wif(ECPrivateKey)
         case hdKey(HDKey)
@@ -61,7 +61,7 @@ extension DescriptorKeyExpression {
         // case .ecXOnlyPublicKey(let k):
         //     data = k.data
         case .wif(let k):
-            data = k.ecdsaPublicKey.data
+            data = k.secp256k1PublicKey.data
         case .hdKey(let k):
             guard let k2 = try? HDKey(parent: k, childDerivationPath: k.children, chain: chain, addressIndex: addressIndex, privateKeyProvider: privateKeyProvider) else {
                 return nil

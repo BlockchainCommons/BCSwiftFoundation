@@ -8,14 +8,14 @@
 import Foundation
 
 public struct PSBTSigningOrigin: CustomStringConvertible {
-    public let key: ECDSAPublicKey
+    public let key: SecP256K1PublicKey
     public let path: DerivationPath
     
     public var description: String {
         "PSBTSigningOrigin(key: \(key), path: \(path))"
     }
     
-    public func childKey(for parentKey: HDKey) -> ECDSAPublicKey? {
+    public func childKey(for parentKey: HDKey) -> SecP256K1PublicKey? {
         let parentKeyFingerprint = parentKey.originFingerprint ?? parentKey.keyFingerprint
         guard
             case .fingerprint(let originFingerprint) = path.origin,
@@ -31,7 +31,7 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
         key == childKey(for: masterKey)
     }
     
-    public func existingKnownSigner<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECDSAPublicKey>) -> SignerType? {
+    public func existingKnownSigner<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<SecP256K1PublicKey>) -> SignerType? {
         for signer in signers {
             guard let key = childKey(for: signer.masterKey) else {
                 continue
@@ -59,7 +59,7 @@ public struct PSBTSigningOrigin: CustomStringConvertible {
 }
 
 extension PSBTSigningOrigin {
-    public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<ECDSAPublicKey>) -> PSBTSigningStatus<SignerType> {
+    public func signingStatus<SignerType: PSBTSigner>(signers: [SignerType], publicSigningKeys: Set<SecP256K1PublicKey>) -> PSBTSigningStatus<SignerType> {
         if let existingSigner = existingKnownSigner(signers: signers, publicSigningKeys: publicSigningKeys) {
             return PSBTSigningStatus(origin: self, isSigned: true, knownSigner: existingSigner)
         } else if let possibleSigner = possibleKnownSigner(signers: signers) {

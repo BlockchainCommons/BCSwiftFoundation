@@ -129,9 +129,9 @@ extension OutputDescriptor: URCodable {
                     }
                     return privateKey.wif
                 } else {
-                    if let publicKey = ECDSAPublicKey(data) {
+                    if let publicKey = SecP256K1PublicKey(data) {
                         return publicKey.data.hex
-                    } else if let publicKey = ECUncompressedPublicKey(data) {
+                    } else if let publicKey = SecP256K1UncompressedPublicKey(data) {
                         return publicKey.data.hex
                     } else {
                         throw CBORError.invalidFormat

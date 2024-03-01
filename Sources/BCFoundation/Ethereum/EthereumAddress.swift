@@ -24,8 +24,8 @@ extension Ethereum {
             self.useInfo = UseInfo(asset: .eth, network: network)
         }
         
-        public init(key: any ECDSAKey, network: Network) {
-            let hash = key.ecdsaPublicKey.uncompressedPublicKey.data.dropFirst().keccak256
+        public init(key: any SecP256K1Key, network: Network) {
+            let hash = key.secp256k1PublicKey.uncompressedPublicKey.data.dropFirst().keccak256
             self.string = "0x" + hash.suffix(20).hex
             self.useInfo = UseInfo(asset: .eth, network: network)
         }
