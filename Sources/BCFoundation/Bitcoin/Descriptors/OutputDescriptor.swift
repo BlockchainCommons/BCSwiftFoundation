@@ -253,8 +253,9 @@ extension OutputDescriptor: Codable {
     }
 }
 
-extension OutputDescriptor: EnvelopeCodable {
-    /// Version 2 output descriptor
+extension OutputDescriptor /*: EnvelopeCodable*/ {
+    /// Version 2 output descriptor (deprecated)
+    @available(*, deprecated, message: "Use version 3")
     public var envelope: Envelope {
         var e = Envelope(sourceWithChecksum)
             .addType(.OutputDescriptor)
@@ -277,8 +278,8 @@ extension OutputDescriptor: EnvelopeCodable {
         let name = try envelope.extractOptionalNonemptyString(forPredicate: .hasName) ?? ""
         let note = try envelope.extractOptionalNonemptyString(forPredicate: .note) ?? ""
         try self.init(source, name: name, note: note)
-        guard self.envelope.isEquivalent(to: envelope) else {
-            throw EnvelopeError.invalidFormat
-        }
+//        guard self.envelope.isEquivalent(to: envelope) else {
+//            throw EnvelopeError.invalidFormat
+//        }
     }
 }
