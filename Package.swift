@@ -16,9 +16,9 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/WolfMcNally/WolfBase", from: "6.0.0"),
-        .package(url: "https://github.com/ChimeHQ/Flexer.git", from: "0.1.0"),
-        .package(url: "https://github.com/BlockchainCommons/BCSwiftSecureComponents.git", from: "8.0.0"),
-        .package(url: "https://github.com/BlockchainCommons/BCSwiftEnvelope.git", from: "4.0.0"),
+        .package(url: "https://github.com/ChimeHQ/Flexer", from: "0.1.0"),
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftSecureComponents", from: "8.0.0"),
+        .package(url: "https://github.com/BlockchainCommons/BCSwiftEnvelope", from: "4.0.0"),
         .package(url: "https://github.com/BlockchainCommons/BCSwiftCrypto", from: "4.0.0"),
     ],
     targets: [
