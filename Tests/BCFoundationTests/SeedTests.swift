@@ -77,14 +77,7 @@ class SeedTests: XCTestCase {
         desc.note = "Output descriptor note"
         
         XCTAssertEqual(desc.sourceWithChecksum, "wpkh([55016b2f/84'/1'/2']xpub6BkiBzPzLUEo9F5n6N4CSKWzFeXdWaKGhYsVNXH8bqfbeAhdpvNeGhu2mP35cABAwDHNpHD5hmXfZcMSdpTUmAyCYnQggXkk9hwbTP9KRRB/<0;1>/*)#cf9l9nxt")
-        XCTAssertEqual(desc.envelope.format(),
-        """
-        "wpkh([55016b2f/84'/1'/2']xpub6BkiBzPzLUEo9F5n6N4CSKWzFeXdWaKGhYsVNXH8bqfbeAhdpvNeGhu2mP35cABAwDHNpHD5hmXfZcMSdpTUmAyCYnQggXkk9hwbTP9KRRB/<0;1>/*)#cf9l9nxt" [
-            'isA': 'OutputDescriptor'
-            'hasName': "Alice's output descriptor"
-            'note': "Output descriptor note"
-        ]
-        """)
+        XCTAssertEqual(desc.urString, "ur:output-descriptor/oxadisktjojeisdefzdydtaolytantjlonaxhdclaxoshhtirkpdcmihmuwkleonbzmtcfzovotnwteogolngamwrosfotoykbytlojohpaahdcxrkgumtwpoyflctgdadbbfptdehtloeplzmhfwsiminftutndpagyadkosbcthespamtantjooeadlncsghykadykaoykaocygoadjedlattantjooyadlslraewkadwklawkaycybtwtfhhlaxkscffpjziniaihdijkcxjlkpjyjokpjycxieihjkiajpinjojyjljpaakogwkpjyjokpjycxieihjkiajpinjojyjljpcxjtjljyihonprckkg")
         
         seed.outputDescriptor = desc
         

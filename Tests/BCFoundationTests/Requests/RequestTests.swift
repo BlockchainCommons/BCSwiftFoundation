@@ -21,7 +21,7 @@ class RequestTests: XCTestCase {
         let body = try SeedRequestBody(seedDigest: Self.seed.identityDigest)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielftpcstansfgcsieoytpcstansflcssptpcstansfphdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdwfcwcpsp"
+        let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpsoieghihjkjyoycsielftpsotansfgcsieoytpsotansflcssptpsotansfphdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdcsfxhfih"
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
@@ -50,7 +50,7 @@ class RequestTests: XCTestCase {
         ]
         """)
         let ur = envelope.ur
-        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlftpcsgdhkwzdtfthptokigtvwnnjsqzcxknsktdoyadcssprltdwtyk"
+        let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlftpsogdhkwzdtfthptokigtvwnnjsqzcxknsktdoyadcsspinbseyad"
         XCTAssertEqual(ur.string, expectedURString)
         
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
@@ -63,7 +63,7 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: useInfo)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpcstansfgcsihoytpcstansflcssblfcfaddpoycfadmhcfadmooytpcstansflcssotpcstantjooeadlocsdyykaeykaeykaoykaocyhngrmuwzoyaatpcsieghihjkjyemetvske"
+        let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpsotansfgcsihoytpsotansflcssblfcfaddpoycfadmhcfadmooytpsotansflcssotpsotantjooeadlocsdyykaeykaeykaoykaocyhngrmuwzoyaatpsoieghihjkjysbspbegs"
         XCTAssertEqual(ur.string, expectedURString)
         
         let expectedFormat = """
@@ -109,7 +109,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(envelope.format(), expectedFormat)
 
         let ur = envelope.ur
-        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlttpcshdclaevytktyhkfthkglbyzehflpenbsfxbkvlvyghtsondrzeskswvoclemaswtzodlhnoycfadyktpcshdcxlejtimcnrlbtdemdoereyaqzprkpndbdgwfzflqdbzkohgzobycxcnvabaosbglfoycfaddwlfcfaddpoycfadmhcfadmooycfadyttpcscynewncnlboyadcfadwkoycfadyltpcstantjootadlocsdyykaeykaeykaoykaocyhngrmuwzaxaaoyadcssofyfeykbt"
+        let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlttpsohdclaevytktyhkfthkglbyzehflpenbsfxbkvlvyghtsondrzeskswvoclemaswtzodlhnoycfadyktpsohdcxlejtimcnrlbtdemdoereyaqzprkpndbdgwfzflqdbzkohgzobycxcnvabaosbglfoycfaddwlfcfaddpoycfadmhcfadmooycfadyttpsocynewncnlboyadcfadwkoycfadyltpsotantjootadlocsdyykaeykaeykaoykaocyhngrmuwzaxaaoyadcssornprtbmo"
         XCTAssertEqual(ur.string, expectedURString)
 
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
@@ -121,7 +121,7 @@ class RequestTests: XCTestCase {
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: .init(asset: .btc, network: .testnet))
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpcstansfgcsihoytpcstansflcssblfcfaddpoycfadmhcfadmooytpcstansflcssotpcstantjooyadlocsdyykaeykaeykaoykoyaatpcsieghihjkjyjkmdsbry"
+        let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpsotansfgcsihoytpsotansflcssblfcfaddpoycfadmhcfadmooytpsotansflcssotpsotantjooyadlocsdyykaeykaeykaoykoyaatpsoieghihjkjytaktaytl"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
@@ -146,7 +146,7 @@ class RequestTests: XCTestCase {
         let body = PSBTSignatureRequestBody(psbt: Self.validPSBT)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielftpcstansfgcsiyoytpcstansflcssnlftpcshkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzsoyaatpcsieghihjkjyjemhihhf"
+        let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielftpsotansfgcsiyoytpsotansflcssnlftpsohkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzsoyaatpsoieghihjkjynsoyltfd"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
@@ -180,7 +180,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(envelope.format(), expectedFormat)
 
         let ur = envelope.ur
-        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlftpcshkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzskkcabbpe"
+        let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlftpsohkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzsayrhoxdr"
         XCTAssertEqual(ur.string, expectedURString)
 
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
@@ -192,7 +192,7 @@ class RequestTests: XCTestCase {
         let body = OutputDescriptorRequestBody(name: "Name", useInfo: useInfo, challenge: ‡"fcb2fc04b4e352dd10cfe6bc90fe80a8")
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
-        let expectedURString = "ur:envelope/lstpcstansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpcsieghihjkjyoycsielrtpcstansfgcsiooytpcstansflcstktpcsgdztprztaaqzvlgmutbetkvarfmhzelapdoytpcstansflcssblfcfaddpoycfadmhcfadmooytpcstansflcstotpcsieglhsjnihhnidnskb"
+        let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpsoieghihjkjyoycsielrtpsotansfgcsiooytpsotansflcstktpsogdztprztaaqzvlgmutbetkvarfmhzelapdoytpsotansflcssblfcfaddpoycfadmhcfadmooytpsotansflcstotpsoieglhsjnihaxmkswtn"
         XCTAssertEqual(ur.string, expectedURString)
 
         let expectedFormat = """
@@ -232,7 +232,7 @@ class RequestTests: XCTestCase {
         XCTAssertEqual(envelope.format(), expectedFormat)
 
         let ur = envelope.ur
-        let expectedURString = "ur:envelope/lftpcstansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlstpcstantjyoeadiojojeisdefzdydtaolytantjlonaxhdclaxwmfmdeiamecsdsemgtvsjzcncygrkowtrontzschgezokstswkkscfmklrtauteyaahdcxiehfonurdppfyntapejpproypegrdawkgmaewejlsfdtsrfybdehcaflmtrlbdhpamtantjooeadlncsdwykaeykaeykaocyemrewytyattantjooyadlslraewkadwklawkaycynlytsnyloytpcsjpiaishsjzjzihjtioihguiniojthsjykpjpihtpcshdcxjybnpepypttdhgiybamofyltbnykbdheflsbswkkeywlptzebsptgsqdjnetcffnoyadtpcsjpieihjkiajpinjojyjljpgmihjkjojljtjkihgugyhkfl"
+        let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlstpsotantjyoeadiojojeisdefzdydtaolytantjlonaxhdclaxwmfmdeiamecsdsemgtvsjzcncygrkowtrontzschgezokstswkkscfmklrtauteyaahdcxiehfonurdppfyntapejpproypegrdawkgmaewejlsfdtsrfybdehcaflmtrlbdhpamtantjooeadlncsdwykaeykaeykaocyemrewytyattantjooyadlslraewkadwklawkaycynlytsnyloytpsojpiaishsjzjzihjtioihguiniojthsjykpjpihtpsohdcxjybnpepypttdhgiybamofyltbnykbdheflsbswkkeywlptzebsptgsqdjnetcffnoyadtpsojpieihjkiajpinjojyjljpgmihjkjojljtjkihestloxje"
         XCTAssertEqual(ur.string, expectedURString)
 
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
