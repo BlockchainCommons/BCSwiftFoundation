@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import BCFoundation
 import WolfBase
 
@@ -52,7 +52,7 @@ fileprivate class Account {
     }
 }
 
-final class MultisigTests: XCTestCase {
+struct MultisigTests {
     func makeDescriptor(seed: Seed, outputType: AccountOutputType, accountIndex: Int, network: Network) throws -> String {
         let masterKey = try HDKey(seed: seed, useInfo: UseInfo(network: network))
         let descriptor = try outputType.accountDescriptor(masterKey: masterKey, network: network, account: UInt32(accountIndex))
@@ -68,7 +68,7 @@ final class MultisigTests: XCTestCase {
 //    Fawn:
 //    wpkh([f5d5473b/84h/1h/0h]tpubDDmMe9yuB5BWZXNmCDx9ByxrtasfgRLuVXhbD154dBGFBYGVCbC9MtLvMGZXfaG8WwFpZGNMrRWm8sHGuMsanh9ceFQJ5PDKH9rGJZbA1cs/<0;1>/*)#5kmtc5es
 
-    func testMultisig() throws {
+    @Test func testMultisig() throws {
         let aliceSource = "wpkh([55016b2f/84h/1h/0h]tpubDC8LiEDg3kCFJgZHhBSs6gY8WtpR1K3Y9rP3beDnR14tM5waXvgjYveW1Dmi6kr2LVdj8nPCu5myATRydoRFN2hGSwZ518rRg7KJirdAWmg/<0;1>/*)#w44vzfr8"
         let aliceDesc = try OutputDescriptor(aliceSource)
         print(aliceDesc)

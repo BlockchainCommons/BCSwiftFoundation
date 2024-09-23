@@ -5,14 +5,15 @@
 //  Created by Wolf McNally on 9/15/21.
 //
 
-import XCTest
+import Testing
 import BCFoundation
 import WolfBase
+import Foundation
 
-class EthereumTests: XCTestCase {
-    func testKeccak256() {
+struct EthereumTests {
+    @Test func testKeccak256() {
         func test(_ input: Data, _ expected: Data) {
-            XCTAssertEqual(input.keccak256, expected)
+            #expect(input.keccak256 == expected)
         }
         
         // Test vectors from: https://bob.nem.ninja/test-vectors.html

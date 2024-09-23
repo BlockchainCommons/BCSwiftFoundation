@@ -5,24 +5,24 @@
 //  Created by Wolf McNally on 9/3/21.
 //
 
-import XCTest
+import Testing
 @testable import BCFoundation
 
-class ScriptOpcodeTests: XCTestCase {
-    func testConversions() {
+struct ScriptOpcodeTests {
+    @Test func testConversions() {
         for op in ScriptOpcode.ops {
             let (symbol, name, rawValue) = op
-            XCTAssertEqual(symbol.rawValue, rawValue)
-            XCTAssertEqual(ScriptOpcode(rawValue: rawValue), symbol)
-            XCTAssertEqual(symbol.name, name)
-            XCTAssertEqual(ScriptOpcode(name: name), symbol)
+            #expect(symbol.rawValue == rawValue)
+            #expect(ScriptOpcode(rawValue: rawValue) == symbol)
+            #expect(symbol.name == name)
+            #expect(ScriptOpcode(name: name) == symbol)
         }
     }
     
-    func testAliases() {
-        XCTAssertEqual(ScriptOpcode(name: "op_false"), .op_0)
-        XCTAssertEqual(ScriptOpcode(name: "OP_TRUE"), .op_1)
-        XCTAssertEqual(ScriptOpcode(name: "OP_NOP2"), .op_checklocktimeverify)
-        XCTAssertEqual(ScriptOpcode(name: "OP_NOP3"), .op_checksequenceverify)
+    @Test func testAliases() {
+        #expect(ScriptOpcode(name: "op_false") == .op_0)
+        #expect(ScriptOpcode(name: "OP_TRUE") == .op_1)
+        #expect(ScriptOpcode(name: "OP_NOP2") == .op_checklocktimeverify)
+        #expect(ScriptOpcode(name: "OP_NOP3") == .op_checksequenceverify)
     }
 }

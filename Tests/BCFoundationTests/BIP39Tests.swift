@@ -7,81 +7,82 @@
 //  license, see the accompanying file LICENSE.md.
 //
 
-import XCTest
-@testable import BCFoundation
+import Testing
+import BCFoundation
 import WolfBase
+import Foundation
 
-class BIP39Tests: XCTestCase {
+struct BIP39Tests {
     let validMnemonic = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
     let validMnemonic24 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
 
-    func testGetWordList() {
+    @Test func testGetWordList() {
         // Check length
-        XCTAssertEqual(BIP39.allWords.count, 2048)
+        #expect(BIP39.allWords.count == 2048)
         
         // Check first word
-        XCTAssertEqual(BIP39.allWords.first, "abandon")
+        #expect(BIP39.allWords.first == "abandon")
     }
     
-    func testMnemonicIsValid() {
-        XCTAssertNotNil(BIP39(mnemonic: validMnemonic))
-        XCTAssertNil(BIP39(mnemonic: "notavalidword"))
-        XCTAssertNil(BIP39(mnemonic: "abandon"))
-        XCTAssertNil(BIP39(words: ["abandon", "abandon"]))
+    @Test func testMnemonicIsValid() {
+        #expect(BIP39(mnemonic: validMnemonic) != nil)
+        #expect(BIP39(mnemonic: "notavalidword") == nil)
+        #expect(BIP39(mnemonic: "abandon") == nil)
+        #expect(BIP39(words: ["abandon", "abandon"]) == nil)
     }
     
-    func testInitializeMnemonic() {
+    @Test func testInitializeMnemonic() {
         let mnemonic = BIP39(mnemonic: validMnemonic)!
-        XCTAssertEqual(mnemonic.words, validMnemonic.components(separatedBy: " "))
+        #expect(mnemonic.words == validMnemonic.components(separatedBy: " "))
     }
     
-    func testInitializeMnemonicFromBytes() {
+    @Test func testInitializeMnemonicFromBytes() {
         let bytes = [Int8](repeating: 0, count: 32)
         let entropy = Data(bytes: bytes, count: 32)
         let mnemonic = BIP39(data: entropy)!
-        XCTAssertEqual(mnemonic.words, validMnemonic24.components(separatedBy: " "))
+        #expect(mnemonic.words == validMnemonic24.components(separatedBy: " "))
     }
     
-    func testInitializeInvalidMnemonic() {
-        XCTAssertNil(BIP39(words: ["notavalidword"]))
+    @Test func testInitializeInvalidMnemonic() {
+        #expect(BIP39(words: ["notavalidword"]) == nil)
     }
     
-    func testMnemonicLosslessStringConvertible() {
+    @Test func testMnemonicLosslessStringConvertible() {
         let mnemonic = BIP39(mnemonic: validMnemonic)!
-        XCTAssertEqual(mnemonic†, validMnemonic)
+        #expect(mnemonic† == validMnemonic)
     }
     
-    func testMnemonicToEntropy() {
+    @Test func testMnemonicToEntropy() {
         let mnemonic = BIP39(mnemonic: validMnemonic)!
-        XCTAssertEqual(mnemonic.data, ‡"00000000000000000000000000000000")
+        #expect(mnemonic.data == ‡"00000000000000000000000000000000")
         let mnemonic2 = BIP39(mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow")!
-        XCTAssertEqual(mnemonic2.data, ‡"7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f")
+        #expect(mnemonic2.data == ‡"7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f")
     }
     
-    func testEntropyToMnemonic() {
+    @Test func testEntropyToMnemonic() {
         let expectedMnemonic = BIP39(mnemonic: "legal winner thank year wave sausage worth useful legal winner thank yellow")!
         let entropy = ‡"7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f"
         let mnemonic = BIP39(data: entropy)
-        XCTAssertEqual(mnemonic, expectedMnemonic)
+        #expect(mnemonic == expectedMnemonic)
     }
         
-    func testMnemonicToSeedHexString() {
+    @Test func testMnemonicToSeedHexString() {
         let bip39 = BIP39(mnemonic: validMnemonic)!
-        XCTAssertEqual(BIP39.Seed(bip39: bip39, passphrase: "TREZOR")†, "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04")
-        XCTAssertEqual(BIP39.Seed(bip39: bip39)†, "5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4")
-        XCTAssertEqual(BIP39.Seed(bip39: bip39, passphrase: "")†, "5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4")
+        #expect(BIP39.Seed(bip39: bip39, passphrase: "TREZOR")† == "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04")
+        #expect(BIP39.Seed(bip39: bip39)† == "5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4")
+        #expect(BIP39.Seed(bip39: bip39, passphrase: "")† == "5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4")
     }
     
-    func testSeedLosslessStringConvertible() {
+    @Test func testSeedLosslessStringConvertible() {
         let bip39 = BIP39(mnemonic: validMnemonic)!
         let expectedSeed = BIP39.Seed(bip39: bip39, passphrase: "TREZOR")
         let parsedSeed = BIP39.Seed(hex: "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04")!
-        XCTAssertEqual(parsedSeed, expectedSeed)
+        #expect(parsedSeed == expectedSeed)
     }
 
-    func testDecodeIncompleteMnemonicWords() throws {
+    @Test func testDecodeIncompleteMnemonicWords() throws {
         let mnemonic = "fly mule exce reso trea plun nose soda refl adul ramp plan"
         let bip39 = BIP39(mnemonic: mnemonic)!
-        XCTAssertEqual(bip39.description, "fly mule excess resource treat plunge nose soda reflect adult ramp planet")
+        #expect(bip39.description == "fly mule excess resource treat plunge nose soda reflect adult ramp planet")
     }
 }

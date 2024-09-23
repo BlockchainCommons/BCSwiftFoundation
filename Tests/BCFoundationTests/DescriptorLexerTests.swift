@@ -5,26 +5,26 @@
 //  Created by Wolf McNally on 8/31/21.
 //
 
-import XCTest
+import Testing
 @testable import BCFoundation
 
-class DescriptorLexerTests: XCTestCase {
-    func testLexDelimiters() {
-        try XCTAssertEqual(DescriptorLexer.debugLex("(){},"), "(openParen 0..<1), (closeParen 1..<2), (openBrace 2..<3), (closeBrace 3..<4), (comma 4..<5)")
+struct DescriptorLexerTests {
+    @Test func testLexDelimiters() throws {
+        try #expect(DescriptorLexer.debugLex("(){},") == "(openParen 0..<1), (closeParen 1..<2), (openBrace 2..<3), (closeBrace 3..<4), (comma 4..<5)")
     }
     
-    func testLexKeywords() {
-        try XCTAssertEqual(DescriptorLexer.debugLex("sh,wsh,pk,pkh,wpkh,combo,multi,sortedmulti,tr,addr,raw"), "(sh 0..<2), (comma 2..<3), (wsh 3..<6), (comma 6..<7), (pk 7..<9), (comma 9..<10), (pkh 10..<13), (comma 13..<14), (wpkh 14..<18), (comma 18..<19), (combo 19..<24), (comma 24..<25), (multi 25..<30), (comma 30..<31), (sortedmulti 31..<42), (comma 42..<43), (tr 43..<45), (comma 45..<46), (addr 46..<50), (comma 50..<51), (raw 51..<54)")
+    @Test func testLexKeywords() throws {
+        try #expect(DescriptorLexer.debugLex("sh,wsh,pk,pkh,wpkh,combo,multi,sortedmulti,tr,addr,raw") == "(sh 0..<2), (comma 2..<3), (wsh 3..<6), (comma 6..<7), (pk 7..<9), (comma 9..<10), (pkh 10..<13), (comma 13..<14), (wpkh 14..<18), (comma 18..<19), (combo 19..<24), (comma 24..<25), (multi 25..<30), (comma 30..<31), (sortedmulti 31..<42), (comma 42..<43), (tr 43..<45), (comma 45..<46), (addr 46..<50), (comma 50..<51), (raw 51..<54)")
     }
     
-    func testLexAddress() {
-        try XCTAssertEqual(DescriptorLexer.debugLex("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"), "(address 0..<34)")
-        try XCTAssertEqual(DescriptorLexer.debugLex("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"), "(address 0..<34)")
-        try XCTAssertEqual(DescriptorLexer.debugLex("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"), "(address 0..<42)")
+    @Test func testLexAddress() throws {
+        try #expect(DescriptorLexer.debugLex("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2") == "(address 0..<34)")
+        try #expect(DescriptorLexer.debugLex("3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy") == "(address 0..<34)")
+        try #expect(DescriptorLexer.debugLex("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq") == "(address 0..<42)")
     }
     
-    func testLexData() {
-        try XCTAssertEqual(DescriptorLexer.debugLex("00112233445566778899aabbccddeeff"), "(data 0..<32)")
+    @Test func testLexData() throws {
+        try #expect(DescriptorLexer.debugLex("00112233445566778899aabbccddeeff") == "(data 0..<32)")
     }
     
     // describes a P2PK output with the specified public key.
@@ -78,23 +78,23 @@ class DescriptorLexerTests: XCTestCase {
     // describes a P2TR output with the c6... x-only pubkey as internal key, and two script paths.
     let desc17 = "tr(c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5,{pk(fff97bd5755eeea420453a14355235d382f6472f8568a18b2f057a1460297556),pk(e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13)})"
     
-    func testLexDescriptors() {
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc1), "(pk 0..<2), (openParen 2..<3), (data 3..<69), (closeParen 69..<70)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc2), "(pkh 0..<3), (openParen 3..<4), (data 4..<70), (closeParen 70..<71)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc3), "(wpkh 0..<4), (openParen 4..<5), (data 5..<71), (closeParen 71..<72)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc4), "(sh 0..<2), (openParen 2..<3), (wpkh 3..<7), (openParen 7..<8), (data 8..<74), (closeParen 74..<75), (closeParen 75..<76)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc5), "(combo 0..<5), (openParen 5..<6), (data 6..<72), (closeParen 72..<73)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc6), "(sh 0..<2), (openParen 2..<3), (wsh 3..<6), (openParen 6..<7), (pkh 7..<10), (openParen 10..<11), (data 11..<77), (closeParen 77..<78), (closeParen 78..<79), (closeParen 79..<80)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc7), "(multi 0..<5), (openParen 5..<6), (int 6..<7), (comma 7..<8), (data 8..<74), (comma 74..<75), (data 75..<141), (closeParen 141..<142)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc8), "(sh 0..<2), (openParen 2..<3), (multi 3..<8), (openParen 8..<9), (int 9..<10), (comma 10..<11), (data 11..<77), (comma 77..<78), (data 78..<144), (closeParen 144..<145), (closeParen 145..<146)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc9), "(sh 0..<2), (openParen 2..<3), (sortedmulti 3..<14), (openParen 14..<15), (int 15..<16), (comma 16..<17), (data 17..<83), (comma 83..<84), (data 84..<150), (closeParen 150..<151), (closeParen 151..<152)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc10), "(wsh 0..<3), (openParen 3..<4), (multi 4..<9), (openParen 9..<10), (int 10..<11), (comma 11..<12), (data 12..<78), (comma 78..<79), (data 79..<145), (comma 145..<146), (data 146..<212), (closeParen 212..<213), (closeParen 213..<214)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc11), "(sh 0..<2), (openParen 2..<3), (wsh 3..<6), (openParen 6..<7), (multi 7..<12), (openParen 12..<13), (int 13..<14), (comma 14..<15), (data 15..<81), (comma 81..<82), (data 82..<148), (comma 148..<149), (data 149..<215), (closeParen 215..<216), (closeParen 216..<217), (closeParen 217..<218)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc12), "(pk 0..<2), (openParen 2..<3), (hdKey 3..<114), (closeParen 114..<115)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc13), "(pkh 0..<3), (openParen 3..<4), (hdKey 4..<115), (slash 115..<116), (int 116..<117), (slash 117..<118), (int 118..<119), (closeParen 119..<120)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc14), "(pkh 0..<3), (openParen 3..<4), (openBracket 4..<5), (data 5..<13), (slash 13..<14), (int 14..<16), (isHardened 16..<17), (slash 17..<18), (int 18..<19), (isHardened 19..<20), (slash 20..<21), (int 21..<22), (isHardened 22..<23), (closeBracket 23..<24), (hdKey 24..<135), (slash 135..<136), (int 136..<137), (slash 137..<138), (star 138..<139), (closeParen 139..<140)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc15), "(wsh 0..<3), (openParen 3..<4), (multi 4..<9), (openParen 9..<10), (int 10..<11), (comma 11..<12), (hdKey 12..<123), (slash 123..<124), (int 124..<125), (slash 125..<126), (int 126..<127), (slash 127..<128), (star 128..<129), (comma 129..<130), (hdKey 130..<241), (slash 241..<242), (int 242..<243), (slash 243..<244), (int 244..<245), (slash 245..<246), (star 246..<247), (closeParen 247..<248), (closeParen 248..<249)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc16), "(wsh 0..<3), (openParen 3..<4), (sortedmulti 4..<15), (openParen 15..<16), (int 16..<17), (comma 17..<18), (hdKey 18..<129), (slash 129..<130), (int 130..<131), (slash 131..<132), (int 132..<133), (slash 133..<134), (star 134..<135), (comma 135..<136), (hdKey 136..<247), (slash 247..<248), (int 248..<249), (slash 249..<250), (int 250..<251), (slash 251..<252), (star 252..<253), (closeParen 253..<254), (closeParen 254..<255)")
-        try XCTAssertEqual(DescriptorLexer.debugLex(desc17), "(tr 0..<2), (openParen 2..<3), (data 3..<67), (comma 67..<68), (openBrace 68..<69), (pk 69..<71), (openParen 71..<72), (data 72..<136), (closeParen 136..<137), (comma 137..<138), (pk 138..<140), (openParen 140..<141), (data 141..<205), (closeParen 205..<206), (closeBrace 206..<207), (closeParen 207..<208)")
+    @Test func testLexDescriptors() throws {
+        try #expect(DescriptorLexer.debugLex(desc1) == "(pk 0..<2), (openParen 2..<3), (data 3..<69), (closeParen 69..<70)")
+        try #expect(DescriptorLexer.debugLex(desc2) == "(pkh 0..<3), (openParen 3..<4), (data 4..<70), (closeParen 70..<71)")
+        try #expect(DescriptorLexer.debugLex(desc3) == "(wpkh 0..<4), (openParen 4..<5), (data 5..<71), (closeParen 71..<72)")
+        try #expect(DescriptorLexer.debugLex(desc4) == "(sh 0..<2), (openParen 2..<3), (wpkh 3..<7), (openParen 7..<8), (data 8..<74), (closeParen 74..<75), (closeParen 75..<76)")
+        try #expect(DescriptorLexer.debugLex(desc5) == "(combo 0..<5), (openParen 5..<6), (data 6..<72), (closeParen 72..<73)")
+        try #expect(DescriptorLexer.debugLex(desc6) == "(sh 0..<2), (openParen 2..<3), (wsh 3..<6), (openParen 6..<7), (pkh 7..<10), (openParen 10..<11), (data 11..<77), (closeParen 77..<78), (closeParen 78..<79), (closeParen 79..<80)")
+        try #expect(DescriptorLexer.debugLex(desc7) == "(multi 0..<5), (openParen 5..<6), (int 6..<7), (comma 7..<8), (data 8..<74), (comma 74..<75), (data 75..<141), (closeParen 141..<142)")
+        try #expect(DescriptorLexer.debugLex(desc8) == "(sh 0..<2), (openParen 2..<3), (multi 3..<8), (openParen 8..<9), (int 9..<10), (comma 10..<11), (data 11..<77), (comma 77..<78), (data 78..<144), (closeParen 144..<145), (closeParen 145..<146)")
+        try #expect(DescriptorLexer.debugLex(desc9) == "(sh 0..<2), (openParen 2..<3), (sortedmulti 3..<14), (openParen 14..<15), (int 15..<16), (comma 16..<17), (data 17..<83), (comma 83..<84), (data 84..<150), (closeParen 150..<151), (closeParen 151..<152)")
+        try #expect(DescriptorLexer.debugLex(desc10) == "(wsh 0..<3), (openParen 3..<4), (multi 4..<9), (openParen 9..<10), (int 10..<11), (comma 11..<12), (data 12..<78), (comma 78..<79), (data 79..<145), (comma 145..<146), (data 146..<212), (closeParen 212..<213), (closeParen 213..<214)")
+        try #expect(DescriptorLexer.debugLex(desc11) == "(sh 0..<2), (openParen 2..<3), (wsh 3..<6), (openParen 6..<7), (multi 7..<12), (openParen 12..<13), (int 13..<14), (comma 14..<15), (data 15..<81), (comma 81..<82), (data 82..<148), (comma 148..<149), (data 149..<215), (closeParen 215..<216), (closeParen 216..<217), (closeParen 217..<218)")
+        try #expect(DescriptorLexer.debugLex(desc12) == "(pk 0..<2), (openParen 2..<3), (hdKey 3..<114), (closeParen 114..<115)")
+        try #expect(DescriptorLexer.debugLex(desc13) == "(pkh 0..<3), (openParen 3..<4), (hdKey 4..<115), (slash 115..<116), (int 116..<117), (slash 117..<118), (int 118..<119), (closeParen 119..<120)")
+        try #expect(DescriptorLexer.debugLex(desc14) == "(pkh 0..<3), (openParen 3..<4), (openBracket 4..<5), (data 5..<13), (slash 13..<14), (int 14..<16), (isHardened 16..<17), (slash 17..<18), (int 18..<19), (isHardened 19..<20), (slash 20..<21), (int 21..<22), (isHardened 22..<23), (closeBracket 23..<24), (hdKey 24..<135), (slash 135..<136), (int 136..<137), (slash 137..<138), (star 138..<139), (closeParen 139..<140)")
+        try #expect(DescriptorLexer.debugLex(desc15) == "(wsh 0..<3), (openParen 3..<4), (multi 4..<9), (openParen 9..<10), (int 10..<11), (comma 11..<12), (hdKey 12..<123), (slash 123..<124), (int 124..<125), (slash 125..<126), (int 126..<127), (slash 127..<128), (star 128..<129), (comma 129..<130), (hdKey 130..<241), (slash 241..<242), (int 242..<243), (slash 243..<244), (int 244..<245), (slash 245..<246), (star 246..<247), (closeParen 247..<248), (closeParen 248..<249)")
+        try #expect(DescriptorLexer.debugLex(desc16) == "(wsh 0..<3), (openParen 3..<4), (sortedmulti 4..<15), (openParen 15..<16), (int 16..<17), (comma 17..<18), (hdKey 18..<129), (slash 129..<130), (int 130..<131), (slash 131..<132), (int 132..<133), (slash 133..<134), (star 134..<135), (comma 135..<136), (hdKey 136..<247), (slash 247..<248), (int 248..<249), (slash 249..<250), (int 250..<251), (slash 251..<252), (star 252..<253), (closeParen 253..<254), (closeParen 254..<255)")
+        try #expect(DescriptorLexer.debugLex(desc17) == "(tr 0..<2), (openParen 2..<3), (data 3..<67), (comma 67..<68), (openBrace 68..<69), (pk 69..<71), (openParen 71..<72), (data 72..<136), (closeParen 136..<137), (comma 137..<138), (pk 138..<140), (openParen 140..<141), (data 141..<205), (closeParen 205..<206), (closeBrace 206..<207), (closeParen 207..<208)")
     }
 }

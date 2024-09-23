@@ -5,19 +5,20 @@
 //  Created by Wolf McNally on 9/9/21.
 //
 
-import XCTest
+import Testing
 import BCFoundation
 import WolfBase
+import Foundation
 
-class VarIntTests: XCTestCase {
-    func testExample() throws {
+struct VarIntTests {
+    @Test func testExample() throws {
         func test(_ i: Int, _ hex: String) {
             let v = VarInt(i)!
             let h = v.serialized.hex
-            XCTAssertEqual(h, hex)
+            #expect(h == hex)
             let d = Data(hex: h)!
             let v2 = VarInt(d)!
-            XCTAssertEqual(v, v2)
+            #expect(v == v2)
         }
         test(0x12, "12")
         test(0x1234, "fd3412")

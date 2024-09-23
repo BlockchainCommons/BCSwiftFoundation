@@ -1,18 +1,18 @@
-import XCTest
+import Testing
 import BCFoundation
 import WolfBase
 
-class OutputDescriptorRequestTests: XCTestCase {
+struct OutputDescriptorRequestTests {
     let slotID = ARID()
     let useInfo = UseInfo(asset: .btc, network: .testnet)
     let challenge = secureRandomData(16)
     let accountNumber: UInt32 = 0
     
-    override func setUp() async throws {
+    init() async {
         await addKnownFunctionExtensions()
     }
     
-    func testOutputDescriptorRequest() throws {
+    @Test func testOutputDescriptorRequest() throws {
         let masterKey = try HDKey(seed: Seed(), useInfo: useInfo)
         let bundle = OutputDescriptorBundle(masterKey: masterKey, network: useInfo.network, account: accountNumber)!
         let request = makeRequest()

@@ -1,30 +1,30 @@
-import XCTest
+import Testing
 import BCFoundation
 import WolfBase
 
-class EnvelopeRequestTests: XCTestCase {
-    override func setUp() async throws {
+struct EnvelopeRequestTests {
+    init() async {
         await addKnownFunctionExtensions()
         await addKnownTags()
     }
 
-    func testUseInfo() throws {
+    @Test func testUseInfo() throws {
         let useInfo = UseInfo(asset: .btc, network: .mainnet)
         let envelope = useInfo.envelope
-        XCTAssertEqual(useInfo.envelope.format(), """
+        #expect(useInfo.envelope.format() == """
         'BTC' [
             'network': 'MainNet'
         ]
         """)
-        XCTAssertEqual(useInfo, try UseInfo(envelope: envelope))
+        #expect(try useInfo == UseInfo(envelope: envelope))
     }
     
-    func testHDKey() throws {
+    @Test func testHDKey() throws {
         let bip39Seed = BIP39.Seed(hex: "c55257c360c07c72029aebc1b53c05ed0362ada38ead3e3e9efa3708e53495531f09a6987599d18264c1e1c92f2cf141630c7a3c4ab7c81b2f001698e7463b04")!
         let masterKey = try HDKey(bip39Seed: bip39Seed)
         
         let masterEnvelope = masterKey.envelope
-        XCTAssertEqual(masterEnvelope.format(), """
+        #expect(masterEnvelope.format() == """
         Bytes(33) [
             'isA': 'BIP32Key'
             'isA': 'MasterKey'
@@ -36,7 +36,7 @@ class EnvelopeRequestTests: XCTestCase {
         ]
         """)
         let masterKey2 = try HDKey(envelope: masterEnvelope)
-        XCTAssertEqual(masterKey, masterKey2)
+        #expect(masterKey == masterKey2)
 
         let absolutePath = DerivationPath(string: "m/48h/0h/0h/2h/0/0")!
         var childKey = try HDKey(parent: masterKey, derivedKeyType: .public, childDerivationPath: absolutePath)
@@ -44,7 +44,7 @@ class EnvelopeRequestTests: XCTestCase {
         childKey.note = "This is the key note."
         
         let childEnvelope = childKey.envelope
-        XCTAssertEqual(childEnvelope.format(), """
+        #expect(childEnvelope.format() == """
         Bytes(33) [
             'isA': 'BIP32Key'
             'isA': 'PublicKey'
@@ -59,6 +59,6 @@ class EnvelopeRequestTests: XCTestCase {
         ]
         """)
         let childKey2 = try HDKey(envelope: childEnvelope)
-        XCTAssertEqual(childKey, childKey2)
+        #expect(childKey == childKey2)
     }
 }

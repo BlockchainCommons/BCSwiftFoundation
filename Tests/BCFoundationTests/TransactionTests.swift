@@ -6,47 +6,47 @@
 //  Copyright © 2019 Blockchain. Distributed under the MIT software
 //  license, see the accompanying file LICENSE.md
 
-import XCTest
+import Testing
 @testable import BCFoundation
 import WolfBase
 
-class TransactionTests: XCTestCase {
+struct TransactionTests {
     let scriptPubKey = ScriptPubKey(hex: "76a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac")!
     let pubKey = SecP256K1PublicKey(hex: "03501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c")!
 
-    func testFromHash() {
+    @Test func testFromHash() {
         let hash = ‡"0000000000000000000000000000000000000000000000000000000000000000"
         let txHash = TxHash(hash)!
-        XCTAssertEqual(txHash.data, hash)
+        #expect(txHash.data == hash)
 
-        XCTAssertNil(Transaction(hex: "00")) // Wrong length
+        #expect(Transaction(hex: "00") == nil) // Wrong length
     }
 
-    func testOutput() {
+    @Test func testOutput() {
         let output = TxOutput(scriptPubKey: scriptPubKey, amount: 1000)
-        XCTAssertNotNil(output)
-        XCTAssertEqual(output.amount, 1000)
-        XCTAssertEqual(output.scriptPubKey, scriptPubKey)
+        #expect(output != nil)
+        #expect(output.amount == 1000)
+        #expect(output.scriptPubKey == scriptPubKey)
     }
 
-    func testInput() {
+    @Test func testInput() {
         let prevTx = TxHash(‡"0000000000000000000000000000000000000000000000000000000000000000")!
         let vout: UInt32 = 0
         let amount: Satoshi = 1000
         let scriptSig = ScriptSig(type: .payToPubKeyHash(pubKey))
 
         let input = TxInput(prevTx: prevTx, vout: vout, amount: amount, sig: .scriptSig(scriptSig), scriptPubKey: scriptPubKey)
-        XCTAssertEqual(input.prevTx, prevTx)
-        XCTAssertEqual(input.vout, 0)
-        XCTAssertEqual(input.sequence, 0xFFFFFFFF)
+        #expect(input.prevTx == prevTx)
+        #expect(input.vout == 0)
+        #expect(input.sequence == 0xFFFFFFFF)
         guard case let .scriptSig(ss) = input.sig else {
             preconditionFailure()
         }
-        XCTAssertEqual(ss.type, scriptSig.type)
-        XCTAssertEqual(input.isSigned, false)
+        #expect(ss.type == scriptSig.type)
+        #expect(input.isSigned == false)
     }
 
-    func testComposeTransaction() {
+    @Test func testComposeTransaction() {
         // Input
         let prevTx = TxHash(‡"0000000000000000000000000000000000000000000000000000000000000000")!
         let vout: UInt32 = 0
@@ -60,20 +60,20 @@ class TransactionTests: XCTestCase {
         // Transaction
         let tx = Transaction(inputs: [txInput], outputs: [txOutput])
         let wtx = tx.tx!
-        XCTAssertEqual(wtx.version, 1)
-        XCTAssertEqual(wtx.inputsCount, 1)
-        XCTAssertEqual(wtx.outputsCount, 1)
+        #expect(wtx.version == 1)
+        #expect(wtx.inputsCount == 1)
+        #expect(wtx.outputsCount == 1)
     }
     
-    func testDeserialize() {
+    @Test func testDeserialize() {
         let hex = "01000000010000000000000000000000000000000000000000000000000000000000000000000000006a47304402203d274300310c06582d0186fc197106120c4838fa5d686fe3aa0478033c35b97802205379758b11b869ede2f5ab13a738493a93571268d66b2a875ae148625bd20578012103501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711cffffffff01e8030000000000001976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac00000000"
         let tx = Transaction(hex: hex)!
-        XCTAssertEqual(tx†, hex)
+        #expect(tx† == hex)
     }
     
 }
 
-class TransactionInstanceTests: XCTestCase {
+struct TransactionInstanceTests {
     let legacyInputBytes: Int = 192
     let nativeSegWitInputBytes: Int = 113
     let wrappedSegWitInputBytes: Int = 136
@@ -87,7 +87,7 @@ class TransactionInstanceTests: XCTestCase {
     var tx3: Transaction! = nil
     var hdKey: HDKey! = nil // private key for signing
     
-    override func setUp() {
+    init() {
         // Input (legacy P2PKH)
         let prevTx = TxHash(‡"0000000000000000000000000000000000000000000000000000000000000000")!
         let vout: UInt32 = 0
@@ -123,57 +123,57 @@ class TransactionInstanceTests: XCTestCase {
         hdKey = try! HDKey(base58: "xprv9wTYmMFdV23N2TdNG573QoEsfRrWKQgWeibmLntzniatZvR9BmLnvSxqu53Kw1UmYPxLgboyZQaXwTCg8MSY3H2EU4pWcQDnRnrVA1xe8fs")
     }
 
-    func testTotalIn() {
-        XCTAssertEqual(tx1.totalIn, 1000 + Satoshi(legacyInputBytes))
-        XCTAssertEqual(tx2.totalIn, 1000 + Satoshi(nativeSegWitInputBytes))
-        XCTAssertEqual(tx3.totalIn, 1000 + Satoshi(wrappedSegWitInputBytes))
+    @Test func testTotalIn() {
+        #expect(tx1.totalIn == 1000 + Satoshi(legacyInputBytes))
+        #expect(tx2.totalIn == 1000 + Satoshi(nativeSegWitInputBytes))
+        #expect(tx3.totalIn == 1000 + Satoshi(wrappedSegWitInputBytes))
     }
     
-    func testTotalOut() {
-        XCTAssertEqual(tx1.totalOut, 1000)
+    @Test func testTotalOut() {
+        #expect(tx1.totalOut == 1000)
     }
     
-    func testFunded() {
-        XCTAssertEqual(tx1.isFunded, true)
+    @Test func testFunded() {
+        #expect(tx1.isFunded == true)
     }
     
-    func testSize() {
-        XCTAssertEqual(tx1.vbytes, legacyInputBytes)
-        XCTAssertEqual(tx2.vbytes, nativeSegWitInputBytes)
-        XCTAssertEqual(tx3.vbytes, wrappedSegWitInputBytes)
+    @Test func testSize() {
+        #expect(tx1.vbytes == legacyInputBytes)
+        #expect(tx2.vbytes == nativeSegWitInputBytes)
+        #expect(tx3.vbytes == wrappedSegWitInputBytes)
     }
     
-    func testFee() {
-        XCTAssertEqual(tx1.fee, Satoshi(legacyInputBytes))
+    @Test func testFee() {
+        #expect(tx1.fee == Satoshi(legacyInputBytes))
     }
     
-    func testFeeRate() {
-        XCTAssertEqual(tx1.feeRate, 1.0)
-        XCTAssertEqual(tx2.feeRate, 1.0)
-        XCTAssertEqual(tx3.feeRate, 1.0)
+    @Test func testFeeRate() {
+        #expect(tx1.feeRate == 1.0)
+        #expect(tx2.feeRate == 1.0)
+        #expect(tx3.feeRate == 1.0)
     }
     
-    func testSign() {
+    @Test func testSign() {
         let signedTx = tx1.signed(with: [hdKey])!
-        XCTAssertTrue(signedTx.inputs![0].isSigned)
-        XCTAssertEqual(signedTx†, "01000000010000000000000000000000000000000000000000000000000000000000000000000000006a47304402203d274300310c06582d0186fc197106120c4838fa5d686fe3aa0478033c35b97802205379758b11b869ede2f5ab13a738493a93571268d66b2a875ae148625bd20578012103501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711cffffffff01e8030000000000001976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac00000000")
+        #expect(signedTx.inputs![0].isSigned)
+        #expect(signedTx† == "01000000010000000000000000000000000000000000000000000000000000000000000000000000006a47304402203d274300310c06582d0186fc197106120c4838fa5d686fe3aa0478033c35b97802205379758b11b869ede2f5ab13a738493a93571268d66b2a875ae148625bd20578012103501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711cffffffff01e8030000000000001976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac00000000")
 
-        XCTAssertEqual(signedTx.vbytes, legacyInputBytes - 1)
+        #expect(signedTx.vbytes == legacyInputBytes - 1)
     }
     
-    func testSignNativeSegWit() {
+    @Test func testSignNativeSegWit() {
         let signedTx = tx2.signed(with: [hdKey])!
-        XCTAssertTrue(signedTx.inputs![0].isSigned)
-        XCTAssertEqual(signedTx†, "0100000000010100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff01e8030000000000001976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac0247304402204094361e267c39fb942b3d30c6efb96de32ea0f81e87fc36c53e00de2c24555c022069f368ac9cacea21be7b5e7a7c1dad01aa244e437161d000408343a4d6f5da0e012103501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c00000000")
+        #expect(signedTx.inputs![0].isSigned)
+        #expect(signedTx† == "0100000000010100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff01e8030000000000001976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac0247304402204094361e267c39fb942b3d30c6efb96de32ea0f81e87fc36c53e00de2c24555c022069f368ac9cacea21be7b5e7a7c1dad01aa244e437161d000408343a4d6f5da0e012103501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c00000000")
 
-        XCTAssertEqual(signedTx.vbytes, nativeSegWitInputBytes)
+        #expect(signedTx.vbytes == nativeSegWitInputBytes)
     }
 
-    func testSignWrappedSegWit() {
+    @Test func testSignWrappedSegWit() {
         let signedTx = tx3.signed(with: [hdKey])!
-        XCTAssertTrue(signedTx.inputs![0].isSigned)
-        XCTAssertEqual(signedTx†, "0100000000010100000000000000000000000000000000000000000000000000000000000000000000000017160014bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbeffffffff01e8030000000000001976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac024730440220514e02e6d4aff5e1bfcf72a98eab3a415176c757e2bf6feb7ccb893f8ffcf09b022048fe33e6a1dc80585f30aac20f58442d711739ac07d192a3a7867a1dbef6b38d012103501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c00000000")
+        #expect(signedTx.inputs![0].isSigned)
+        #expect(signedTx† == "0100000000010100000000000000000000000000000000000000000000000000000000000000000000000017160014bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbeffffffff01e8030000000000001976a914bef5a2f9a56a94aab12459f72ad9cf8cf19c7bbe88ac024730440220514e02e6d4aff5e1bfcf72a98eab3a415176c757e2bf6feb7ccb893f8ffcf09b022048fe33e6a1dc80585f30aac20f58442d711739ac07d192a3a7867a1dbef6b38d012103501e454bf00751f24b1b489aa925215d66af2234e3891c3b21a52bedb3cd711c00000000")
 
-        XCTAssertEqual(signedTx.vbytes, wrappedSegWitInputBytes)
+        #expect(signedTx.vbytes == wrappedSegWitInputBytes)
     }
 }

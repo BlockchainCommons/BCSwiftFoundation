@@ -1,10 +1,10 @@
-import XCTest
+import Testing
 import BCFoundation
 import WolfBase
 import Foundation
 import Dispatch
 
-class RequestTests: XCTestCase {
+struct RequestTests {
     static let mnemonic = "fly mule excess resource treat plunge nose soda reflect adult ramp planet"
     static let seed = Seed(bip39: BIP39(mnemonic: mnemonic)!)
     static let id = ARID(‡"c66be27dbad7cd095ca77647406d07976dc0f35f0d4d654bb0e96dd227a1e9fc")!
@@ -15,17 +15,17 @@ class RequestTests: XCTestCase {
 
     static let validPSBT = PSBT(base64: "cHNidP8BAHUCAAAAASaBcTce3/KF6Tet7qSze3gADAVmy7OtZGQXE8pCFxv2AAAAAAD+////AtPf9QUAAAAAGXapFNDFmQPFusKGh2DpD9UhpGZap2UgiKwA4fUFAAAAABepFDVF5uM7gyxHBQ8k0+65PJwDlIvHh7MuEwAAAQD9pQEBAAAAAAECiaPHHqtNIOA3G7ukzGmPopXJRjr6Ljl/hTPMti+VZ+UBAAAAFxYAFL4Y0VKpsBIDna89p95PUzSe7LmF/////4b4qkOnHf8USIk6UwpyN+9rRgi7st0tAXHmOuxqSJC0AQAAABcWABT+Pp7xp0XpdNkCxDVZQ6vLNL1TU/////8CAMLrCwAAAAAZdqkUhc/xCX/Z4Ai7NK9wnGIZeziXikiIrHL++E4sAAAAF6kUM5cluiHv1irHU6m80GfWx6ajnQWHAkcwRAIgJxK+IuAnDzlPVoMR3HyppolwuAJf3TskAinwf4pfOiQCIAGLONfc0xTnNMkna9b7QPZzMlvEuqFEyADS8vAtsnZcASED0uFWdJQbrUqZY3LLh+GFbTZSYG2YVi/jnF6efkE/IQUCSDBFAiEA0SuFLYXc2WHS9fSrZgZU327tzHlMDDPOXMMJ/7X85Y0CIGczio4OFyXBl/saiK9Z9R5E5CVbIBZ8hoQDHAXR8lkqASECI7cr7vCWXRC+B3jv7NYfysb3mk6haTkzgHNEZPhPKrMAAAAAAAAA")!
     
-    override func setUp() async throws {
+    init() async {
         await addKnownFunctionExtensions()
         await addKnownTags()
     }
 
-    func testSeedRequest() throws {
+    @Test func testSeedRequest() throws {
         let body = try SeedRequestBody(seedDigest: Self.seed.identityDigest)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
         let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpsoieghihjkjyoycsielftpsotansfgcsieoytpsotansflcssptpsotansfphdcxzmoycylumhmdgwspnyvadaktnsoycwmyaodihgftdllugltphlmtutytadosdwwdcsfxhfih"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
         
         let expectedFormat = """
         request(ARID(c66be27d)) [
@@ -36,16 +36,16 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
-        XCTAssertEqual(request2, request)
+        #expect(request2 == request)
     }
     
-    func testSeedResponse() throws {
+    @Test func testSeedResponse() throws {
         let response = TransactionResponse(id: Self.id, result: Self.seed)
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), """
+        #expect(envelope.format() == """
         response(ARID(c66be27d)) [
             'result': Bytes(16) [
                 'isA': 'Seed'
@@ -54,20 +54,20 @@ class RequestTests: XCTestCase {
         """)
         let ur = envelope.ur
         let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlftpsogdhkwzdtfthptokigtvwnnjsqzcxknsktdoyadcsspinbseyad"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
         
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
-        XCTAssertEqual(response2, response)
+        #expect(response2 == response)
     }
     
-    func testKeyRequest() throws {
+    @Test func testKeyRequest() throws {
         let path = DerivationPath(string: "\(Self.masterKeyFingerprint)/48'/0'/0'/2'")!
         let useInfo = UseInfo(asset: .btc, network: .testnet)
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: useInfo)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
         let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpsotansfgcsihoytpsotansflcssblfcfaddpoycfadmhcfadmooytpsotansflcssotpsotantjooeadlocsdyykaeykaeykaoykaocyhngrmuwzoyaatpsoieghihjkjysbspbegs"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
         
         let expectedFormat = """
         request(ARID(c66be27d)) [
@@ -81,13 +81,13 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
-        XCTAssertEqual(request2, request)
+        #expect(request2 == request)
     }
     
-    func testKeyResponse() throws {
+    @Test func testKeyResponse() throws {
         let path = DerivationPath(string: "\(Self.masterKeyFingerprint)/48'/0'/0'/2'")!
         let useInfo = UseInfo(asset: .btc, network: .testnet)
         let masterKey = try HDKey(seed: Self.seed, useInfo: useInfo)
@@ -109,23 +109,23 @@ class RequestTests: XCTestCase {
             ]
         ]
         """
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let ur = envelope.ur
         let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlttpsohdclaevytktyhkfthkglbyzehflpenbsfxbkvlvyghtsondrzeskswvoclemaswtzodlhnoycfadyktpsohdcxlejtimcnrlbtdemdoereyaqzprkpndbdgwfzflqdbzkohgzobycxcnvabaosbglfoycfaddwlfcfaddpoycfadmhcfadmooycfadyttpsocynewncnlboyadcfadwkoycfadyltpsotantjootadlocsdyykaeykaeykaoykaocyhngrmuwzaxaaoyadcssornprtbmo"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
 
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
-        XCTAssertEqual(response2, response)
+        #expect(response2 == response)
     }
     
-    func testDerivationRequest() throws {
+    @Test func testDerivationRequest() throws {
         let path = DerivationPath(string: "48'/0'/0'/2'")!
         let body = KeyRequestBody(keyType: .private, path: path, useInfo: .init(asset: .btc, network: .testnet))
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
         let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielstpsotansfgcsihoytpsotansflcssblfcfaddpoycfadmhcfadmooytpsotansflcssotpsotantjooyadlocsdyykaeykaeykaoykoyaatpsoieghihjkjytaktaytl"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
 
         let expectedFormat = """
         request(ARID(c66be27d)) [
@@ -139,18 +139,18 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
-        XCTAssertEqual(request2, request)
+        #expect(request2 == request)
     }
     
-    func testPSBTSigningRequest() throws {
+    @Test func testPSBTSigningRequest() throws {
         let body = PSBTSignatureRequestBody(psbt: Self.validPSBT)
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
         let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsielftpsotansfgcsiyoytpsotansflcssnlftpsohkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzsoyaatpsoieghihjkjynsoyltfd"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
 
         let expectedFormat = """
         request(ARID(c66be27d)) [
@@ -163,13 +163,13 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
-        XCTAssertEqual(request2, request)
+        #expect(request2 == request)
     }
     
-    func testPSBTResponse() throws {
+    @Test func testPSBTResponse() throws {
         let response = TransactionResponse(id: Self.id, result: Self.validPSBT)
 
         let expectedFormat = """
@@ -180,23 +180,23 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let ur = envelope.ur
         let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlftpsohkaodnjojkidjyzmadaekpaoaeaeaeaddslyjsemckurwzlpwlempmwyoxqdkgksaebnahiysbqdpmieiechbwsgfwchcwynaeaeaeaeaezezmzmzmaoteurykahaeaeaeaecfkoptbbtisknlaxskrdsalnlthnwlbstlcloxiyhtosihcxlopsaevyykahaeaeaeaechptbbecfevavlfrlsdwflahbsdktewyrhfnnsaxmwlustltqddmbwaeaeadaezconadadaeaeaeaeadaoldotstckpygtcxvtemcwrkoxsfinmyoemdsofgftzsdmeslblpeosfrpdlmdiovwadaeaeaechcmaebbrncsttgmptpfbgaxntpefsosuegwgueennwprhlpzmzmzmzmlnyapkfxoscazmbbfdldftgubkjpemwsjefgayrkprutdpadjsvaftwpimfdmhqzadaeaeaechcmaebbzefmnnwnosfewljytaaossechkfxpysbeeryguguzmzmzmzmaoaesawmbdaeaeaeaecfkoptbblptkwnaslbtavtayrkeepejonsidcfkgetmslefdlopsjpzeyagldwaeaeaechptbbeomsdardclwstbdrstguptrftiiotbstolotntahltaofldyfyaocxdibgrncpvtdibsesgwhflsbyuokeptolldjoroaoheutfrdkaodtwtlbleheftdkaocxadluettsuotebbvdeesodijetbzofzynjkeyhpssrdoyfyspaetdwzwtdpprkohhadclaxtdvyhfjymwcwpmgenliajpsbltvylpjnengmhnjnmkhfdlvlnshynnkbfpfhclahaofddyfeaoclaettdnlpdplpuotahstdykwkpyiyamghurjtwesfkkgsbneotohhsraszmreztvwlgaocxioeolemnbachdasemszocylopehkykckfyvedahpcxcmkelnlraxceahttwzhkdradclaocnrldnwywtmthlbernatkswswptbctsgswylnygloyineseolajkfyieyagwdrqdaeaeaeaeaeaeaeoyadcfadzsayrhoxdr"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
 
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
-        XCTAssertEqual(response2, response)
+        #expect(response2 == response)
     }
     
-    func testOutputDescriptorRequest() throws {
+    @Test func testOutputDescriptorRequest() throws {
         let useInfo = UseInfo(asset: .btc, network: .testnet)
         let body = OutputDescriptorRequestBody(name: "Name", useInfo: useInfo, challenge: ‡"fcb2fc04b4e352dd10cfe6bc90fe80a8")
         let request = TransactionRequest(id: Self.id, body: body, note: Self.note)
         let ur = request.ur
         let expectedURString = "ur:envelope/lstpsotansfytansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoyaatpsoieghihjkjyoycsielrtpsotansfgcsiooytpsotansflcstktpsogdztprztaaqzvlgmutbetkvarfmhzelapdoytpsotansflcssblfcfaddpoycfadmhcfadmooytpsotansflcstotpsoieglhsjnihaxmkswtn"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
 
         let expectedFormat = """
         request(ARID(c66be27d)) [
@@ -211,13 +211,13 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try request.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let request2 = try TransactionRequest(ur: ur)
-        XCTAssertEqual(request2, request)
+        #expect(request2 == request)
     }
     
-    func testOutputDescriptorResponse() throws {
+    @Test func testOutputDescriptorResponse() throws {
         let outputDescriptor = try OutputDescriptor("pkh([37b5eed4/44'/0'/0']xpub6CnQkivUEH9bSbWVWfDLCtigKKgnSWGaVSRyCbN2QNBJzuvHT1vUQpgSpY1NiVvoeNEuVwk748Cn9G3NtbQB1aGGsEL7aYEnjVWgjj9tefu/<0;1>/*)")
         let challengeSignature = ‡"740cafaba9d257660e9244870cf50b5f47cbc67932e9a9fe0fa94cb36d38193c"
         let result = OutputDescriptorResponseBody(descriptor: outputDescriptor, challengeSignature: challengeSignature)
@@ -232,13 +232,13 @@ class RequestTests: XCTestCase {
         ]
         """
         let envelope = try response.envelope.checkEncoding()
-        XCTAssertEqual(envelope.format(), expectedFormat)
+        #expect(envelope.format() == expectedFormat)
 
         let ur = envelope.ur
         let expectedURString = "ur:envelope/lftpsotansfetansgshdcxswjevokirdtssnashhoskoflfzjnatmsjnrtwfhebtgtihgrpfwljntddioywlztoycsihlstpsotantjyoeadiojojeisdefzdydtaolytantjlonaxhdclaxwmfmdeiamecsdsemgtvsjzcncygrkowtrontzschgezokstswkkscfmklrtauteyaahdcxiehfonurdppfyntapejpproypegrdawkgmaewejlsfdtsrfybdehcaflmtrlbdhpamtantjooeadlncsdwykaeykaeykaocyemrewytyattantjooyadlslraewkadwklawkaycynlytsnyloytpsojpiaishsjzjzihjtioihguiniojthsjykpjpihtpsohdcxjybnpepypttdhgiybamofyltbnykbdheflsbswkkeywlptzebsptgsqdjnetcffnoyadtpsojpieihjkiajpinjojyjljpgmihjkjojljtjkihestloxje"
-        XCTAssertEqual(ur.string, expectedURString)
+        #expect(ur.string == expectedURString)
 
         let response2 = try TransactionResponse(envelope: Envelope(ur: ur))
-        XCTAssertEqual(response2, response)
+        #expect(response2 == response)
     }
 }

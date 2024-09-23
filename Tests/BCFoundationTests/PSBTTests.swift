@@ -6,11 +6,12 @@
 //  Copyright © 2019 Sjors Provoost. Distributed under the MIT software
 //  license, see the accompanying file LICENSE.md
 
-import XCTest
+import Testing
 @testable import BCFoundation
 import WolfBase
+import Foundation
 
-class PSBTTests: XCTestCase {
+struct PSBTTests {
     // Test vectors from https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
     let fingerprint: UInt32 = 0xd90c6a4f
     
@@ -75,52 +76,52 @@ class PSBTTests: XCTestCase {
     let changeIndex1000000 = "cHNidP8BAH0CAAAAAUJTCRglAyBzBJKy8g6IQZOs6mW/TAcZQBAwZ1+0nIM2AAAAAAD9////AugDAAAAAAAAFgAUxApiC28xlkoElpFHO7bKYqYhMtIDCwAAAAAAACIAIJdT/Bk+sg3L4UXNnCMQ+76c531xAF4pGWkhztn4evpsIkwJAAABASugDwAAAAAAACIAINkgGp1aRfy8enO5o0VdsS/eT62HjtZKvshETZ7kOaAWAQVHUiEDETn001bzEb3a06Rp/qTGLwiwf+/AXPzyvKqiGMIINXYhA1G/4MxB1s6iMX4VonLVkPjrJOV4kZUAs1iMyPtMR3ddUq4iBgMROfTTVvMRvdrTpGn+pMYvCLB/78Bc/PK8qqIYwgg1dhy9Fr7lMAAAgAAAAIAAAACAAgAAgAEAAAACAAAAIgYDUb/gzEHWzqIxfhWictWQ+Osk5XiRlQCzWIzI+0xHd10cNEIZPjAAAIAAAACAAAAAgAIAAIABAAAAAgAAAAAAAQFHUiEC1/v7nPnBRo1jlhIyjJPwMaBdjZhiYYVxQu52lLXNDeAhA4NzKqUnt/XjzyTC7BzuKiGV96QPVF151rJuX4ZV59vNUq4iAgLX+/uc+cFGjWOWEjKMk/AxoF2NmGJhhXFC7naUtc0N4Bw0Qhk+MAAAgAAAAIAAAACAAgAAgAEAAABAQg8AIgIDg3MqpSe39ePPJMLsHO4qIZX3pA9UXXnWsm5fhlXn280cvRa+5TAAAIAAAACAAAAAgAIAAIABAAAAQEIPAAA="
     
     func testInvalidPSBT(_ psbt: String) {
-        XCTAssertNil(PSBT(base64: psbt))
+        #expect(PSBT(base64: psbt) == nil)
     }
     
-    func testParseTooShortPSBT() {
+    @Test func testParseTooShortPSBT() {
         testInvalidPSBT("")
     }
     
-    func testInvalidCharacters() {
+    @Test func testInvalidCharacters() {
         testInvalidPSBT("💩")
     }
 
-    func testParseBase64() {
+    @Test func testParseBase64() {
         let psbt = PSBT(base64: validPSBT)!
-        XCTAssertEqual(psbt†, validPSBT)
+        #expect(psbt† == validPSBT)
     }
     
-    func testParseBinary() {
+    @Test func testParseBinary() {
         let psbtData = Data(base64Encoded: validPSBT)!
         let psbt = PSBT(psbtData)!
-        XCTAssertEqual(psbt†, validPSBT)
-        XCTAssertEqual(psbt.data, psbtData)
+        #expect(psbt† == validPSBT)
+        #expect(psbt.data == psbtData)
     }
     
-    func testInvalidPSBT() {
+    @Test func testInvalidPSBT() {
     testInvalidPSBT("AgAAAAEmgXE3Ht/yhek3re6ks3t4AAwFZsuzrWRkFxPKQhcb9gAAAABqRzBEAiBwsiRRI+a/R01gxbUMBD1MaRpdJDXwmjSnZiqdwlF5CgIgATKcqdrPKAvfMHQOwDkEIkIsgctFg5RXrrdvwS7dlbMBIQJlfRGNM1e44PTCzUbbezn22cONmnCry5st5dyNv+TOMf7///8C09/1BQAAAAAZdqkU0MWZA8W6woaHYOkP1SGkZlqnZSCIrADh9QUAAAAAF6kUNUXm4zuDLEcFDyTT7rk8nAOUi8eHsy4TAA==")
     }
     
-    func testComplete() {
+    @Test func testComplete() {
         let incompletePSBT = PSBT(base64: validPSBT)!
         let completePSBT = PSBT(base64: finalizedPSBT)!
-        XCTAssertFalse(incompletePSBT.isFinalized)
-        XCTAssertFalse(PSBT(base64: unsignedPSBT)!.isFinalized)
-        XCTAssertFalse(PSBT(base64: signedPSBT_0_2)!.isFinalized)
-        XCTAssertTrue(completePSBT.isFinalized)
+        #expect(!incompletePSBT.isFinalized)
+        #expect(!PSBT(base64: unsignedPSBT)!.isFinalized)
+        #expect(!PSBT(base64: signedPSBT_0_2)!.isFinalized)
+        #expect(completePSBT.isFinalized)
     }
     
-    func testExtractTransaction() {
+    @Test func testExtractTransaction() {
         let incompletePSBT = PSBT(base64: validPSBT)!
-        XCTAssertNil(incompletePSBT.finalizedTransaction())
+        #expect(incompletePSBT.finalizedTransaction() == nil)
         
         let completePSBT = PSBT(base64: finalizedPSBT)!
         let transaction = completePSBT.finalizedTransaction()!
-        XCTAssertEqual(transaction†, "0200000000010258e87a21b56daf0c23be8e7070456c336f7cbaa5c8757924f545887bb2abdd7500000000da00473044022074018ad4180097b873323c0015720b3684cc8123891048e7dbcd9b55ad679c99022073d369b740e3eb53dcefa33823c8070514ca55a7dd9544f157c167913261118c01483045022100f61038b308dc1da865a34852746f015772934208c6d24454393cd99bdf2217770220056e675a675a6d0a02b85b14e5e29074d8a25a9b5760bea2816f661910a006ea01475221029583bf39ae0a609747ad199addd634fa6108559d6c5cd39b4c2183f1ab96e07f2102dab61ff49a14db6a7d02b0cd1fbb78fc4b18312b5b4e54dae4dba2fbfef536d752aeffffffff838d0427d0ec650a68aa46bb0b098aea4422c071b2ca78352a077959d07cea1d01000000232200208c2353173743b595dfb4a07b72ba8e42e3797da74e87fe7d9d7497e3b2028903ffffffff0270aaf00800000000160014d85c2b71d0060b09c9886aeb815e50991dda124d00e1f5050000000016001400aea9a2e5f0f876a588df5546e8742d1d87008f000400473044022062eb7a556107a7c73f45ac4ab5a1dddf6f7075fb1275969a7f383efff784bcb202200c05dbb7470dbf2f08557dd356c7325c1ed30913e996cd3840945db12228da5f01473044022065f45ba5998b59a27ffe1a7bed016af1f1f90d54b3aa8f7450aa5f56a25103bd02207f724703ad1edb96680b284b56d4ffcb88f7fb759eabbe08aa30f29b851383d20147522103089dc10c7ac6db54f91329af617333db388cead0c231f723379d1b99030b02dc21023add904f3d6dcf59ddb906b0dee23529b7ffb9ed50e5e86151926860221f0e7352ae00000000")
+        #expect(transaction† == "0200000000010258e87a21b56daf0c23be8e7070456c336f7cbaa5c8757924f545887bb2abdd7500000000da00473044022074018ad4180097b873323c0015720b3684cc8123891048e7dbcd9b55ad679c99022073d369b740e3eb53dcefa33823c8070514ca55a7dd9544f157c167913261118c01483045022100f61038b308dc1da865a34852746f015772934208c6d24454393cd99bdf2217770220056e675a675a6d0a02b85b14e5e29074d8a25a9b5760bea2816f661910a006ea01475221029583bf39ae0a609747ad199addd634fa6108559d6c5cd39b4c2183f1ab96e07f2102dab61ff49a14db6a7d02b0cd1fbb78fc4b18312b5b4e54dae4dba2fbfef536d752aeffffffff838d0427d0ec650a68aa46bb0b098aea4422c071b2ca78352a077959d07cea1d01000000232200208c2353173743b595dfb4a07b72ba8e42e3797da74e87fe7d9d7497e3b2028903ffffffff0270aaf00800000000160014d85c2b71d0060b09c9886aeb815e50991dda124d00e1f5050000000016001400aea9a2e5f0f876a588df5546e8742d1d87008f000400473044022062eb7a556107a7c73f45ac4ab5a1dddf6f7075fb1275969a7f383efff784bcb202200c05dbb7470dbf2f08557dd356c7325c1ed30913e996cd3840945db12228da5f01473044022065f45ba5998b59a27ffe1a7bed016af1f1f90d54b3aa8f7450aa5f56a25103bd02207f724703ad1edb96680b284b56d4ffcb88f7fb759eabbe08aa30f29b851383d20147522103089dc10c7ac6db54f91329af617333db388cead0c231f723379d1b99030b02dc21023add904f3d6dcf59ddb906b0dee23529b7ffb9ed50e5e86151926860221f0e7352ae00000000")
     }
     
-    func testSignWithKey() {
+    @Test func testSignWithKey() {
         let privKey0 = WIF(WIF_0)!.key
         let privKey1 = WIF(WIF_1)!.key
         let privKey2 = WIF(WIF_2)!.key
@@ -131,23 +132,23 @@ class PSBTTests: XCTestCase {
         let expectedPSBT_1_3 = PSBT(base64: signedPSBT_1_3)!
 
         let p102 = psbt1.signed(with: privKey0)!.signed(with: privKey2)!
-        XCTAssertEqual(p102†, expectedPSBT_0_2†)
+        #expect(p102† == expectedPSBT_0_2†)
 
         let p213 = psbt2.signed(with: privKey1)!.signed(with: privKey3)!
-        XCTAssertEqual(p213†, expectedPSBT_1_3†)
+        #expect(p213† == expectedPSBT_1_3†)
     }
     
-    func testInputs() {
+    @Test func testInputs() {
         let psbt = PSBT(base64: unsignedPSBT)!
-        XCTAssertEqual(psbt.inputs.count, 2)
+        #expect(psbt.inputs.count == 2)
     }
     
-    func testOutput() {
+    @Test func testOutput() {
         let psbt = PSBT(base64: unsignedPSBT)!
-        XCTAssertEqual(psbt.outputs.count, 2)
+        #expect(psbt.outputs.count == 2)
     }
     
-    func testKeyPaths() {
+    @Test func testKeyPaths() {
         let expectedOrigin0 = DerivationPath(steps: path0.steps, origin: .fingerprint(fingerprint))
         let expectedOrigin1 = DerivationPath(steps: path1.steps, origin: .fingerprint(fingerprint))
         let expectedOrigin2 = DerivationPath(steps: path2.steps, origin: .fingerprint(fingerprint))
@@ -156,60 +157,60 @@ class PSBTTests: XCTestCase {
         let expectedOrigin5 = DerivationPath(steps: path5.steps, origin: .fingerprint(fingerprint))
         let psbt = PSBT(base64: unsignedPSBT)!
         // Check inputs
-        XCTAssertEqual(psbt.inputs.count, 2)
+        #expect(psbt.inputs.count == 2)
         let inOrigins0 = psbt.inputs[0].origins
-        XCTAssertEqual(inOrigins0.count, 2)
-        XCTAssertEqual(inOrigins0.first(where: {$0.key == pubKey0})!.path, expectedOrigin0)
-        XCTAssertEqual(inOrigins0.first(where: {$0.key == pubKey1})!.path, expectedOrigin1)
+        #expect(inOrigins0.count == 2)
+        #expect(inOrigins0.first(where: {$0.key == pubKey0})!.path == expectedOrigin0)
+        #expect(inOrigins0.first(where: {$0.key == pubKey1})!.path == expectedOrigin1)
         let inOrigins1 = psbt.inputs[1].origins
-        XCTAssertEqual(inOrigins1.count, 2)
-        XCTAssertEqual(inOrigins1.first(where: {$0.key == pubKey3})!.path, expectedOrigin3)
-        XCTAssertEqual(inOrigins1.first(where: {$0.key == pubKey2})!.path, expectedOrigin2)
+        #expect(inOrigins1.count == 2)
+        #expect(inOrigins1.first(where: {$0.key == pubKey3})!.path == expectedOrigin3)
+        #expect(inOrigins1.first(where: {$0.key == pubKey2})!.path == expectedOrigin2)
         // Check outputs
-        XCTAssertEqual(psbt.outputs.count, 2)
+        #expect(psbt.outputs.count == 2)
         let outOrigins0 = psbt.outputs[0].origins
-        XCTAssertEqual(outOrigins0.count, 1)
-        XCTAssertEqual(outOrigins0.first(where: {$0.key == pubKey4})!.path, expectedOrigin4)
+        #expect(outOrigins0.count == 1)
+        #expect(outOrigins0.first(where: {$0.key == pubKey4})!.path == expectedOrigin4)
         let outOrigins1 = psbt.outputs[1].origins
-        XCTAssertEqual(outOrigins1.count, 1)
-        XCTAssertEqual(outOrigins1.first(where: {$0.key == pubKey5})!.path, expectedOrigin5)
+        #expect(outOrigins1.count == 1)
+        #expect(outOrigins1.first(where: {$0.key == pubKey5})!.path == expectedOrigin5)
     }
    
-    func testCanSign() throws {
+    @Test func testCanSign() throws {
         let masterKey = try HDKey(base58: masterKeyXpriv)
         let psbt = PSBT(base64: unsignedPSBT)!
         for input in psbt.inputs {
-            XCTAssertTrue(input.canSign(with: masterKey))
+            #expect(input.canSign(with: masterKey))
         }
     }
 
-    func testFinalize() {
+    @Test func testFinalize() {
         let psbt = PSBT(base64: signedPSBT)!
         let expected = PSBT(base64: finalizedPSBT)!
         let finalized = psbt.finalized()!
-        XCTAssertEqual(finalized, expected)
+        #expect(finalized == expected)
     }
     
-    func testSignWithHDKey() throws {
+    @Test func testSignWithHDKey() throws {
         let psbt = PSBT(base64: unsignedPSBT)!
         let masterKey = try HDKey(base58: masterKeyXpriv)
         let signed = psbt.signed(with: masterKey)!
         let finalized = signed.finalized()!
-        XCTAssertTrue(finalized.isFinalized)
+        #expect(finalized.isFinalized)
     }
     
     // In the previous example all inputs were part of the same BIP32 master key.
     // In this example we sign with seperate keys, more representative of a real
     // setup with multiple wallets.
-    func testCanSignNeutered() throws {
+    @Test func testCanSignNeutered() throws {
         let us = try HDKey(base58: "xpub6E64WfdQwBGz85XhbZryr9gUGUPBgoSu5WV6tJWpzAvgAmpVpdPHkT3XYm9R5J6MeWzvLQoz4q845taC9Q28XutbptxAmg7q8QPkjvTL4oi", overrideOriginFingerprint: 0x3442193e)
         let psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
         for input in psbt.inputs {
-            XCTAssertTrue(input.canSign(with: us))
+            #expect(input.canSign(with: us))
         }
     }
     
-    func testSignRealMultisigWithHDKey() throws {
+    @Test func testSignRealMultisigWithHDKey() throws {
         let keySigner1 = try HDKey(base58: master1)
         let keySigner2 = try HDKey(base58: master2)
         let psbtWithoutChange = PSBT(base64: multiUnsignedPSBTWithoutChange)!
@@ -217,68 +218,68 @@ class PSBTTests: XCTestCase {
         
         let psbtWithoutChangedSigned = psbtWithoutChange.signed(with: keySigner1)!.signed(with: keySigner2)!
         let psbtWithoutChangedFinalized = psbtWithoutChangedSigned.finalized()!
-        XCTAssertTrue(psbtWithoutChangedFinalized.isFinalized)
-        XCTAssertEqual(psbtWithoutChangedFinalized.finalizedTransaction()†, multiPSBTWithoutChangeHex)
+        #expect(psbtWithoutChangedFinalized.isFinalized)
+        #expect(psbtWithoutChangedFinalized.finalizedTransaction()† == multiPSBTWithoutChangeHex)
 
         let psbtWithChangeSigned = psbtWithChange.signed(with: keySigner1)!.signed(with: keySigner2)!
-        XCTAssertEqual(psbtWithChangeSigned†, multiSignedPSBTWithChange)
+        #expect(psbtWithChangeSigned† == multiSignedPSBTWithChange)
         let psbtWithChangedFinalized = psbtWithChangeSigned.finalized()!
-        XCTAssertEqual(psbtWithChangedFinalized.finalizedTransaction()†, multiPSBTWithChangeHex)
+        #expect(psbtWithChangedFinalized.finalizedTransaction()† == multiPSBTWithChangeHex)
         
-        XCTAssertEqual(psbtWithChangedFinalized.outputs[0].txOutput.amount, 4000)
-        XCTAssertEqual(psbtWithChangedFinalized.outputs[0].txOutput.address(network: .mainnet), "bc1qmysp4826gh7tc7nnhx352hd39l0yltv83mty40kgg3xeaepe5qtq4c50qe")
+        #expect(psbtWithChangedFinalized.outputs[0].txOutput.amount == 4000)
+        #expect(psbtWithChangedFinalized.outputs[0].txOutput.address(network: .mainnet) == "bc1qmysp4826gh7tc7nnhx352hd39l0yltv83mty40kgg3xeaepe5qtq4c50qe")
 
-        XCTAssertEqual(psbtWithChangedFinalized.outputs[1].txOutput.amount, 819)
-        XCTAssertEqual(psbtWithChangedFinalized.outputs[1].txOutput.address(network: .mainnet), "bc1qsrufxljkjttj8kven90pta82ah6nqayxfr8p9h")
+        #expect(psbtWithChangedFinalized.outputs[1].txOutput.amount == 819)
+        #expect(psbtWithChangedFinalized.outputs[1].txOutput.address(network: .mainnet) == "bc1qsrufxljkjttj8kven90pta82ah6nqayxfr8p9h")
     }
     
-    func testIsChange() throws {
+    @Test func testIsChange() throws {
 //        let us = try HDKey(base58: master1)
 //        let cosigner = try HDKey(base58: master2)
         var psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
-//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertTrue(psbt.outputs[0].isChange)
-        XCTAssertFalse(psbt.outputs[1].isChange)
+//        #expect(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        #expect(!psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+        #expect(psbt.outputs[0].isChange)
+        #expect(!psbt.outputs[1].isChange)
 
         // Test maximum permitted change index
         psbt = PSBT(base64: changeIndex999999)!
-//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertTrue(psbt.outputs[0].isChange)
-        XCTAssertFalse(psbt.outputs[1].isChange)
+//        #expect(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        #expect(!psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+        #expect(psbt.outputs[0].isChange)
+        #expect(!psbt.outputs[1].isChange)
 
         // Test out of bounds change index
         psbt = PSBT(base64: changeIndex1000000)!
-//        XCTAssertFalse(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertFalse(psbt.outputs[0].isChange)
-        XCTAssertFalse(psbt.outputs[1].isChange)
+//        #expect(!psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        #expect(!psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+        #expect(!psbt.outputs[0].isChange)
+        #expect(!psbt.outputs[1].isChange)
     }
     
-    func testIsChangeWithNeuteredCosignerKey() throws {
+    @Test func testIsChangeWithNeuteredCosignerKey() throws {
 //        let us = try HDKey(base58: master1)
 //        let cosigner = try HDKey(base58: "xpub6DwQ4gBCmJZM3TaKogP41tpjuEwnMH2nWEi3PFev37LfsWPvjZrh1GfAG8xvoDYMPWGKG1oBPMCfKpkVbJtUHRaqRdCb6X6o1e9PQTVK88a", overrideOriginFingerprint: 0xbd16bee5)
         let psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
-//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertTrue(psbt.outputs[0].isChange)
-        XCTAssertFalse(psbt.outputs[1].isChange)
+//        #expect(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        #expect(!psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+        #expect(psbt.outputs[0].isChange)
+        #expect(!psbt.outputs[1].isChange)
     }
     
-    func testIsChangeWithNeuteredAllKeys() throws {
+    @Test func testIsChangeWithNeuteredAllKeys() throws {
 //        let us = try HDKey(base58: "xpub6E64WfdQwBGz85XhbZryr9gUGUPBgoSu5WV6tJWpzAvgAmpVpdPHkT3XYm9R5J6MeWzvLQoz4q845taC9Q28XutbptxAmg7q8QPkjvTL4oi", overrideOriginFingerprint: 0x3442193e)
 //        let cosigner = try HDKey(base58: "xpub6DwQ4gBCmJZM3TaKogP41tpjuEwnMH2nWEi3PFev37LfsWPvjZrh1GfAG8xvoDYMPWGKG1oBPMCfKpkVbJtUHRaqRdCb6X6o1e9PQTVK88a", overrideOriginFingerprint: 0xbd16bee5)
         let psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
-//        XCTAssertTrue(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-//        XCTAssertFalse(psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
-        XCTAssertTrue(psbt.outputs[0].isChange)
-        XCTAssertFalse(psbt.outputs[1].isChange)
+//        #expect(psbt.outputs[0].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+//        #expect(!psbt.outputs[1].isChange(signer: us, inputs: psbt.inputs, cosigners: [cosigner], threshold: 2))
+        #expect(psbt.outputs[0].isChange)
+        #expect(!psbt.outputs[1].isChange)
     }
     
-    func testGetTransactionFee() {
+    @Test func testGetTransactionFee() {
         let psbt = PSBT(base64: multiUnsignedPSBTWithChange)!
-        XCTAssertEqual(psbt.fee, 181)
+        #expect(psbt.fee == 181)
     }
     
     func printPSBT(_ psbt: PSBT, inputSigning: [PSBTInputSigning<NamedSeed>], outputSigning: [PSBTOutputSigning<NamedSeed>], network: Network) {
@@ -337,7 +338,7 @@ class PSBTTests: XCTestCase {
         let arid = ARID(‡"d44c5e0afd353f47b02f58a5a3a29d9a2efa6298692f896cd2923268599a0d0f")!
         let requestBody = PSBTSignatureRequestBody(psbt: psbt)
         let request = TransactionRequest(id: arid, body: requestBody)
-        XCTAssertEqual(request.envelope.urString, expectedRequest)
+        #expect(request.envelope.urString == expectedRequest)
         
         let inputSigning = psbt.inputSigning(signers: seeds)
         let outputSigning = psbt.outputSigning(signers: seeds)
@@ -355,9 +356,9 @@ class PSBTTests: XCTestCase {
         printPSBT(signedPSBT, inputSigning: updatedInputSigning, outputSigning: outputSigning, network: network)
         
         let response = TransactionResponse(id: arid, result: signedPSBT)
-        XCTAssertEqual(response.envelope.urString, expectedResponse)
+        #expect(response.envelope.urString == expectedResponse)
         
-        XCTAssertNotEqual(psbt.data, signedPSBT.data)
+        #expect(psbt.data != signedPSBT.data)
     }
 
     let alice = NamedSeed("Alice", Seed(hex: "82f32c855d3d542256180810797e0073")!)
@@ -365,7 +366,7 @@ class PSBTTests: XCTestCase {
     let carol = NamedSeed("Carol", Seed(hex: "e3955cda304771c0031895637f55c3abe45153c87abd81c51ed14e8aafa1af13")!)
     let dave = NamedSeed("Dave", Seed(hex: "605b79f555ffb9c10322858f4a11fc2c")!)
 
-    func testPSBTSession1of2() {
+    @Test func testPSBTSession1of2() {
         // A PSBT that can be fully signed by Alice or Bob (1 of 2).
         let psbt1of2 = PSBT(base64: "cHNidP8BAIkCAAAAAQPwB5cTkHMnKTqvqrrLPS1eLOAftT5vFpGcmc/xOXbNAAAAAAD9////Aqk7AQAAAAAAIgAgvrSaYkbuN5hy0mVXVgDRa+5KruKkRvab01aabj0wgA7oAwAAAAAAACIAIPET3raA+LQKJEoBaMJuHbq+/sVlZ7wAKqhYrhBRqF7GAAAAAAABAStQQAEAAAAAACIAIGppYhdefSa0Tt20ryHx+9D6hYu1x22rAREe77meFBePAQVHUSECBea9jkSoCw14R3q/7TwiVNGLcj0FC+ifMpXQe3Xw3pUhA1NZQ82ujgajfnWaDcwQwQQnqdA2pJnhnnoAfY7hN9Y/Uq4iBgIF5r2ORKgLDXhHer/tPCJU0YtyPQUL6J8yldB7dfDelRxVAWsvMAAAgAEAAIAAAACAAgAAgAAAAAABAAAAIgYDU1lDza6OBqN+dZoNzBDBBCep0DakmeGeegB9juE31j8c3lhO/TAAAIABAACAAAAAgAIAAIAAAAAAAQAAAAABAUdRIQJ97wKVQ/jja6DUlf6gkEjHukxkcTmIRp4Q6MZnI/DOZiED9+crp4WXakT0kPqDtpDXzEHRdMmm1sNthOQfj/n86klSriICAn3vApVD+ONroNSV/qCQSMe6TGRxOYhGnhDoxmcj8M5mHFUBay8wAACAAQAAgAAAAIACAACAAQAAAAIAAAAiAgP35yunhZdqRPSQ+oO2kNfMQdF0yabWw22E5B+P+fzqSRzeWE79MAAAgAEAAIAAAACAAgAAgAEAAAACAAAAAAA=")!
         let psbt1of2ExpectedRequest = "ur:envelope/lftpsotansfytansgshdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbsoycsielftpsotansfgcsiyoytpsotansflcssnlftpsohkaohgjojkidjyzmadaeldaoaeaeaeadaxwtatmsbwmhjkdidtftpepkrdsbfsdphydwvtctrefmjlcmmensnltkwneskosnaeaeaeaeaezczmzmzmaoptfradaeaeaeaeaecpaecxrnqznyidfgwyemmkjptdihhghfaettjewygeplvooxfgynndtehfnyjtfsdylabavsaxaeaeaeaeaeaecpaecxwnbwuerplayaqzbkdkgeadissajtcardrnzeskihiorfaedrpdhdplbegypdhyswaeaeaeaeaeadaddngdfzadaeaeaeaeaecpaecximinidchhykidsqzglutqzpeclwnzotizslplurestjnpyadbyckwsrhnnbbchmyadahflgyclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxguhkfxsnplmnamotkbkpnybtsfbeseaadipttienoxnlvynnknaekimnvyemtbfhgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxguhkfxsnplmnamotkbkpnybtsfbeseaadipttienoxnlvynnknaekimnvyemtbfhceuehdglzcdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgyclaokiwsaomdfxyavljenbtymdzenbmhfdstrdgsiejseslofgnnbevsswiocnwttoiyclaxylvddnoslpmsimfywkmhzslsrpmhtssffpttjysooltbsrjnlrvectmyytztwdgagmplcpaoaokiwsaomdfxyavljenbtymdzenbmhfdstrdgsiejseslofgnnbevsswiocnwttoiycegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaoaeaeaecpaoaxylvddnoslpmsimfywkmhzslsrpmhtssffpttjysooltbsrjnlrvectmyytztwdgaceuehdglzcdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaoaeaeaeaeaeoyadcfadzsjofyrecf"
@@ -373,7 +374,7 @@ class PSBTTests: XCTestCase {
         psbtSession(psbt1of2, seeds: [alice, bob], network: .testnet, expectedRequest: psbt1of2ExpectedRequest, expectedResponse: psbt1of2ExpectedResponse)
     }
     
-    func testPSBTSession2of2() {
+    @Test func testPSBTSession2of2() {
         // A PSBT that must be signed by Alice and Bob (2 of 2).
         let psbt2of2 = PSBT(base64: "cHNidP8BAH0CAAAAAVDiIuDv/6eKF/3KA2FyMzrLVV5pk3G2NEhF73B5cHZCAAAAAAD9////AroQAQAAAAAAIgAgEJHB5dt2HT9eYRRt+DRB1VesE3u4PQnVjxslEzH30RQQJwAAAAAAABYAFP+dpWfmLzDqhlT6HV+9R774474TAAAAAAABASuAOAEAAAAAACIAIOqI/uwvV9W/A0OzXJIq/7ez8/Djlu5044ADEcHKoxeJAQVHUiECBea9jkSoCw14R3q/7TwiVNGLcj0FC+ifMpXQe3Xw3pUhAwxRX5TBJXgf73IHRs8KO3ogIAPLIGg4F5krQxtG4s23Uq4iBgIF5r2ORKgLDXhHer/tPCJU0YtyPQUL6J8yldB7dfDelRxVAWsvMAAAgAEAAIAAAACAAgAAgAAAAAABAAAAIgYDDFFflMEleB/vcgdGzwo7eiAgA8sgaDgXmStDG0bizbccp+jQbjAAAIABAACAAAAAgAIAAIAAAAAAAQAAAAABAUdSIQIotmH/B/ZiUBfIrNaQfgfTQYH8pMLZyaqeuXwhI6KUNSEC5LHB9GmJkMT3B59mRaTvNJqjEfxARIb5j/xjUYVKa89SriICAii2Yf8H9mJQF8is1pB+B9NBgfykwtnJqp65fCEjopQ1HFUBay8wAACAAQAAgAAAAIACAACAAQAAAAMAAAAiAgLkscH0aYmQxPcHn2ZFpO80mqMR/EBEhvmP/GNRhUprzxyn6NBuMAAAgAEAAIAAAACAAgAAgAEAAAADAAAAAAA=")!
         let psbt2of2ExpectedRequest = "ur:envelope/lftpsotansfytansgshdcxtygshybkzcecfhflpfdlhdonotoentnydmzsidmkindlldjztdmoeyishknybtbsoycsielftpsotansfgcsiyoytpsotansflcssnlftpsohkaogrjojkidjyzmadaekiaoaeaeaeadgdvocpvtwszmoslechzcsgaxhsjpeoftsbgohyinmujsrpeefdfewsjokkjokofwaeaeaeaeaezczmzmzmaordbeadaeaeaeaeaecpaecxbemesevwuykocafhhyhsbbjnyaeefptlhgpsbwkgrofsastlmycwdabwehylttbbbediaeaeaeaeaeaecmaebbzmntoniovadldywdlnghzscaheryflrnyavlrnbwaeaeaeaeaeadaddnlaetadaeaeaeaeaecpaecxwdlozewpdlhgtlrsaxfxqdhhmodrzmrlqdwfwtvlmtwyjyvllaaxbysesgotchldadahflgmclaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdclaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlgmplcpamaoahvarymnfypdbdbtksflknrswefncpghttlujpfsahbdvsneeymdtikgkpwtuemdcegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaecpamaxbngyhemwsedaksctwsjpatfgtkbkfrkncxcxaxsbcxisetchnldnfxcwfgvosnrlceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaaeaeaeaeadaeaeaeaeadadflgmclaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemwecclaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkgmplcpaoaoderphszmatynidgdchsppstbmhkbattefplyztoxsatasopknnrhkeclcnoemweccegoadjedldyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaecpaoaovepasewkinldmhssylatneiyfeoxwseenyotbyztfzfylnytmyztiagylpgejetkceosvstijtdyaeaelaadaeaelaaeaeaelaaoaeaelaadaeaeaeaxaeaeaeaeaeoyadcfadzstnhycpfh"

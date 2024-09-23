@@ -1,6 +1,6 @@
 import BCFoundation
 import WolfBase
-import XCTest
+import Foundation
 
 /// An implementation of a skeletal share store, which is a service that could be
 /// used to back up SSKR shares and similar non-confidential information that might
