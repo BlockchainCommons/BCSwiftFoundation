@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 
-public struct AccountOutputType: Hashable, Identifiable {
+public struct AccountOutputType: Hashable, Identifiable, Sendable {
     public let name: String
     public let shortName: String
     public let descriptorSource: String

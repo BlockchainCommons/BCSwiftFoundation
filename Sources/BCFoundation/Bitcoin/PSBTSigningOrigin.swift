@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PSBTSigningOrigin: CustomStringConvertible {
+public struct PSBTSigningOrigin: CustomStringConvertible, Sendable {
     public let key: SecP256K1PublicKey
     public let path: DerivationPath
     

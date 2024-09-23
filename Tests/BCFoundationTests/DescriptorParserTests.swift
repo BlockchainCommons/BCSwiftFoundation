@@ -17,9 +17,8 @@ class DescriptorParserTests: XCTestCase {
     static let wif = hdKey.ecPrivateKey!.wif
     static let tpub = hdKey.base58PublicKey!
     
-    override class func setUp() {
-        super.setUp()
-        addKnownTags()
+    override func setUp() async throws {
+        await addKnownTags()
     }
     
     func checkRoundTrip(

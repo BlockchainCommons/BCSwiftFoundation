@@ -1,7 +1,7 @@
 import Foundation
 
 public struct OutputDescriptorResponseBody: Equatable, TransactionResponseBody {
-    public static var type = Envelope("descriptorResponse")
+    public static let type = Envelope("descriptorResponse")
     
     public let descriptor: OutputDescriptor
     public let challengeSignature: Data

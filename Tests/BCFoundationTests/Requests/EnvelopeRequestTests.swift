@@ -3,6 +3,11 @@ import BCFoundation
 import WolfBase
 
 class EnvelopeRequestTests: XCTestCase {
+    override func setUp() async throws {
+        await addKnownFunctionExtensions()
+        await addKnownTags()
+    }
+
     func testUseInfo() throws {
         let useInfo = UseInfo(asset: .btc, network: .mainnet)
         let envelope = useInfo.envelope

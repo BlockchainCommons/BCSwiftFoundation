@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ScriptPubKey : Equatable {
+public struct ScriptPubKey : Equatable, Sendable {
     public let script: Script
 
     public enum ScriptType {

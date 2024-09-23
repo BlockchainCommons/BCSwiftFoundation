@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 
-public struct Script: Equatable {
+public struct Script: Equatable, Sendable {
     public let data: Data
     
     public init(_ data: Data) {

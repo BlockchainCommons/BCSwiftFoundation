@@ -10,7 +10,7 @@ import URKit
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md
 
-public struct OutputDescriptorBundle {
+public struct OutputDescriptorBundle: Sendable {
     public let masterKey: any HDKeyProtocol
     public let network: Network
     public let account: UInt32
@@ -41,7 +41,7 @@ public struct OutputDescriptorBundle {
 }
 
 extension OutputDescriptorBundle: UREncodable {
-    public static var cborTags = [Tag.accountDescriptor, Tag.accountV1]
+    public static let cborTags = [Tag.accountDescriptor, Tag.accountV1]
 
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-015-account.md#cddl

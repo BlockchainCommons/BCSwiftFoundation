@@ -2,7 +2,9 @@ import Foundation
 import SecureComponents
 import Envelope
 
-extension PublicKeyBase: EnvelopeCodable {
+extension PublicKeyBase: @retroactive EnvelopeDecodable {}
+extension PublicKeyBase: @retroactive EnvelopeEncodable {}
+extension PublicKeyBase: @retroactive EnvelopeCodable {
     public var envelope: Envelope {
         Envelope(self)
     }

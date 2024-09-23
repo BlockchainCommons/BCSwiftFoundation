@@ -5,13 +5,13 @@ import WolfBase
 class OutputDescriptorRequestTests: XCTestCase {
     let slotID = ARID()
     let useInfo = UseInfo(asset: .btc, network: .testnet)
-    let challenge = SecureRandomNumberGenerator.shared.data(count: 16)
+    let challenge = secureRandomData(16)
     let accountNumber: UInt32 = 0
     
-    override class func setUp() {
-        addKnownFunctionExtensions()
+    override func setUp() async throws {
+        await addKnownFunctionExtensions()
     }
-
+    
     func testOutputDescriptorRequest() throws {
         let masterKey = try HDKey(seed: Seed(), useInfo: useInfo)
         let bundle = OutputDescriptorBundle(masterKey: masterKey, network: useInfo.network, account: accountNumber)!

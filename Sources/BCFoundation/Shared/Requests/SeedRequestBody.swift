@@ -10,7 +10,7 @@ import URKit
 import SecureComponents
 
 public struct SeedRequestBody: TransactionRequestBody {
-    public static var function = Function.getSeed
+    public static let function = Function.getSeed
     public let seedDigest: Digest
     
     public init(seedDigest: Digest) {

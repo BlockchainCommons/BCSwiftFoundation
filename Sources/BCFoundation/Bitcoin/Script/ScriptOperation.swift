@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 
-public enum ScriptOperation: Equatable {
+public enum ScriptOperation: Equatable, Sendable {
     case data(Data)
     case op(ScriptOpcode)
     

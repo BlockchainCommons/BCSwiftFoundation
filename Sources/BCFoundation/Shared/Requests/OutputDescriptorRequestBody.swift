@@ -2,7 +2,7 @@ import Foundation
 import WolfBase
 
 public struct OutputDescriptorRequestBody: TransactionRequestBody {
-    public static var function = Function.getOutputDescriptor
+    public static let function = Function.getOutputDescriptor
     public let name: String
     public let useInfo: UseInfo
     public let challenge: Data

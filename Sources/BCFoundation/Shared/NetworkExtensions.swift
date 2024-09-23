@@ -8,7 +8,7 @@
 import Foundation
 import URKit
 
-extension Network: Identifiable {
+extension Network: @retroactive Identifiable {
     public var id: String {
         switch self {
         case .mainnet:
@@ -32,7 +32,7 @@ extension Network {
     }
 }
 
-extension Network: CustomStringConvertible {
+extension Network: @retroactive CustomStringConvertible {
     public var description: String {
         switch self {
         case .mainnet:
@@ -74,7 +74,9 @@ extension Network: Codable {
     }
 }
 
-extension Network: EnvelopeCodable {
+extension Network: @retroactive EnvelopeDecodable {}
+extension Network: @retroactive EnvelopeEncodable {}
+extension Network: @retroactive EnvelopeCodable {
     public var envelope: Envelope {
         let type: KnownValue
         switch self {

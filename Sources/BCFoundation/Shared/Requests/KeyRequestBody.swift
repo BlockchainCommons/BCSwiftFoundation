@@ -11,7 +11,7 @@ import WolfBase
 import Envelope
 
 public struct KeyRequestBody: TransactionRequestBody {
-    public static var function: Function = .getKey
+    public static let function: Function = .getKey
     public let keyType: KeyType
     public let path: DerivationPath
     public let useInfo: UseInfo

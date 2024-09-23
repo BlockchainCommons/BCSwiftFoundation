@@ -8,7 +8,7 @@
 import Foundation
 import URKit
 
-public struct ChildIndex: ExpressibleByIntegerLiteral, Comparable {
+public struct ChildIndex: ExpressibleByIntegerLiteral, Comparable, Sendable {
     public let value: UInt32
     public init?(_ value: UInt32) {
         guard(value & 0x80000000 == 0) else {

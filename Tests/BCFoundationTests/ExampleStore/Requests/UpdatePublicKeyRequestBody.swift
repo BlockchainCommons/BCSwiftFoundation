@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct UpdatePublicKeyRequestBody: StoreRequestBody {
-    public static var function: Function = "updatePublicKey"
+    public static let function: Function = "updatePublicKey"
     public let publicKey: PublicKeyBase
     public let newPublicKey: PublicKeyBase
 

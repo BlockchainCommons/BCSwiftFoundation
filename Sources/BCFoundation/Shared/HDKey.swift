@@ -20,7 +20,7 @@ public enum HDKeyError: Error {
     case unknownDerivationError
 }
 
-public protocol HDKeyProtocol: IdentityDigestable, Equatable, URCodable, EnvelopeCodable {
+public protocol HDKeyProtocol: IdentityDigestable, Equatable, URCodable, EnvelopeCodable, Sendable {
     var isMaster: Bool { get }
     var keyType: KeyType { get }
     var keyData: Data { get }
@@ -37,7 +37,7 @@ public protocol HDKeyProtocol: IdentityDigestable, Equatable, URCodable, Envelop
 }
 
 public struct HDKey: HDKeyProtocol {
-    public static var cborTags = [Tag.hdKey, Tag.hdKeyV1]
+    public static let cborTags = [Tag.hdKey, Tag.hdKeyV1]
     
     public let isMaster: Bool
     public let keyType: KeyType

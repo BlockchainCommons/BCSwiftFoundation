@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PSBTSigningStatus<SignerType: PSBTSigner>: Identifiable {
+public struct PSBTSigningStatus<SignerType: PSBTSigner>: Identifiable, Sendable {
     public let id = UUID()
     public let origin: PSBTSigningOrigin
     public let isSigned: Bool

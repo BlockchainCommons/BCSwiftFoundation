@@ -9,27 +9,34 @@
 import Foundation
 import URKit
 
-public struct PSBT : Equatable {
+public struct PSBT : Equatable, Sendable {
     public let inputs: [PSBTInput]
     public let outputs: [PSBTOutput]
 
     private var storage: Storage
 
-    private final class Storage {
+    private final class Storage: @unchecked Sendable {
         var psbt: WallyPSBT
+        private let lock = NSLock()
 
         init(psbt: WallyPSBT) { self.psbt = psbt }
 
         deinit { psbt.dispose() }
+        
+        func withWallyPSBT<T>(_ body: (WallyPSBT) throws -> T) rethrows -> T {
+            try lock.withLock {
+                try body(psbt)
+            }
+        }
     }
-
-    private var _psbt: WallyPSBT {
-        storage.psbt
-    }
+    
+    private var lock = NSLock();
 
     private mutating func prepareForWrite() {
         if !isKnownUniquelyReferenced(&storage) {
-            storage.psbt = storage.psbt.clone()
+            lock.withLock {
+                storage.psbt = storage.psbt.clone()
+            }
         }
     }
 
@@ -80,7 +87,9 @@ public struct PSBT : Equatable {
     }
 
     public var data: Data {
-        return Wally.serialized(psbt: _psbt)
+        storage.withWallyPSBT { _psbt in
+            return Wally.serialized(psbt: _psbt)
+        }
     }
     
     public var base64: String {
@@ -92,11 +101,15 @@ public struct PSBT : Equatable {
     }
 
     public var isFinalized: Bool {
-        Wally.isFinalized(psbt: _psbt)
+        storage.withWallyPSBT { _psbt in
+            Wally.isFinalized(psbt: _psbt)
+        }
     }
 
     public var transaction: Transaction {
-        return Transaction(tx: _psbt.tx)
+        storage.withWallyPSBT { _psbt in
+            return Transaction(tx: _psbt.tx)
+        }
     }
     
     public var totalIn: Satoshi? {
@@ -141,14 +154,18 @@ public struct PSBT : Equatable {
     }
 
     public func finalizedTransaction() -> Transaction? {
-        Wally.finalizedTransaction(psbt: _psbt)
+        storage.withWallyPSBT { _psbt in
+            Wally.finalizedTransaction(psbt: _psbt)
+        }
     }
 
     public func signed(with privKey: ECPrivateKey) -> PSBT? {
-        guard let signedPSBT = Wally.signed(psbt: _psbt, ecPrivateKey: privKey.data) else {
-            return nil
+        storage.withWallyPSBT { _psbt in
+            guard let signedPSBT = Wally.signed(psbt: _psbt, ecPrivateKey: privKey.data) else {
+                return nil
+            }
+            return PSBT(ownedPSBT: signedPSBT)
         }
-        return PSBT(ownedPSBT: signedPSBT)
     }
 
     public func signed(with hdKey: HDKey) -> PSBT? {
@@ -193,10 +210,12 @@ public struct PSBT : Equatable {
     }
 
     public func finalized() -> PSBT? {
-        guard let psbt = Wally.finalized(psbt: _psbt) else {
-            return nil
+        storage.withWallyPSBT { _psbt in
+            guard let psbt = Wally.finalized(psbt: _psbt) else {
+                return nil
+            }
+            return PSBT(ownedPSBT: psbt)
         }
-        return PSBT(ownedPSBT: psbt)
     }
     
     public var isFullySigned: Bool {
@@ -257,7 +276,7 @@ extension PSBT {
 }
 
 extension PSBT: URCodable {
-    public static var cborTags = [Tag.psbt, Tag.psbtV1]
+    public static let cborTags = [Tag.psbt, Tag.psbtV1]
     
     public init(parse string: String) throws {
         if let a = PSBT(base64: string) {
@@ -320,5 +339,5 @@ extension PSBT: EnvelopeCodable {
 }
 
 extension PSBT: TransactionResponseBody {
-    public static var type = Envelope(.PSBT)
+    public static let type = Envelope(.PSBT)
 }

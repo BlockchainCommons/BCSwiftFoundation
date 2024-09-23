@@ -23,7 +23,7 @@ extension DerivationPath: Equatable {
     }
 }
 
-public struct DerivationPath {
+public struct DerivationPath: Sendable {
     public var origin: Origin?
     public var steps: [any DerivationStep]
     public var depth: Int?
@@ -41,7 +41,7 @@ public struct DerivationPath {
         return true
     }
     
-    public enum Origin: Equatable, CustomStringConvertible {
+    public enum Origin: Equatable, CustomStringConvertible, Sendable {
         case fingerprint(UInt32)
         case master
         
@@ -263,7 +263,7 @@ extension DerivationPath {
 }
 
 extension DerivationPath: CBORTaggedCodable {
-    public static var cborTags = [Tag.derivationPath, Tag.derivationPathV1]
+    public static let cborTags = [Tag.derivationPath, Tag.derivationPathV1]
     
     public var untaggedCBOR: CBOR {
         var a: Map = [1: steps.flatMap { $0.array }]

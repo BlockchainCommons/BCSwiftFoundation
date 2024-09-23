@@ -10,6 +10,7 @@ import BCFoundation
 import WolfBase
 
 class SeedTests: XCTestCase {
+       
     func testBIP39() throws {
         let mnemonic = "surge mind remove galaxy define nephew surge helmet shine hurry voyage dawn"
         let bip39 = BIP39(mnemonic: mnemonic)!
@@ -63,7 +64,9 @@ class SeedTests: XCTestCase {
         XCTAssertTrue(seedEnvelope2.isEquivalent(to: seedEnvelope))
     }
     
-    func testOutputDescriptor() throws {
+    func testOutputDescriptor() async throws {
+        await addKnownTags()
+        
         var seed = Seed(
             data: ‡"82f32c855d3d542256180810797e0073",
             name: "Alice's Seed",

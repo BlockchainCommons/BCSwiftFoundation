@@ -8,7 +8,7 @@
 import Foundation
 import URKit
 
-public protocol DerivationStep: Equatable, CustomStringConvertible {
+public protocol DerivationStep: Equatable, CustomStringConvertible, Sendable {
     var isWildcard: Bool { get }
     var isPair: Bool { get }
     var isFixed: Bool { get }

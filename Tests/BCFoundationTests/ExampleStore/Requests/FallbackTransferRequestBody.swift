@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct FallbackTransferRequestBody: StoreRequestBody {
-    public static var function: Function = "fallbackTransfer"
+    public static let function: Function = "fallbackTransfer"
     public let fallback: String
     public let publicKey: PublicKeyBase
 

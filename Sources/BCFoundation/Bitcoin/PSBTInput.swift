@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 
-public struct PSBTInput {
+public struct PSBTInput: Sendable {
     public let origins: [PSBTSigningOrigin]
     public let signatures: [SecP256K1PublicKey: Data]
     public let witnessStack: [ScriptPubKey?]

@@ -8,11 +8,33 @@
 import Foundation
 import WolfBase
 
-public class AccountDerivations {
+public final class AccountDerivations: @unchecked Sendable {
+    
+    private final class Cache {
+        var accountPath: DerivationPath? = nil
+        var bip39Seed: BIP39.Seed? = nil
+        var masterKey: HDKey? = nil
+        var accountKey: HDKey? = nil
+        var accountECPrivateKey: ECPrivateKey? = nil
+        var accountECDSAPublicKey: (any SecP256K1PublicKeyProtocol)? = nil
+        var accountEd25519PublicKey: Ed25519PublicKey? = nil
+        
+        init() {
+        }
+    }
+    
+    private let lock = NSRecursiveLock()
+    private let cache = Cache()
+
     public let useInfo: UseInfo
     public let account: UInt32?
     public let seed: Seed?
-    
+
+    private func withCache<T>(_ body: (Cache) throws -> T) rethrows -> T {
+        lock.lock(); defer { lock.unlock() }
+        return try body(cache)
+    }
+
     
     public init(seed: Seed, useInfo: UseInfo, account: UInt32) {
         self.seed = seed
@@ -33,7 +55,9 @@ public class AccountDerivations {
         self.useInfo = useInfo
         self.account = account
         
-        self.bip39Seed = bip39Seed
+        withCache { cache in
+            cache.bip39Seed = bip39Seed
+        }
     }
     
     public init(masterKey: HDKey, useInfo: UseInfo, account: UInt32) {
@@ -41,8 +65,10 @@ public class AccountDerivations {
         self.useInfo = useInfo
         self.account = account
         
-        self.accountPath = masterKey.children
-        self.masterKey = masterKey
+        withCache { cache in
+            cache.accountPath = masterKey.children
+            cache.masterKey = masterKey
+        }
     }
     
     public init(accountKey: HDKey, useInfo: UseInfo) {
@@ -50,53 +76,83 @@ public class AccountDerivations {
         self.useInfo = useInfo
         self.account = nil
         
-        self.accountKey = accountKey
+        withCache { cache in
+            cache.accountKey = accountKey
+        }
     }
 
-    
-    public private(set) lazy var accountPath: DerivationPath = {
-        return useInfo.accountDerivationPath(account: account!)
-    }()
-    
-    public private(set) lazy var bip39Seed: BIP39.Seed? = {
-        guard let bip39 = seed?.bip39 else {
-            return nil
+    public var accountPath: DerivationPath {
+        withCache { cache in
+            if cache.accountPath == nil {
+                cache.accountPath = useInfo.accountDerivationPath(account: account!)
+            }
+            return cache.accountPath!
         }
-        return BIP39.Seed(bip39: bip39)
-    }()
+    }
     
-    public private(set) lazy var masterKey: HDKey? = {
-        guard let bip39Seed = bip39Seed else {
-            return nil
+    public var bip39Seed: BIP39.Seed? {
+        withCache { cache in
+            if cache.bip39Seed == nil {
+                if let bip39 = seed?.bip39 {
+                    cache.bip39Seed = BIP39.Seed(bip39: bip39)
+                }
+            }
+            return cache.bip39Seed
         }
-        return try? HDKey(bip39Seed: bip39Seed)
-    }()
+    }
+
+    public var masterKey: HDKey? {
+        withCache { cache in
+            if cache.masterKey == nil {
+                if let bip39Seed = bip39Seed {
+                    cache.masterKey = try? HDKey(bip39Seed: bip39Seed)
+                }
+            }
+            return cache.masterKey
+        }
+    }
     
-    public private(set) lazy var accountKey: HDKey? = {
-        guard let masterKey = masterKey else {
-            return nil
+    public var accountKey: HDKey? {
+        withCache { cache in
+            if cache.accountKey == nil {
+                if let masterKey = masterKey {
+                    cache.accountKey = try? HDKey(parent: masterKey, childDerivationPath: accountPath)
+                }
+            }
+            return cache.accountKey
         }
-        return try? HDKey(parent: masterKey, childDerivationPath: accountPath)
-    }()
+    }
     
-    public private(set) lazy var accountECPrivateKey: ECPrivateKey? = {
-        guard let accountKey = accountKey else {
-            return nil
+    public var accountECPrivateKey: ECPrivateKey? {
+        withCache { cache in
+            if cache.accountECPrivateKey == nil {
+                if let accountKey = accountKey {
+                    cache.accountECPrivateKey = accountKey.ecPrivateKey
+                }
+            }
+            return cache.accountECPrivateKey
         }
-        return accountKey.ecPrivateKey
-    }()
+    }
     
-    public private(set) lazy var accountECDSAPublicKey: (any SecP256K1PublicKeyProtocol)? = {
-        guard let accountECPrivateKey = accountECPrivateKey else {
-            return nil
+    public var accountECDSAPublicKey: (any SecP256K1PublicKeyProtocol)? {
+        withCache { cache in
+            if cache.accountECDSAPublicKey == nil {
+                if let accountECPrivateKey = accountECPrivateKey {
+                    cache.accountECDSAPublicKey = accountECPrivateKey.secp256k1PublicKey
+                }
+            }
+            return cache.accountECDSAPublicKey
         }
-        return accountECPrivateKey.secp256k1PublicKey
-    }()
+    }
     
-    public private(set) lazy var accountEd25519PublicKey: Ed25519PublicKey? = {
-        guard let accountECPrivateKey = accountECPrivateKey else {
-            return nil
+    public var accountEd25519PublicKey: Ed25519PublicKey? {
+        withCache { cache in
+            if cache.accountEd25519PublicKey == nil {
+                if let accountECPrivateKey = accountECPrivateKey {
+                    cache.accountEd25519PublicKey = accountECPrivateKey.ed25519PublicKey
+                }
+            }
+            return cache.accountEd25519PublicKey
         }
-        return accountECPrivateKey.ed25519PublicKey
-    }()
+    }
 }

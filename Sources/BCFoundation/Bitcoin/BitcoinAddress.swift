@@ -128,7 +128,7 @@ extension Bitcoin {
             self.init(scriptPubKey: scriptPubKey, useInfo: UseInfo(network: network))
         }
                 
-        public enum AddressType {
+        public enum AddressType: Sendable {
             case payToPubKeyHash // P2PKH (legacy)
             case payToScriptHashPayToWitnessPubKeyHash // P2SH-P2WPKH (wrapped SegWit)
             case payToWitnessPubKeyHash // P2WPKH (native SegWit)
@@ -190,7 +190,7 @@ extension Bitcoin {
 }
 
 extension Bitcoin.Address: CBORTaggedCodable {
-    public static var cborTags = [Tag.address, Tag.addressV1]
+    public static let cborTags = [Tag.address, Tag.addressV1]
     
     public var untaggedCBOR: CBOR {
         // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-009-address.md#cddl

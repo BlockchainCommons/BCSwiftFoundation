@@ -8,7 +8,7 @@
 import Foundation
 import URKit
 
-protocol DescriptorAST: CustomStringConvertible {
+protocol DescriptorAST: CustomStringConvertible, Sendable {
     func scriptPubKey(chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> ScriptPubKey?
     func hdKey(keyType: KeyType, chain: Chain?, addressIndex: UInt32?, privateKeyProvider: PrivateKeyProvider?, comboOutput: OutputDescriptor.ComboOutput?) -> HDKey?
     var baseKey: HDKey? { get }

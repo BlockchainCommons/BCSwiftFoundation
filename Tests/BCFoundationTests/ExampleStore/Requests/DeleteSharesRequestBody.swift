@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct DeleteSharesRequestBody: StoreRequestBody {
-    public static var function: Function = "deleteShares"
+    public static let function: Function = "deleteShares"
     public let publicKey: PublicKeyBase
     public let receipts: Set<Receipt>
     

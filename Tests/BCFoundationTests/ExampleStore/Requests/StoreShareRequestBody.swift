@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct StoreShareRequestBody: StoreRequestBody {
-    public static var function: Function = "storeShare"
+    public static let function: Function = "storeShare"
     public let publicKey: PublicKeyBase
     public let payload: Data
 

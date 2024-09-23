@@ -8,7 +8,7 @@
 import Foundation
 import Flexer
 
-public struct OutputDescriptorError<T>: Error, CustomStringConvertible where T: TokenProtocol, T.Index == String.Index {
+public struct OutputDescriptorError<T>: Error, CustomStringConvertible where T: TokenProtocol & Sendable, T.Index == String.Index {
     public let message: String
     let token: T?
     public let source: String

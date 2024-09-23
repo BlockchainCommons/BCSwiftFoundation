@@ -8,7 +8,7 @@
 import Foundation
 import URKit
 
-public struct ChildIndexRange: Equatable {
+public struct ChildIndexRange: Equatable, Sendable {
     public let low: ChildIndex
     public let high: ChildIndex
     public init?(low: ChildIndex, high: ChildIndex) {

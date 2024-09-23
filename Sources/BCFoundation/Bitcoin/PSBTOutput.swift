@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PSBTOutput {
+public struct PSBTOutput: Sendable {
     public let txOutput: TxOutput
     public let origins: [PSBTSigningOrigin]
 

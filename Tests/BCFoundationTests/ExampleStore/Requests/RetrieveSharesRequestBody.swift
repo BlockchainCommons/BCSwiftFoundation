@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct RetrieveSharesRequestBody: StoreRequestBody {
-    public static var function: Function = "retrieveShares"
+    public static let function: Function = "retrieveShares"
     public let publicKey: PublicKeyBase
     public let receipts: Set<Receipt>
     

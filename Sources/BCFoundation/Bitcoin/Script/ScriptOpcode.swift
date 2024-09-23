@@ -8,7 +8,7 @@
 import Foundation
 import WolfBase
 
-public enum ScriptOpcode: UInt8, Equatable {
+public enum ScriptOpcode: UInt8, Equatable, Sendable {
     // See: https://en.bitcoin.it/wiki/Script
     
     // push value

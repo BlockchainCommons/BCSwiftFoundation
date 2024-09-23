@@ -2,7 +2,7 @@ import Foundation
 import BCFoundation
 
 public struct RetrieveFallbackRequestBody: StoreRequestBody {
-    public static var function: Function = "retrieveFallback"
+    public static let function: Function = "retrieveFallback"
     public let publicKey: PublicKeyBase
 
     public init(publicKey: PublicKeyBase) {

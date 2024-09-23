@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Flexer
+@preconcurrency import Flexer
 
 
 final class DescriptorLexer: Parser {

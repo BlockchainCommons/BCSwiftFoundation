@@ -18,7 +18,7 @@ public enum PSBTRequestStyle: Int {
 }
 
 public struct PSBTSignatureRequestBody: TransactionRequestBody {
-    public static var function = Function.signPSBT
+    public static let function = Function.signPSBT
     public let psbt: PSBT
     public let psbtRequestStyle: PSBTRequestStyle
     

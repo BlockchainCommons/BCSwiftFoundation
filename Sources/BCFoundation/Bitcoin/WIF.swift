@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct WIF : CustomStringConvertible {
+public struct WIF : CustomStringConvertible, Sendable {
     public let key: ECPrivateKey
     public let network: Network
     public let isPublicKeyCompressed: Bool

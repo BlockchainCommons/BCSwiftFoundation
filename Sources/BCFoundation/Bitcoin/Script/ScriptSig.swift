@@ -7,13 +7,13 @@
 
 import Foundation
 
-public struct ScriptSig {
+public struct ScriptSig: Sendable {
     public let type: ScriptSigType
 
     // When used in a finalized transaction, scriptSig usually includes a signature:
     public var signature: Data?
 
-    public enum ScriptSigType : Equatable {
+    public enum ScriptSigType : Equatable, Sendable {
         case payToPubKeyHash(SecP256K1PublicKey) // P2PKH (legacy)
         case payToScriptHashPayToWitnessPubKeyHash(SecP256K1PublicKey) // P2SH-P2WPKH (wrapped SegWit)
     }

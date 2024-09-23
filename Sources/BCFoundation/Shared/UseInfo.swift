@@ -9,7 +9,7 @@ import Foundation
 import URKit
 
 // https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-007-hdkey.md#cddl-for-coin-info
-public struct UseInfo: Equatable {
+public struct UseInfo: Equatable, Sendable {
     public let asset: Asset
     public let network: Network
 
@@ -75,7 +75,7 @@ extension UseInfo {
 }
 
 extension UseInfo: CBORTaggedCodable {
-    public static var cborTags = [Tag.useInfo, Tag.useInfoV1]
+    public static let cborTags = [Tag.useInfo, Tag.useInfoV1]
     
     public var untaggedCBOR: CBOR {
         var a = DCBOR.Map()

@@ -10,7 +10,7 @@ import WolfBase
 import URKit
 import SecureComponents
 
-public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider, URCodable, EnvelopeCodable {
+public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider, URCodable, EnvelopeCodable, Sendable {
     var data: Data { get }
     var name: String { get set }
     var note: String { get set }
@@ -34,7 +34,7 @@ public extension SeedProtocol/*: PrivateKeysDataProvider*/ {
 public let minSeedSize = 16
 
 public struct Seed: SeedProtocol {
-    public static var cborTags = [Tag.seed, Tag.seedV1]
+    public static let cborTags = [Tag.seed, Tag.seedV1]
     
     public let data: Data
     public var name: String
@@ -66,7 +66,8 @@ public struct Seed: SeedProtocol {
     }
 
     public init() {
-        self.init(data: SecureRandomNumberGenerator.shared.data(count: minSeedSize))!
+        var rng = SecureRandomNumberGenerator.shared
+        self.init(data: rng.data(count: minSeedSize))!
     }
     
     public static func == (lhs: Seed, rhs: Seed) -> Bool {
@@ -81,7 +82,7 @@ public struct Seed: SeedProtocol {
 }
 
 extension Seed: TransactionResponseBody {
-    public static var type = Envelope(.Seed)
+    public static let type = Envelope(.Seed)
 }
 
 public extension SeedProtocol {
@@ -97,7 +98,8 @@ public extension SeedProtocol {
     }
 
     init(count: Int) {
-        self.init(data: SecureRandomNumberGenerator.shared.data(count: count))!
+        var rng = SecureRandomNumberGenerator.shared
+        self.init(data: rng.data(count: count))!
     }
 }
 

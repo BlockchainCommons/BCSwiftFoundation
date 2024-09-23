@@ -8,7 +8,7 @@
 import Foundation
 import URKit
 
-public enum Asset: UInt32, CaseIterable, Equatable {
+public enum Asset: UInt32, CaseIterable, Equatable, Sendable {
     // Values from SLIP-0044 with high bit turned off
     // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
     case btc = 0

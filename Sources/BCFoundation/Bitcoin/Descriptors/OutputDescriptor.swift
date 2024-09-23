@@ -10,7 +10,7 @@ import URKit
 import WolfBase
 import Flexer
 
-public struct OutputDescriptor {
+public struct OutputDescriptor: Sendable {
     public let source: String
     private let astRoot: DescriptorAST
     public var name: String = ""
@@ -68,7 +68,7 @@ public struct OutputDescriptor {
 }
 
 extension OutputDescriptor: URCodable {
-    public static var cborTags = [Tag.outputDescriptor, Tag.outputDescriptorV1]
+    public static let cborTags = [Tag.outputDescriptor, Tag.outputDescriptorV1]
     
     /// Version 3 output descriptor
     public var untaggedCBOR: CBOR {

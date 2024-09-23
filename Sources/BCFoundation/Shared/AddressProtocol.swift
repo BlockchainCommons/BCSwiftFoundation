@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol AddressProtocol: CustomStringConvertible, Equatable {
+public protocol AddressProtocol: CustomStringConvertible, Equatable, Sendable {
     var useInfo: UseInfo { get }
     var string: String { get }
 }

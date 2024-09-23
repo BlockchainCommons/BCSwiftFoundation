@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct TxOutput {
+public struct TxOutput: Sendable {
     public let scriptPubKey: ScriptPubKey
     public var amount: Satoshi
 
