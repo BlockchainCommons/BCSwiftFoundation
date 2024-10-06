@@ -7,6 +7,6 @@
 
 import Foundation
 
-public protocol PSBTSigner : Hashable, Sendable {
+public protocol PSBTSigner : Hashable {
     var masterKey: HDKey { get }
 }

@@ -8,7 +8,7 @@
 import Foundation
 import Flexer
 
-struct DescriptorToken: TokenProtocol, Sendable {
+struct DescriptorToken: TokenProtocol {
     typealias Index = String.Index
 
     public enum Kind: Hashable {
@@ -50,7 +50,7 @@ struct DescriptorToken: TokenProtocol, Sendable {
 
     let range: Range<Index>
     let kind: Kind
-    let payload: (Any & Sendable)?
+    let payload: Any?
 
     init(kind: Kind, range: Range<Index>) {
         self.kind = kind
@@ -58,7 +58,7 @@ struct DescriptorToken: TokenProtocol, Sendable {
         self.payload = nil
     }
 
-    init(kind: Kind, range: Range<Index>, payload: (Any & Sendable)) {
+    init(kind: Kind, range: Range<Index>, payload: Any) {
         self.kind = kind
         self.range = range
         self.payload = payload

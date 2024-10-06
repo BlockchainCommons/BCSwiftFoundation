@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct DescriptorKeyExpression: Sendable {
+struct DescriptorKeyExpression {
     let origin: DerivationPath?
     let key: Key
 

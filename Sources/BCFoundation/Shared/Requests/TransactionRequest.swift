@@ -7,7 +7,7 @@ public enum TransactionRequestError: Swift.Error {
     case invalidFormat
 }
 
-public struct TransactionRequest: Equatable {
+public struct TransactionRequest: Equatable, Sendable {
     public let id: ARID
     public let body: Envelope
     public let function: Function

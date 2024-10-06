@@ -10,7 +10,7 @@ import WolfBase
 import URKit
 import SecureComponents
 
-public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider, URCodable, EnvelopeCodable, Sendable {
+public protocol SeedProtocol: IdentityDigestable, Equatable, PrivateKeysDataProvider, URCodable, EnvelopeCodable {
     var data: Data { get }
     var name: String { get set }
     var note: String { get set }

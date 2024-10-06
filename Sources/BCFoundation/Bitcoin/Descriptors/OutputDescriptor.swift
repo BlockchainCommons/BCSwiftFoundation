@@ -10,7 +10,7 @@ import URKit
 import WolfBase
 import Flexer
 
-public struct OutputDescriptor: Sendable {
+public struct OutputDescriptor {
     public let source: String
     private let astRoot: DescriptorAST
     public var name: String = ""

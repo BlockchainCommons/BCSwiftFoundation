@@ -1,7 +1,7 @@
 import Foundation
 
 @frozen
-public enum KeyType: Identifiable, CaseIterable, Equatable {
+public enum KeyType: Identifiable, CaseIterable, Equatable, Sendable {
     case `private`
     case `public`
 }

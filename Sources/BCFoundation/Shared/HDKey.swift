@@ -20,7 +20,7 @@ public enum HDKeyError: Error {
     case unknownDerivationError
 }
 
-public protocol HDKeyProtocol: IdentityDigestable, Equatable, URCodable, EnvelopeCodable, Sendable {
+public protocol HDKeyProtocol: IdentityDigestable, Equatable, URCodable, EnvelopeCodable {
     var isMaster: Bool { get }
     var keyType: KeyType { get }
     var keyData: Data { get }

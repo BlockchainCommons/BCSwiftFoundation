@@ -7,7 +7,7 @@ public enum TransactionResponseError: Swift.Error {
     case unknownResponseType
 }
 
-public struct TransactionResponse: Equatable {
+public struct TransactionResponse: Equatable, Sendable {
     public let id: ARID
     public let result: Envelope
     
